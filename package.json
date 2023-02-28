@@ -1,0 +1,31 @@
+{
+  "name": "js-chat",
+  "version": "0.0.1",
+  "description": "PubNub JavaScript Chat SDK",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pubnub/js-chat.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pubnub/js-chat/issues"
+  },
+  "homepage": "https://github.com/pubnub/js-chat#readme",
+  "dependencies": {
+    "pubnub": "7.2.2"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "5.37.0",
+    "@typescript-eslint/parser": "5.37.0",
+    "eslint": "8.22.0",
+    "eslint-config-prettier": "8.5.0",
+    "eslint-plugin-prettier": "4.2.1",
+    "prettier": "2.7.1",
+    "@types/pubnub": "7.2.0"
+  }
+}
