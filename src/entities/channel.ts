@@ -1,4 +1,5 @@
-import PubNub, {UriFileInput} from "pubnub";
+import PubNub from "pubnub";
+import { Message } from "./message";
 
 type ChannelConstructor = {
   sdk: PubNub;
@@ -30,7 +31,9 @@ export class Channel {
 
   getUnreadMessagesCount() {}
 
-  publish({ text, file, quote, threadId }: { text?: string, file?: UriFileInput, quote?: string, threadId?: string }) {}
+  publish(message: Message) {
+    // publish message
+  }
 
   star() {}
 
