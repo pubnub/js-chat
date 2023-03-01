@@ -5,4 +5,6 @@ export class User {
 
   constructor() {
   }
+
+  login() {}
 }

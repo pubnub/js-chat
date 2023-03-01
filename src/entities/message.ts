@@ -1,7 +1,7 @@
 import PubNub, { UriFileInput } from "pubnub";
-import {User} from "./User";
+import { User } from "./User";
 
-type MessageConstructor = {
+export type MessageConstructorParams = {
   timetoken: string;
   parentMessageId?: string;
   sdk: PubNub;
@@ -21,7 +21,7 @@ export class Message {
   destructionTime?: number;
   reactions: { reaction: string; count: number; users: User[]  }[] = [];
 
-  constructor(params: MessageConstructor) {
+  constructor(params: MessageConstructorParams) {
     this.sdk = params.sdk;
   }
 
