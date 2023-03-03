@@ -4,7 +4,7 @@
   "description": "PubNub JavaScript Chat SDK",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -20,12 +20,16 @@
     "pubnub": "7.2.2"
   },
   "devDependencies": {
+    "@jest/globals": "^29.4.3",
+    "@types/jest": "^29.4.0",
+    "@types/pubnub": "7.2.0",
     "@typescript-eslint/eslint-plugin": "5.37.0",
     "@typescript-eslint/parser": "5.37.0",
     "eslint": "8.22.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
+    "jest": "^29.4.3",
     "prettier": "2.7.1",
-    "@types/pubnub": "7.2.0"
+    "ts-jest": "^29.0.5"
   }
 }
