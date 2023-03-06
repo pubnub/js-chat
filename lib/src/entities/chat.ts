@@ -1,24 +1,36 @@
-import PubNub from "pubnub";
-import { MessageConstructorParams } from "./message";
+import PubNub from "pubnub"
+import { Channel } from "./channel"
 
 type ChatConstructor = {
   saveDebugLog?: boolean
-} & PubNub.PubnubConfig;
+} & PubNub.PubnubConfig
 
 export class Chat {
-  readonly sdk: PubNub;
+  readonly sdk: PubNub
 
   constructor(params: ChatConstructor) {
-    const { saveDebugLog, ...pubnubConfig } = params;
-
-    this.sdk = new PubNub(pubnubConfig);
+    const { saveDebugLog, ...pubnubConfig } = params
+    this.sdk = new PubNub(pubnubConfig)
   }
 
-  createUser(params: { id: string; name: string }) {}
+  static init(params: ChatConstructor) {
+    return new Chat(params)
+  }
 
-  createChannel(params: { id: string; name: string }) {}
+  getChannel(id: string) {
+    // TODO: connect to pubnub instead
+    return new Channel({
+      sdk: this.sdk,
+      id,
+      name: id,
+    })
+  }
 
-  createMessage(params: MessageConstructorParams) {}
+  createUser(params: { id: string; name: string }) {
+    // create user
+  }
 
-  getChannels() {};
+  createChannel(params: { id: string; name: string }) {
+    // create channel
+  }
 }
