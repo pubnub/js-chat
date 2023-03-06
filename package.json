@@ -4,7 +4,7 @@
   "private": true,
   "workspaces": [
     "lib",
-    "sample"
+    "sample/*"
   ],
   "scripts": {
     "start": "concurrently \"yarn workspace @pubnub/chat run dev\" \"yarn workspace sample run dev\"",

@@ -1,0 +1,20 @@
+<div id="app">
+  <div>
+    <p>PubNub initialized with: {{ pubnub.getUUID() }}</p>
+  </div>
+  <div class="message-input">
+    <h1>Message Input</h1>
+    <input type="text" [(ngModel)]="pubnubInput" (ngModelChange)="handleInput()" />
+    <button (click)="handleSend()">
+    Send
+  </button>
+  </div>
+  <div class="message-input">
+    <h1>Typing Indicator</h1>
+    <p *ngIf="typingReceived">{{ pubnub.getUUID() }} is typing...</p>
+  </div>
+  <div class="message-list">
+    <h1>Message List</h1>
+    <p *ngFor="let message of messages">{{ message.text }}</p>
+  </div>
+</div>
