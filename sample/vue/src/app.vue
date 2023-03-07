@@ -2,49 +2,29 @@
   <div>
     <p>PubNub initialized with: {{ pubnub.getUUID() }}</p>
   </div>
-  <div class="message-input">
-    <h1>Message Input</h1>
-    <input type="text" v-model="state.text" @input="handleInput" /><button @click="handleSend">
-      Send
-    </button>
-  </div>
-  <div class="message-input">
-    <h1>Typing Indicator</h1>
-    <p v-if="state.typingReceived">{{ pubnub.getUUID() }} is typing...</p>
-  </div>
-  <div class="message-list">
-    <h1>Message List</h1>
-    <p v-for="message in state.messages">{{ message.text }}</p>
+  <div class="flex">
+    <div class="column">
+      <MessageInputSDK :pubnub="pubnub" :channel="channel.id" />
+      <TypingIndicatorSDK :pubnub="pubnub" :channel="channel.id" />
+      <MessageListSDK :pubnub="pubnub" :channel="channel.id" />
+    </div>
+    <div class="column">
+      <MessageInputChat :chat="chat" :channel="channel" />
+      <TypingIndicatorChat :chat="chat" :channel="channel" />
+      <MessageListChat :chat="chat" :channel="channel" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import PubNub from "pubnub"
 import { Chat } from "@pubnub/chat"
-import { reactive } from "vue"
-
-console.log("Chat SDK: ", Chat)
-
-interface Message {
-  text: string
-  type: string
-}
-
-interface State {
-  channel: string
-  text: string
-  messages: Message[]
-  typingReceived: boolean
-  typingSent: boolean
-}
-
-const state: State = reactive({
-  channel: "test-channel",
-  text: "",
-  messages: [],
-  typingReceived: false,
-  typingSent: false,
-})
+import MessageInputSDK from "./sdk/MessageInput.vue"
+import MessageInputChat from "./chat/MessageInput.vue"
+import TypingIndicatorSDK from "./sdk/TypingIndicator.vue"
+import TypingIndicatorChat from "./chat/TypingIndicator.vue"
+import MessageListSDK from "./sdk/MessageList.vue"
+import MessageListChat from "./chat/MessageList.vue"
 
 const pubnub = new PubNub({
   subscribeKey: "demo",
@@ -52,39 +32,21 @@ const pubnub = new PubNub({
   userId: "test-user",
 })
 
-pubnub.addListener({
-  message: (event) => {
-    const { message } = event
-    if (message.type === "text") state.messages.push(message)
-  },
-  signal: (event) => {
-    const { message } = event
-    if (message.type === "typing") state.typingReceived = message.value
-  },
+const chat = Chat.init({
+  publishKey: "demo",
+  subscribeKey: "demo",
+  userId: "test-user",
 })
 
-pubnub.subscribe({
-  channels: [state.channel],
-})
-
-const sendTyping = async (value: boolean) => {
-  await pubnub.signal({ channel: state.channel, message: { type: "typing", value } })
-  state.typingSent = value
-}
-
-const handleInput = () => {
-  if (state.text && !state.typingSent) {
-    setTimeout(() => {
-      console.log("stopped typing")
-    }, 3000)
-    sendTyping(true)
-  }
-  if (!state.text && state.typingSent) sendTyping(false)
-}
-
-const handleSend = async () => {
-  await pubnub.publish({ channel: state.channel, message: { text: state.text, type: "text" } })
-  await sendTyping(false)
-  state.text = ""
-}
+const channel = chat.getChannel("test-channel")
 </script>
+
+<style scoped>
+.flex {
+  display: flex;
+}
+
+.column {
+  width: 50%;
+}
+</style>

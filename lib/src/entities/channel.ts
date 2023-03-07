@@ -1,45 +1,101 @@
-import PubNub from "pubnub";
-import { Message } from "./message";
+import PubNub, { ListenerParameters, SignalEvent, MessageEvent } from "pubnub"
+import { Message } from "./message"
 
 type ChannelConstructor = {
-  sdk: PubNub;
+  sdk: PubNub
+  id: string
+  name: string
 }
 
 export class Channel {
-  readonly sdk: PubNub;
+  private sdk: PubNub
+  readonly id: string
+  readonly name: string
+  private listeners: ListenerParameters[] = []
+  private subscribed = false
 
   constructor(params: ChannelConstructor) {
-    this.sdk = params.sdk;
+    this.sdk = params.sdk
+    this.id = params.id
+    this.name = params.name
   }
 
-  connect(callback: (event: unknown) => void) {
-    // Subscribe to this channel and listen for events
+  async sendText(text: string) {
+    return await this.sdk.publish({
+      channel: this.id,
+      message: {
+        type: "text",
+        text,
+      },
+    })
   }
 
-  disconnect() {}
-
-  getTyping(callback: (event: unknown) => void) {
-    // listen to typing events
+  async sendTyping(value: boolean) {
+    return await this.sdk.signal({
+      channel: this.id,
+      message: {
+        type: "typing",
+        value,
+      },
+    })
   }
 
-  fetchHistory({ start, end, count = 20 }: { start?: string; end?: string; count?: number }) {
-  // API should allow to differentiate between thread messages and
-  // root messages
+  getTyping(callback: (value: boolean) => unknown) {
+    const typingListener = {
+      signal: (event: SignalEvent) => {
+        const { message, channel } = event
+        if (channel !== this.id) return
+        if (message.type !== "typing") return
+        callback(message.value)
+      },
+    }
+
+    this.listeners.push(typingListener)
+    this.sdk.addListener(typingListener)
+    if (!this.subscribed) this.sdk.subscribe({ channels: [this.id] })
   }
 
-  togglePinMessage(messageTimeToken: string) {}
+  connect(callback: (message: Message) => void) {
+    const messageListener = {
+      message: (event: MessageEvent) => {
+        const { message, channel } = event
+        if (channel !== this.id) return
+        if (!["text"].includes(message.type)) return
+        callback(
+          new Message({
+            sdk: this.sdk,
+            timetoken: event.timetoken,
+            content: event.message,
+          })
+        )
+      },
+    }
 
-  getUnreadMessagesCount() {}
-
-  publish(message: Message) {
-    // publish message
+    this.listeners.push(messageListener)
+    this.sdk.addListener(messageListener)
+    if (!this.subscribed) this.sdk.subscribe({ channels: [this.id] })
   }
 
-  star() {}
+  disconnect() {
+    this.listeners.forEach((listener) => this.sdk.removeListener(listener))
+    this.listeners = []
+    if (this.subscribed) this.sdk.unsubscribe({ channels: [this.id] })
+  }
 
-  getMembers() {};
+  // fetchHistory({ start, end, count = 20 }: { start?: string; end?: string; count?: number }) {
+  //   // API should allow to differentiate between thread messages and
+  //   // root messages
+  // }
 
-  getOnlineMembers() {};
+  // togglePinMessage(messageTimeToken: string) {}
 
-  search(phrase: string) {};
+  // getUnreadMessagesCount() {}
+
+  // star() {}
+
+  // getMembers() {}
+
+  // getOnlineMembers() {}
+
+  // search(phrase: string) {}
 }
