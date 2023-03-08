@@ -7,12 +7,20 @@ type ChannelConstructor = {
   name: string
 }
 
+export type TypingData<T> = {
+  userId: string
+  data?: T
+}
+
 export class Channel {
   private sdk: PubNub
   readonly id: string
   readonly name: string
   private listeners: ListenerParameters[] = []
   private subscribed = false
+  private typingSent = false
+  private typingTimeout?: ReturnType<typeof setTimeout>
+  private typingData: TypingData<any>[] = []
 
   constructor(params: ChannelConstructor) {
     this.sdk = params.sdk
@@ -30,23 +38,39 @@ export class Channel {
     })
   }
 
-  async sendTyping(value: boolean) {
+  async sendTyping<T>(value: boolean, options?: { timeout: number; data: T }) {
+    if (this.typingTimeout) clearTimeout(this.typingTimeout)
+    if (options?.timeout && value)
+      this.typingTimeout = setTimeout(() => this.sendTyping(false), options.timeout)
+    if (value === this.typingSent) return
+    this.typingSent = !this.typingSent
     return await this.sdk.signal({
       channel: this.id,
       message: {
         type: "typing",
         value,
+        ...(options?.data ? { data: options.data } : undefined),
       },
     })
   }
 
-  getTyping(callback: (value: boolean) => unknown) {
+  getTyping<T>(callback: (typingData: TypingData<T>[]) => unknown) {
     const typingListener = {
       signal: (event: SignalEvent) => {
-        const { message, channel } = event
+        const { channel, message, publisher } = event
         if (channel !== this.id) return
         if (message.type !== "typing") return
-        callback(message.value)
+        if (!message.value) this.typingData = this.typingData.filter((d) => d.userId !== publisher)
+        else {
+          this.typingData = [
+            ...this.typingData,
+            {
+              userId: publisher,
+              ...(message.data ? { data: message.data } : undefined),
+            },
+          ]
+        }
+        callback(this.typingData)
       },
     }
 
