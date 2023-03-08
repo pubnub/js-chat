@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "outDir": "dist",
+    "outDir": "./dist",
     "module": "esnext",
     "target": "es5",
     "lib": ["es6", "dom", "esnext"],
@@ -10,11 +10,11 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "noEmit": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "noImplicitThis": false,
     "noImplicitAny": true,
     "strictNullChecks": true
-  }
+  },
+  "include": ["src/**/*"]
 }
