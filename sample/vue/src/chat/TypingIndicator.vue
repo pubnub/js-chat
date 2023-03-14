@@ -7,16 +7,17 @@ const props = defineProps<{
   channel: Channel
 }>()
 
-type NameCustom = { name: string }
+let typingData = ref<TypingData[]>([])
 
-let typingData = ref<TypingData<NameCustom>[]>([])
-
-props.channel.getTyping<NameCustom>((data) => (typingData.value = data))
+props.channel.getTyping((data) => {
+  console.log(data)
+  typingData.value = data
+})
 </script>
 
 <template>
   <div class="typing-indicator">
     <h1>Chat Typing Indicator</h1>
-    <p v-for="typing in typingData">{{ typing.data?.name }} is typing...</p>
+    <p v-for="typing in typingData">{{ typing.name }} is typing...</p>
   </div>
 </template>

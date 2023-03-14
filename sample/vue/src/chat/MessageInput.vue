@@ -15,17 +15,13 @@ const state: State = reactive({
   text: "",
 })
 
-const sendTyping = async (value: boolean) => {
-  await props.channel.sendTyping(value, { timeout: 5000, data: { name: "Uknown User" } })
-}
-
 const handleInput = () => {
-  sendTyping(!!state.text)
+  state.text ? props.channel.startTyping() : props.channel.stopTyping()
 }
 
 const handleSend = async () => {
-  await props.channel.sendText(state.text)
-  await sendTyping(false)
+  props.channel.stopTyping()
+  props.channel.sendText(state.text)
   state.text = ""
 }
 </script>
