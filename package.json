@@ -4,7 +4,7 @@
   "private": true,
   "workspaces": [
     "lib",
-    "sample/*"
+    "sample/*/*"
   ],
   "scripts": {
     "start": "concurrently \"yarn workspace @pubnub/chat run dev\" \"yarn workspace sample run dev\"",
@@ -12,12 +12,15 @@
   },
   "devDependencies": {
     "@types/axios": "0.14.0",
+    "@types/cucumber": "^7.0.0",
     "@typescript-eslint/eslint-plugin": "5.37.0",
     "@typescript-eslint/parser": "5.37.0",
     "concurrently": "^7.6.0",
+    "cucumber": "^6.0.7",
     "eslint": "8.22.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
+    "jest-cucumber": "^3.0.1",
     "prettier": "2.7.1",
     "typescript": "4.9.5"
   }

@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    "typeRoots": [
+      "node_modules/@types",
+      "node_modules"
+    ],
     "declaration": true,
     "outDir": "./dist",
     "module": "esnext",
