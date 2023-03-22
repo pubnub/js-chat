@@ -11,6 +11,7 @@
     "test": "yarn workspace @pubnub/chat run test"
   },
   "devDependencies": {
+    "@cucumber/cucumber": "^9.0.1",
     "@types/axios": "0.14.0",
     "@types/cucumber": "^7.0.0",
     "@typescript-eslint/eslint-plugin": "5.37.0",
