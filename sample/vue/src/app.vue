@@ -26,19 +26,25 @@ import TypingIndicatorChat from "./chat/TypingIndicator.vue"
 import MessageListSDK from "./sdk/MessageList.vue"
 import MessageListChat from "./chat/MessageList.vue"
 
+const userId = "test-user"
+const channelId = "test-channel"
+
 const pubnub = new PubNub({
   subscribeKey: "demo",
   publishKey: "demo",
-  userId: "test-user",
+  userId,
 })
 
 const chat = Chat.init({
-  publishKey: "demo",
   subscribeKey: "demo",
-  userId: "test-user",
+  publishKey: "demo",
+  userId,
+  typingTimeout: 2000,
 })
 
-const channel = chat.getChannel("test-channel")
+const channel = chat.getChannel(channelId)
+const user = chat.getUser(userId)
+chat.setChatUser(user)
 </script>
 
 <style scoped>

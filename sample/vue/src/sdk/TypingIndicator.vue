@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PubNub from "pubnub"
-import { reactive } from "vue"
+import { reactive, computed } from "vue"
 
 const props = defineProps<{
   pubnub: PubNub
@@ -8,17 +8,25 @@ const props = defineProps<{
 }>()
 
 interface State {
-  typingReceived: boolean
+  typingReceived: Map<string, boolean>
 }
 
 const state: State = reactive({
-  typingReceived: false,
+  typingReceived: new Map(),
+})
+
+const typingString = computed(() => {
+  const ids: string[] = []
+  state.typingReceived.forEach((val, key) => (val ? ids.push(key) : null))
+  if (ids.length > 1) return "Multiple users are typing..."
+  if (ids.length === 1) return `${ids[0]} is typing...`
+  return ""
 })
 
 props.pubnub.addListener({
   signal: (event) => {
-    const { message } = event
-    if (message.type === "typing") state.typingReceived = message.value
+    const { publisher, message } = event
+    if (message.type === "typing") state.typingReceived.set(publisher, message.value)
   },
 })
 
@@ -30,6 +38,6 @@ props.pubnub.subscribe({
 <template>
   <div class="typing-indicator">
     <h1>SDK Typing Indicator</h1>
-    <p v-if="state.typingReceived">{{ pubnub.getUUID() }} is typing...</p>
+    <p>{{ typingString }}</p>
   </div>
 </template>
