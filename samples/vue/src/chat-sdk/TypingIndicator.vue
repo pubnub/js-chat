@@ -10,7 +10,6 @@ const props = defineProps<{
 let typingData = ref<TypingData[]>([])
 
 props.channel.getTyping((data) => {
-  console.log(data)
   typingData.value = data
 })
 </script>

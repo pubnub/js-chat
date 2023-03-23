@@ -19,12 +19,12 @@
 <script setup lang="ts">
 import PubNub from "pubnub"
 import { Chat } from "@pubnub/chat"
-import MessageInputSDK from "./sdk/MessageInput.vue"
-import MessageInputChat from "./chat/MessageInput.vue"
-import TypingIndicatorSDK from "./sdk/TypingIndicator.vue"
-import TypingIndicatorChat from "./chat/TypingIndicator.vue"
-import MessageListSDK from "./sdk/MessageList.vue"
-import MessageListChat from "./chat/MessageList.vue"
+import MessageInputSDK from "./js-sdk/MessageInput.vue"
+import MessageInputChat from "./chat-sdk/MessageInput.vue"
+import TypingIndicatorSDK from "./js-sdk/TypingIndicator.vue"
+import TypingIndicatorChat from "./chat-sdk/TypingIndicator.vue"
+import MessageListSDK from "./js-sdk/MessageList.vue"
+import MessageListChat from "./chat-sdk/MessageList.vue"
 
 const userId = "test-user"
 const channelId = "test-channel"

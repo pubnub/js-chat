@@ -11,20 +11,12 @@ export class MessageInputComponentChat {
   @Input() channel!: Channel;
   @Input() typingSent!: boolean;
 
-
-  async sendTyping(value: boolean) {
-    await this.channel.sendTyping(value)
-    this.typingSent = value
-  }
-
   handleInput() {
-    if (this.pubnubInput && !this.typingSent) this.sendTyping(true)
-    if (!this.pubnubInput && this.typingSent) this.sendTyping(false)
+    this.pubnubInput ? this.channel.startTyping() : this.channel.stopTyping()
   }
 
   async handleSend() {
-    await this.channel.sendText(this.pubnubInput)
-    await this.sendTyping(false)
+    await this.channel.sendText(this.pubnubInput, { meta: { foo: "bar" } })
     this.pubnubInput = "";
   }
 }
