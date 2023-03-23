@@ -2,13 +2,13 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
-import { MessageInputComponentSDK } from "../sdk/message-input/message-input.component";
-import { MessageListComponentSDK } from "../sdk/message-list/message-list.component";
+import { MessageInputComponentSDK } from "../js-sdk/message-input/message-input.component";
+import { MessageListComponentSDK } from "../js-sdk/message-list/message-list.component";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { TypingIndicatorComponentSDK } from "../sdk/typing-indicator/typing-indicator.component";
-import { TypingIndicatorComponentChat } from "../chat/typing-indicator/typing-indicator.component";
-import { MessageListComponentChat } from "../chat/message-list/message-list.component";
-import { MessageInputComponentChat } from "../chat/message-input/message-input.component";
+import { TypingIndicatorComponentSDK } from "../js-sdk/typing-indicator/typing-indicator.component";
+import { TypingIndicatorComponentChat } from "../chat-sdk/typing-indicator/typing-indicator.component";
+import { MessageListComponentChat } from "../chat-sdk/message-list/message-list.component";
+import { MessageInputComponentChat } from "../chat-sdk/message-input/message-input.component";
 
 @NgModule({
   declarations: [

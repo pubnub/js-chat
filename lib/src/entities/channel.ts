@@ -1,5 +1,6 @@
 import PubNub, { ListenerParameters, SignalEvent, MessageEvent } from "pubnub"
 import { Message } from "./message"
+import { SendTextOptionParams } from "../types";
 
 type ChannelConstructor = {
   sdk: PubNub
@@ -20,13 +21,14 @@ export class Channel {
     this.name = params.name
   }
 
-  async sendText(text: string) {
+  async sendText(text: string, options: SendTextOptionParams = {}) {
     return await this.sdk.publish({
       channel: this.id,
       message: {
         type: "text",
         text,
       },
+      ...options,
     })
   }
 

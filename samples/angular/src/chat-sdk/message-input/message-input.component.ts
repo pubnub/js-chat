@@ -23,7 +23,7 @@ export class MessageInputComponentChat {
   }
 
   async handleSend() {
-    await this.channel.sendText(this.pubnubInput)
+    await this.channel.sendText(this.pubnubInput, { meta: { foo: "bar" } })
     await this.sendTyping(false)
     this.pubnubInput = "";
   }
