@@ -7,13 +7,13 @@
     "samples/*"
   ],
   "scripts": {
-    "start": "concurrently \"yarn workspace @pubnub/chat run dev\" \"yarn workspace sample run dev\"",
+    "start": "concurrently \"yarn workspace @pubnub/chat run dev\" \"yarn workspace vue run dev\" \"yarn workspace server run dev\"",
     "test": "yarn workspace @pubnub/chat run test"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "5.37.0",
     "@typescript-eslint/parser": "5.37.0",
-    "concurrently": "^7.6.0",
+    "concurrently": "7.6.0",
     "eslint": "8.22.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
