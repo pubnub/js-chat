@@ -1,9 +1,19 @@
-import PubNub from "pubnub"
+import { Chat } from "./chat"
+
+type UserConstructor = {
+  chat: Chat
+  id: string
+  name: string
+}
 
 export class User {
-  sdk!: PubNub
+  private chat: Chat
+  readonly id: string
+  readonly name: string
 
-  constructor() {}
-
-  login() {}
+  constructor(params: UserConstructor) {
+    this.chat = params.chat
+    this.id = params.id
+    this.name = params.name
+  }
 }

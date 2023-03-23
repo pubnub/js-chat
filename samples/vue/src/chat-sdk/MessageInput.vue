@@ -9,27 +9,19 @@ const props = defineProps<{
 
 interface State {
   text: string
-  typingSent: boolean
 }
 
 const state: State = reactive({
   text: "",
-  typingSent: false,
 })
 
-const sendTyping = async (value: boolean) => {
-  await props.channel.sendTyping(value)
-  state.typingSent = value
-}
-
 const handleInput = () => {
-  if (state.text && !state.typingSent) sendTyping(true)
-  if (!state.text && state.typingSent) sendTyping(false)
+  state.text ? props.channel.startTyping() : props.channel.stopTyping()
 }
 
 const handleSend = async () => {
-  await props.channel.sendText(state.text)
-  await sendTyping(false)
+  props.channel.stopTyping()
+  props.channel.sendText(state.text)
   state.text = ""
 }
 </script>

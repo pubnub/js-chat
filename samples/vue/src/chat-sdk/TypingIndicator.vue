@@ -1,26 +1,23 @@
 <script setup lang="ts">
-import { Chat, Channel } from "@pubnub/chat"
-import { reactive } from "vue"
+import { Chat, Channel, TypingData } from "@pubnub/chat"
+import { ref } from "vue"
 
 const props = defineProps<{
   chat: Chat
   channel: Channel
 }>()
 
-interface State {
-  typingReceived: boolean
-}
+let typingData = ref<TypingData[]>([])
 
-const state: State = reactive({
-  typingReceived: false,
+props.channel.getTyping((data) => {
+  console.log(data)
+  typingData.value = data
 })
-
-props.channel.getTyping((value) => (state.typingReceived = value))
 </script>
 
 <template>
   <div class="typing-indicator">
     <h1>Chat Typing Indicator</h1>
-    <p v-if="state.typingReceived">{{ props.chat.sdk.getUUID() }} is typing...</p>
+    <p v-for="typing in typingData">{{ typing.name }} is typing...</p>
   </div>
 </template>
