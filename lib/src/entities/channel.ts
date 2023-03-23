@@ -49,7 +49,7 @@ export class Channel {
       message: {
         type: "typing",
         value,
-        name: this.chat.getChatUser()?.name || "Unknown User",
+        name: this.chat.getChatUser()?.name,
       },
     })
   }
