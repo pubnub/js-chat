@@ -1,0 +1,9 @@
+---
+import LoginForm from "../components/LoginForm.svelte"
+import Layout from "../layouts/Layout.astro"
+---
+
+<Layout title="Login">
+  <h2 class="text-3xl font-extrabold mb-4">Login</h2>
+  <LoginForm client:load />
+</Layout>

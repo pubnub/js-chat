@@ -7,7 +7,7 @@
     "samples/*"
   ],
   "scripts": {
-    "start": "concurrently \"yarn workspace @pubnub/chat run dev\" \"yarn workspace vue run dev\" \"yarn workspace server run dev\"",
+    "start": "concurrently \"yarn workspace @pubnub/chat run dev\" \"yarn workspace astro run dev\"",
     "test": "yarn workspace @pubnub/chat run test"
   },
   "devDependencies": {
