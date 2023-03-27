@@ -1,5 +1,5 @@
 <script>
-  import ErrorNotice from "./ErrorNotice.svelte"
+  import { userIdAtom, authTokenAtom } from "../store"
 
   let login, error
 
@@ -13,17 +13,21 @@
     const json = await response.json()
 
     if (response.ok) {
-      console.log("Received data: ", json)
       error = null
-      // window.location = "/chat"
+      const { token, userId } = json
+      userIdAtom.set(userId)
+      authTokenAtom.set(token)
+      window.location = "/chat"
     } else {
       error = json.error
     }
   }
+
+  $: if ($userIdAtom) window.location = "/chat"
 </script>
 
 {#if error}
-  <ErrorNotice content={error} />
+  <p class="error mb-2">{error}</p>
 {/if}
 <form on:submit={handleSubmit}>
   <label for="login" class="text-md font-bold">User ID</label><br />
@@ -31,11 +35,7 @@
     bind:value={login}
     type="text"
     name="login"
-    class="border rounded border-gray-400 hover:border-accent focus:border-accent outline-none mt-2 px-4 py-2 w-full"
+    class="border-2 rounded border-gray-400 hover:border-accent focus:border-accent outline-none transition mt-2 px-4 py-2 w-full"
   />
-  <button
-    type="submit"
-    class="border rounded border-gray-400 hover:border-accent focus:border-accent outline-none mt-2 px-4 py-2"
-    >Log in</button
-  >
+  <button type="submit" class="mt-2">Log in</button>
 </form>

@@ -16,7 +16,7 @@ const { title } = Astro.props
     <title>{title}</title>
   </head>
   <body>
-    <main class="container mx-auto px-48">
+    <main class="container mx-auto px-8 lg:px-48">
       <h1 class="text-5xl font-extrabold my-12">
         Welcome to
         <span class="text-gradient bg-gradient-to-r from-accent to-pink-500">PubNub Chat</span>
@@ -29,5 +29,13 @@ const { title } = Astro.props
   .text-gradient {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+  }
+
+  button {
+    @apply border-2 rounded border-accent text-accent hover:bg-accent focus:bg-accent hover:text-white focus:text-white outline-none transition px-4 py-2;
+  }
+
+  .error {
+    @apply border-2 rounded border-accent text-accent px-4 py-2;
   }
 </style>

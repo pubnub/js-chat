@@ -63,6 +63,7 @@ export class Chat {
   }
 
   setChatUser(user: User) {
+    // this.sdk.setUUID(user.id)
     this.user = user
   }
 
