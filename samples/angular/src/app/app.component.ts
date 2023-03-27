@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import PubNub from "pubnub";
-import { Chat } from "@pubnub/chat";
+import {Channel, Chat} from "@pubnub/chat";
 
 const userId = "test-user"
 
@@ -15,10 +15,12 @@ export class AppComponent {
   messages = [] as any[];
   typingReceived = false;
   typingSent = false;
+  channel: Channel | null = null;
+  createChannelModalOpen = false;
 
   pubnub = new PubNub({
-    subscribeKey: "demo",
     publishKey: "demo",
+    subscribeKey: "demo",
     userId,
   })
 
@@ -29,11 +31,10 @@ export class AppComponent {
     typingTimeout: 2000,
   })
 
-  channel = this.chat.getChannel("test-channel")
-
-  ngOnInit() {
+  async ngOnInit() {
     const user = this.chat.getUser(userId)
     this.chat.setChatUser(user)
+    this.channel = await this.chat.getChannel("test-channel")
 
     this.pubnub.subscribe({
       channels: [this.channel.id],
@@ -49,5 +50,9 @@ export class AppComponent {
         if (message.type === "typing") this.typingReceived = message.value
       },
     })
+  }
+
+  toggleCreateChannelModal() {
+    this.createChannelModalOpen = !this.createChannelModalOpen;
   }
 }

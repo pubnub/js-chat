@@ -1,5 +1,5 @@
 <div id="app" class="flex">
-  <div class="column">
+  <div class="column" *ngIf="channel">
     <h1>SDK</h1>
     <div>
       <p>PubNub initialized with: {{ pubnub.getUUID() }}</p>
@@ -8,7 +8,7 @@
     <app-typing-indicator-sdk [typingReceived]="typingReceived" [pubnub]="pubnub" />
     <app-message-list-sdk [messages]="messages" />
   </div>
-  <div class="column">
+  <div class="column" *ngIf="channel">
     <h1>Chat</h1>
     <div>
       <p>PubNub initialized with: {{ pubnub.getUUID() }}</p>
@@ -16,5 +16,8 @@
     <app-message-input-chat [channel]="channel" [typingSent]="typingSent" />
     <app-typing-indicator-chat [channel]="channel" [pubnub]="pubnub" />
     <app-message-list-chat [channel]="channel" />
+    <app-create-channel-modal-chat [chat]="chat" [toggleCreateChannelModal]="toggleCreateChannelModal" [createChannelModalOpen]="createChannelModalOpen" />
+    <app-channel-list-chat [chat]="chat" />
+    <button (click)="toggleCreateChannelModal()">Open create channel modal</button>
   </div>
 </div>

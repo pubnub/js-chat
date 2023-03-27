@@ -27,13 +27,20 @@ export class Chat {
     return new Chat(params)
   }
 
-  getChannel(id: string) {
-    // TODO: connect to pubnub instead
-    return new Channel({
-      chat: this,
-      id,
-      name: id,
-    })
+  async getChannel(id: string) {
+    try {
+      const channelMetadata = await this.sdk.objects.getChannelMetadata({
+        channel: id,
+      })
+      return new Channel({
+        chat: this,
+        id,
+        name: channelMetadata.data.name!,
+      })
+    } catch (e) {
+      console.error("Are you sure this channel exists?");
+      throw e;
+    }
   }
 
   getUser(id: string) {
@@ -60,7 +67,28 @@ export class Chat {
     // create user
   }
 
-  createChannel(params: { id: string; name: string }) {
-    // create channel
+  async createChannel(params: { id: string; name: string }) {
+    try {
+      await this.sdk.objects.setChannelMetadata({
+        channel: params.id,
+        data: {
+          name: params.name,
+        }
+      })
+
+      return new Channel({
+        chat: this,
+        id: params.id,
+        name: params.name,
+      })
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
+
+  getChannels() {
+    // TODO
+    return Promise.resolve({ data: [] })
   }
 }

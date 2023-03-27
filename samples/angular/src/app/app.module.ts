@@ -9,6 +9,8 @@ import { TypingIndicatorComponentSDK } from "../js-sdk/typing-indicator/typing-i
 import { TypingIndicatorComponentChat } from "../chat-sdk/typing-indicator/typing-indicator.component";
 import { MessageListComponentChat } from "../chat-sdk/message-list/message-list.component";
 import { MessageInputComponentChat } from "../chat-sdk/message-input/message-input.component";
+import { CreateChannelModalComponentChat } from "../chat-sdk/create-channel-modal/create-channel-modal.component";
+import { ChannelListComponentChat } from "../chat-sdk/channel-list/channel-list.component";
 
 @NgModule({
   declarations: [
@@ -19,6 +21,8 @@ import { MessageInputComponentChat } from "../chat-sdk/message-input/message-inp
     TypingIndicatorComponentChat,
     MessageListComponentChat,
     MessageInputComponentChat,
+    CreateChannelModalComponentChat,
+    ChannelListComponentChat,
   ],
   imports: [
     BrowserModule,
