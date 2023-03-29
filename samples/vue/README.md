@@ -1,8 +1,8 @@
 # Vue app
 
-Run a simple Vue chat app built with Chat SDK (TypeScript) and [JavaScript SDK](https://www.pubnub.com/docs/sdks/javascript). 
+Run a simple Vue chat app built with Chat SDK (TypeScript) and [JavaScript SDK](https://www.pubnub.com/docs/sdks/javascript).
 
-The app uses a `test-user` and `demo` Subscribe and Publish Keys. After running it, you'll see a screen divided into two parts - two separate views showing sample message input, message list, and typing indicator fields, created with the JavaScript SDK (on the left) and the Chat SDK (on the left).
+This app uses a `test-user` and the `demo` Subscribe and Publish Keys. After running it, you'll see a screen divided into two parts - two separate views showing sample message input, message list, and typing indicator fields, created with the JavaScript SDK (on the left) and the Chat SDK (on the right).
 
 The idea behind the app was to replicate and test the same basic chat functionalities using separate SDKs.
 
