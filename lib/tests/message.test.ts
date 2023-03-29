@@ -25,7 +25,6 @@ describe("Send message test", () => {
 
     const elapsedTime = recieveTime - sendTime
     console.log(elapsedTime)
-
     expect(elapsedTime).toBeLessThan(400)
   })
 })
