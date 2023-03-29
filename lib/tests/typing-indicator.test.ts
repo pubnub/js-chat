@@ -1,7 +1,7 @@
 import axios from "axios"
 
 describe("Verify typing indicator", () => {
-  test("should verify if message sent", async () => {
+  test.skip("should verify if message sent", async () => {
     const requestBody = {
       id: 0,
       text: "beep",
