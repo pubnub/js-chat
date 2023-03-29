@@ -1,5 +1,4 @@
 import PubNub, { UriFileInput } from "pubnub"
-import { User } from "./User"
 
 export type MessageContent = {
   type: "text"
