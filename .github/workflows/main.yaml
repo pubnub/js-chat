@@ -5,7 +5,7 @@ on: [push]
 jobs:
   test:
     name: Run contract tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON('["ubuntu-latest", "self-hosted"]')[github.repository == 'github/docs-internal'] }}
 
     steps:
       - uses: actions/checkout@v3
