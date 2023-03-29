@@ -9,27 +9,6 @@ export const chat = Chat.init({
   userId: serverId,
 })
 
-chat.sdk.grantToken({
-  ttl: 60,
-  authorized_uuid: serverId,
-  resources: {
-    channels: {
-      "*": {
-        get: true,
-        update: true,
-        delete: true,
-      },
-    },
-    uuids: {
-      "*": {
-        get: true,
-        update: true,
-        delete: true,
-      },
-    },
-  },
-})
-
 export const headers = {
   "Content-Type": "application/json",
 }
@@ -38,21 +17,26 @@ export const getGrantParams = (id) => ({
   ttl: 60,
   authorized_uuid: id,
   resources: {
+    uuids: {
+      [`${id}`]: {
+        delete: true,
+        get: true,
+        update: true,
+      },
+    },
+  },
+  patterns: {
     channels: {
-      "*": {
+      ".*": {
+        get: true,
+        join: true,
         read: true,
         write: true,
-        get: true,
       },
     },
     uuids: {
-      "*": {
+      ".*": {
         get: true,
-      },
-      id: {
-        get: true,
-        update: true,
-        delete: true,
       },
     },
   },

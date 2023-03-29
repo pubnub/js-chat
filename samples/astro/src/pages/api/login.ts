@@ -5,8 +5,6 @@ export async function post({ request }) {
     const body = await request.json()
     const { login } = body
     if (!login) throw "Missing parameters"
-    const user = await chat.getUser(login)
-    if (!user) throw "User not found"
     const grantParams = getGrantParams(login)
     const token = await chat.sdk.grantToken(grantParams)
     if (!token) throw "Error granting auth token"

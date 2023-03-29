@@ -30,12 +30,7 @@
   <p class="error mb-2">{error}</p>
 {/if}
 <form on:submit={handleSubmit}>
-  <label for="login" class="text-md font-bold">User ID</label><br />
-  <input
-    bind:value={login}
-    type="text"
-    name="login"
-    class="border-2 rounded border-gray-400 hover:border-accent focus:border-accent outline-none transition mt-2 px-4 py-2 w-full"
-  />
+  <label for="login" class="text-md font-bold">User ID</label>
+  <input bind:value={login} type="text" name="login" class="" />
   <button type="submit" class="mt-2">Log in</button>
 </form>

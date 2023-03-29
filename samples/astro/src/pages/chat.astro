@@ -2,15 +2,15 @@
 import Layout from "../layouts/Layout.astro"
 import AuthGate from "../components/AuthGate.svelte"
 import UserInfo from "../components/UserInfo.svelte"
-import UserList from "../components/UserList.svelte"
+import UserMethods from "../components/UserMethods.vue"
 ---
 
 <Layout title="Chat">
   <main>
     <AuthGate client:only />
-    <h2 class="text-3xl font-extrabold mb-4">Current user</h2>
+    <h2>PAM tokens (Svelte)</h2>
     <UserInfo client:only />
-    <h2 class="text-3xl font-extrabold mb-4 mt-8">All users saved to keyset</h2>
-    <UserList client:only />
+    <h2>User methods (Vue)</h2>
+    <UserMethods client:only />
   </main>
 </Layout>

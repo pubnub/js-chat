@@ -1,6 +1,6 @@
-import PubNub from "pubnub"
+import PubNub, { SetUUIDMetadataParameters, ObjectCustom } from "pubnub"
 import { Channel } from "./channel"
-import { User, CreateUserParams } from "./user"
+import { User, UserFields } from "./user"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -27,27 +27,68 @@ export class Chat {
     return new Chat(params)
   }
 
-  async createUser(id: string, data: CreateUserParams) {
+  async getUser(id?: string) {
+    const uuid = id || this.sdk.getUUID()
     try {
-      await this.sdk.objects.setUUIDMetadata({ uuid: id, data })
-      return new User({ chat: this, id, ...data })
+      const response = await this.sdk.objects.getUUIDMetadata({ uuid })
+      return User.fromDTO(this, response.data)
     } catch (error) {
-      console.log("ERROR CREATING USER: ", error)
       throw error
     }
   }
 
-  async getUser(id: string) {
+  async createUser(id: string, data: UserFields) {
+    if (!id.length) throw "ID is required when creating a User"
     try {
-      const response = await this.sdk.objects.getUUIDMetadata({ uuid: id })
-      console.log("chat fetched user data: ", response)
-      const data = response.data
-      return new User({ chat: this, id, name: data.name || "" })
+      const response = await this.sdk.objects.setUUIDMetadata({ uuid: id, data })
+      return User.fromDTO(this, response.data)
     } catch (error) {
-      console.log("ERROR GETTING USER: ", error)
       throw error
     }
   }
+
+  async deleteUser(id: string, soft = false) {
+    const uuid = id || this.sdk.getUUID()
+    try {
+      let response
+      if (soft) {
+        response = await this.sdk.objects.setUUIDMetadata({
+          uuid,
+          data: { status: "deleted" },
+        } as SetUUIDMetadataParameters<ObjectCustom>)
+        return User.fromDTO(this, response.data)
+      } else {
+        await this.sdk.objects.removeUUIDMetadata({ uuid })
+        return true
+      }
+      console.log(response)
+    } catch (error) {
+      throw error
+    }
+  }
+
+  // async getAllUsers(params: PubNub.GetAllMetadataParameters) {
+  //   const forcedOptions = {
+  //     include: {
+  //       totalCount: true,
+  //       customFields: true,
+  //     },
+  //   }
+  //   try {
+  //     const response = await this.sdk.objects.getAllUUIDMetadata(
+  //       Object.assign({}, params, forcedOptions)
+  //     )
+  //     console.log("all users: ", response)
+  //     return {
+  //       users: response.data.map((u) => User.fromDTO(u)),
+  //       next: response.next,
+  //       prev: response.prev,
+  //       total: response.totalCount,
+  //     }
+  //   } catch (error) {
+  //     throw error
+  //   }
+  // }
 
   getChannel(id: string) {
     // TODO: connect to pubnub instead
