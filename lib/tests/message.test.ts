@@ -1,7 +1,6 @@
 import { Chat, Channel } from "../src"
 
 describe("Send message test", () => {
-  afterAll(() => setTimeout(() => process.exit(), 1000))
   test("should verify if message sent", async () => {
     const chat = Chat.init({
       publishKey: "demo",
