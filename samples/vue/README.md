@@ -15,49 +15,51 @@ Before you start, make sure you have the following package managers installed:
 
 ## Usage
 
+Follow these steps to run the Vue app:
+
 1. Open the terminal, select the location, and download the Chat SDK.
 
-```ssh showLineNumbers
-git clone git@github.com:pubnub/js-chat.git
-```
+    ```ssh showLineNumbers
+    git clone git@github.com:pubnub/js-chat.git
+    ```
 
 1. Go to the downloaded repository folder.
 
-```bash showLineNumbers
-cd js-chat
-```
+    ```bash showLineNumbers
+    cd js-chat
+    ```
 
 1. Resolve and fetch packages, and link the required dependencies.
 
-```bash showLineNumbers
-yarn
-```
+    ```bash showLineNumbers
+    yarn
+    ```
 
 1. Go to the `lib` folder that contains the TypeScript sources.
 
-```bash showLineNumbers
-cd lib
-```
+    ```bash showLineNumbers
+    cd lib
+    ```
 
 1. Bundle the TypeScript library and compile it to a JavaScript script.
 
-```bash showLineNumbers
-yarn build
-```
+    ```bash showLineNumbers
+    yarn build
+    ```
 
 1. Go to the `samples/vue` folder with the app's source code.
 
-```bash showLineNumbers
-cd ..
-cd samples/vue
-```
+    ```bash showLineNumbers
+    cd ..
+    cd samples/vue
+    ```
 
 1. Run the app.
 
-```bash showLineNumbers
-yarn dev
-```
+    ```bash showLineNumbers
+    yarn dev
+    ```
 
 1. When the app compiles successfully, you will see the link to the localhost in the terminal. Open it in your browser and test the app by sending a sample message.
 
-![Vue sample](/samples/vue/src/assets/vue-sample.png)
+    ![Vue sample](/samples/vue/src/assets/vue-sample.png)
