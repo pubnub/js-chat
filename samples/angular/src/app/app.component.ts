@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import PubNub from "pubnub";
-import {Channel, Chat} from "@pubnub/chat";
+import { Channel, Chat } from "@pubnub/chat";
+import { StateService } from "./state.service";
 
 const userId = "test-user"
 
@@ -16,7 +17,11 @@ export class AppComponent {
   typingReceived = false;
   typingSent = false;
   channel: Channel | null = null;
-  createChannelModalOpen = false;
+
+  constructor(private stateService: StateService) {
+
+  }
+
 
   pubnub = new PubNub({
     publishKey: "demo",
@@ -52,7 +57,11 @@ export class AppComponent {
     })
   }
 
-  toggleCreateChannelModal() {
-    this.createChannelModalOpen = !this.createChannelModalOpen;
+  toggleCreateChannelModalChatSDK() {
+    this.stateService.toggleCreateChannelModalChatSDK();
+  }
+
+  toggleCreateChannelModalJSSDK() {
+    this.stateService.toggleCreateChannelModalJSSDK();
   }
 }

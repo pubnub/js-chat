@@ -1,0 +1,16 @@
+---
+import Layout from "../layouts/Layout.astro"
+import AuthGate from "../components/AuthGate.svelte"
+import UserInfo from "../components/UserInfo.svelte"
+import UserMethods from "../components/UserMethods.vue"
+---
+
+<Layout title="Chat">
+  <main>
+    <AuthGate client:only />
+    <h2>PAM tokens (Svelte)</h2>
+    <UserInfo client:only />
+    <h2>User methods (Vue)</h2>
+    <UserMethods client:only />
+  </main>
+</Layout>

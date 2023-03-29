@@ -7,6 +7,9 @@
     <app-message-input-sdk [pubnub]="pubnub" [channel]="channel.id" [typingSent]="typingSent" />
     <app-typing-indicator-sdk [typingReceived]="typingReceived" [pubnub]="pubnub" />
     <app-message-list-sdk [messages]="messages" />
+    <app-create-channel-modal-sdk [pubnub]="pubnub" />
+    <app-channel-list-sdk [pubnub]="pubnub" />
+    <button (click)="toggleCreateChannelModalJSSDK()">Open create channel modal</button>
   </div>
   <div class="column" *ngIf="channel">
     <h1>Chat</h1>
@@ -16,8 +19,8 @@
     <app-message-input-chat [channel]="channel" [typingSent]="typingSent" />
     <app-typing-indicator-chat [channel]="channel" [pubnub]="pubnub" />
     <app-message-list-chat [channel]="channel" />
-    <app-create-channel-modal-chat [chat]="chat" [toggleCreateChannelModal]="toggleCreateChannelModal" [createChannelModalOpen]="createChannelModalOpen" />
+    <app-create-channel-modal-chat [chat]="chat" />
     <app-channel-list-chat [chat]="chat" />
-    <button (click)="toggleCreateChannelModal()">Open create channel modal</button>
+    <button (click)="toggleCreateChannelModalChatSDK()">Open create channel modal</button>
   </div>
 </div>

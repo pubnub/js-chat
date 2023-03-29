@@ -1,17 +1,18 @@
 import { Component, Input } from '@angular/core';
-import { Chat } from "@pubnub/chat";
+import PubNub from "pubnub";
 import {StateService} from "../../app/state.service";
 
 @Component({
-  selector: 'app-create-channel-modal-chat',
+  selector: 'app-create-channel-modal-sdk',
   templateUrl: './create-channel-modal.component.html',
   styleUrls: ['./create-channel-modal.component.scss']
 })
-export class CreateChannelModalComponentChat {
+export class CreateChannelModalComponentSDK {
   channelNameInput = "";
-  @Input() chat!: Chat;
+  @Input() pubnub!: PubNub;
+
   get createChannelModalOpen(): boolean {
-    return this.stateService.createChannelModalChatSDKOpen;
+    return this.stateService.createChannelModalJSSDKOpen;
   }
 
   constructor(private stateService: StateService) {
@@ -19,15 +20,20 @@ export class CreateChannelModalComponentChat {
   }
 
   toggleCreateChannelModal() {
-    this.stateService.toggleCreateChannelModalChatSDK();
+    this.stateService.toggleCreateChannelModalJSSDK();
   }
 
   async submitCreateChannelForm() {
     if (!this.channelNameInput) {
       return;
     }
+    await this.pubnub.objects.setChannelMetadata({
+      channel: this.channelNameInput.replaceAll(" ", "."),
+      data: {
+        name: this.channelNameInput,
+      }
+    })
 
-    await this.chat.createChannel({ id: this.channelNameInput.replaceAll(" ", "."), name: this.channelNameInput });
-    this.toggleCreateChannelModal();
+    this.stateService.toggleCreateChannelModalJSSDK();
   }
 }

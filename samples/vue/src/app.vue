@@ -7,14 +7,17 @@
       <MessageInputSDK :pubnub="pubnub" :channel="state.channel.id" />
       <TypingIndicatorSDK :pubnub="pubnub" :channel="state.channel.id" />
       <MessageListSDK :pubnub="pubnub" :channel="state.channel.id" />
+      <CreateChannelModalSDK :pubnub="pubnub" :toggleCreateChannelModal="toggleCreateChannelModalJSSDK" :createChannelModalOpen="state.createChannelModalJSSDKOpen" />
+      <ChannelListSDK :pubnub="pubnub" />
+      <button @click="toggleCreateChannelModalJSSDK">Open create channel modal</button>
     </div>
     <div class="column">
       <MessageInputChat :chat="chat" :channel="state.channel" />
       <TypingIndicatorChat :chat="chat" :channel="state.channel" />
       <MessageListChat :chat="chat" :channel="state.channel" />
-      <CreateChannelModalChat :chat="chat" :toggleCreateChannelModal="toggleCreateChannelModal" :createChannelModalOpen="state.createChannelModalOpen" />
+      <CreateChannelModalChat :chat="chat" :toggleCreateChannelModal="toggleCreateChannelModalChatSDK" :createChannelModalOpen="state.createChannelModalChatsSDKOpen" />
       <ChannelListChat :chat="chat" />
-      <button @click="toggleCreateChannelModal">Open create channel modal</button>
+      <button @click="toggleCreateChannelModalChatSDK">Open create channel modal</button>
     </div>
   </div>
 </template>
@@ -30,11 +33,14 @@ import MessageListSDK from "./js-sdk/MessageList.vue"
 import MessageListChat from "./chat-sdk/MessageList.vue"
 import CreateChannelModalChat from "./chat-sdk/CreateChannelModal.vue"
 import ChannelListChat from "./chat-sdk/ChannelList.vue"
+import ChannelListSDK from "./js-sdk/ChannelList.vue"
+import CreateChannelModalSDK from "./js-sdk/CreateChannelModal.vue"
 import { reactive } from "vue";
 
 interface State {
   channel?: Channel
-  createChannelModalOpen: boolean;
+  createChannelModalJSSDKOpen: boolean;
+  createChannelModalChatsSDKOpen: boolean;
 }
 
 const userId = "test-user"
@@ -55,7 +61,8 @@ const chat = Chat.init({
 
 const state: State = reactive({
   channel: undefined,
-  createChannelModalOpen: false,
+  createChannelModalJSSDKOpen: false,
+  createChannelModalChatsSDKOpen: false,
 });
 
 (async function() {
@@ -65,8 +72,12 @@ const state: State = reactive({
 const user = chat.getUser(userId)
 chat.setChatUser(user)
 
-const toggleCreateChannelModal = () => {
-  state.createChannelModalOpen = !state.createChannelModalOpen;
+const toggleCreateChannelModalJSSDK = () => {
+  state.createChannelModalJSSDKOpen = !state.createChannelModalJSSDKOpen;
+}
+
+const toggleCreateChannelModalChatSDK = () => {
+  state.createChannelModalChatsSDKOpen = !state.createChannelModalChatsSDKOpen;
 }
 
 </script>

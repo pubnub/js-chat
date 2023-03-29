@@ -11,6 +11,8 @@ import { MessageListComponentChat } from "../chat-sdk/message-list/message-list.
 import { MessageInputComponentChat } from "../chat-sdk/message-input/message-input.component";
 import { CreateChannelModalComponentChat } from "../chat-sdk/create-channel-modal/create-channel-modal.component";
 import { ChannelListComponentChat } from "../chat-sdk/channel-list/channel-list.component";
+import { ChannelListComponentSDK } from "../js-sdk/channel-list/channel-list.component";
+import { CreateChannelModalComponentSDK } from "../js-sdk/create-channel-modal/create-channel-modal.component";
 
 @NgModule({
   declarations: [
@@ -23,6 +25,8 @@ import { ChannelListComponentChat } from "../chat-sdk/channel-list/channel-list.
     MessageInputComponentChat,
     CreateChannelModalComponentChat,
     ChannelListComponentChat,
+    ChannelListComponentSDK,
+    CreateChannelModalComponentSDK,
   ],
   imports: [
     BrowserModule,
