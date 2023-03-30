@@ -41,7 +41,7 @@ Follow these steps to run the Vue app:
     cd lib
     ```
 
-1. Bundle the TypeScript library and compile it to a JavaScript script.
+1. Bundle the TypeScript library and compile it down to a JavaScript script.
 
     ```bash showLineNumbers
     yarn build
