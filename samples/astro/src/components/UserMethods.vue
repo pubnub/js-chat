@@ -10,17 +10,17 @@ const $chat = useStore(chatAtom)
 interface State {
   error: string
   user?: User
-  allUsers: User[]
-  totalCount: number
-  page: string
+  users: User[]
+  total: number
+  page: { next?: string; prev?: string }
 }
 
 const state: State = reactive({
   error: "",
   user: undefined,
-  allUsers: [],
-  totalCount: 0,
-  page: "",
+  users: [],
+  total: 0,
+  page: { next: undefined, prev: undefined },
 })
 
 const createUserForm = reactive({
@@ -48,8 +48,12 @@ function extractErrorMessage(e: any) {
 async function handleGetAll() {
   try {
     state.error = ""
-    const users = await $chat.value.getAllUsers()
-    console.log("users object: ", users)
+    do {
+      const { users, page, total } = await $chat.value.getUsers({ limit: 2, page: state.page })
+      state.users.push(...users)
+      state.page = page
+      state.total = total
+    } while (state.users.length < state.total)
   } catch (e: any) {
     state.error = extractErrorMessage(e)
     console.error(e)
@@ -112,8 +116,8 @@ async function handleSoftDelete() {
   <div>
     <h3>Get all users</h3>
     <button class="mb-4" @click="handleGetAll">Get all users</button>
-    <p><b>Total count: </b>{{ state.totalCount }}</p>
-    <p><b>Existing IDs: </b>{{ state.allUsers }}</p>
+    <p><b>Total count: </b>{{ state.total }}</p>
+    <p><b>Existing IDs: </b>{{ state.users.map((u) => u.id).join(", ") }}</p>
   </div>
   <div class="grid grid-cols-2 gap-4 mt-6">
     <section>
