@@ -33,7 +33,9 @@ export class Chat {
       const response = await this.sdk.objects.getUUIDMetadata({ uuid })
       return User.fromDTO(this, response.data)
     } catch (error) {
-      throw error
+      const e = error as { status: { errorData: { status: number } } }
+      if (e?.status?.errorData?.status === 404) return null
+      else throw error
     }
   }
 
