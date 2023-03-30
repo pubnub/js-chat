@@ -1,13 +1,18 @@
-import { ListenerParameters, SignalEvent, MessageEvent } from "pubnub"
+import {
+  ListenerParameters,
+  SignalEvent,
+  MessageEvent,
+  ObjectCustom,
+  ChannelMetadataObject
+} from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
 import { SendTextOptionParams } from "../types";
 
 type ChannelConstructor = {
-  chat: Chat
   id: string
-  name: string
-}
+  name?: string
+} & ChannelMetadataObject<ObjectCustom>
 
 export interface TypingData {
   userId: string
@@ -21,17 +26,31 @@ interface TypingDataWithTimer extends TypingData {
 export class Channel {
   private chat: Chat
   readonly id: string
-  readonly name: string
+  readonly name?: string
   private listeners: ListenerParameters[] = []
   private subscribed = false
   private typingSent = false
   private typingSentTimer?: ReturnType<typeof setTimeout>
   private typingIndicators: TypingDataWithTimer[] = []
 
-  constructor(params: ChannelConstructor) {
-    this.chat = params.chat
+  constructor(chat: Chat, params: ChannelConstructor) {
+    this.chat = chat
     this.id = params.id
     this.name = params.name
+    Object.assign(this, params)
+  }
+
+  static fromDTO(chat: Chat, params: ChannelMetadataObject<ObjectCustom>) {
+    const data = {
+      id: params.id,
+      name: params.name || undefined,
+      custom: params.custom || undefined,
+      description: params.description || undefined,
+      eTag: params.eTag,
+      updated: params.updated,
+    }
+
+    return new Channel(chat, data)
   }
 
   async sendText(text: string, options: SendTextOptionParams = {}) {

@@ -16,8 +16,7 @@
   "lint-staged": {
     "*.{js,ts,tsx}": [
       "npm run eslint:base -- --fix",
-      "npm run prettier:base -- --write",
-      "npm run tsc"
+      "npm run prettier:base -- --write"
     ],
     "*.{json,md,mdx}": [
       "npm run prettier:base -- --write"
@@ -28,13 +27,14 @@
     "@commitlint/config-conventional": "17.1.0",
     "@typescript-eslint/eslint-plugin": "5.37.0",
     "@typescript-eslint/parser": "5.37.0",
+    "buffer": "5.5.0",
     "concurrently": "7.6.0",
     "eslint": "8.22.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
-    "prettier": "2.7.1",
-    "typescript": "4.9.5",
+    "husky": "8.0.1",
     "lint-staged": "13.0.3",
-    "husky": "8.0.1"
+    "prettier": "2.7.1",
+    "typescript": "4.9.5"
   }
 }

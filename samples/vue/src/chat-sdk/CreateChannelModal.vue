@@ -22,7 +22,7 @@ async function submitCreateChannelForm(e) {
     return;
   }
 
-  await props.chat.createChannel({ id: state.channelNameInput.replaceAll(" ", "."), name: state.channelNameInput });
+  await props.chat.createChannel(state.channelNameInput.replaceAll(" ", "."), { name: state.channelNameInput });
   props.toggleCreateChannelModal();
 }
 

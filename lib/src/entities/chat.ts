@@ -1,4 +1,8 @@
-import PubNub, { SetUUIDMetadataParameters, ObjectCustom } from "pubnub"
+import PubNub, {
+  SetUUIDMetadataParameters,
+  ObjectCustom,
+  ChannelMetadata,
+} from "pubnub"
 import { Channel } from "./channel"
 import { User, UserFields } from "./user"
 
@@ -92,14 +96,10 @@ export class Chat {
 
   async getChannel(id: string) {
     try {
-      const channelMetadata = await this.sdk.objects.getChannelMetadata({
+      const response = await this.sdk.objects.getChannelMetadata({
         channel: id,
       })
-      return new Channel({
-        chat: this,
-        id,
-        name: channelMetadata.data.name!,
-      })
+      return Channel.fromDTO(this, response.data)
     } catch (e) {
       console.error("Are you sure this channel exists?");
       throw e;
@@ -115,20 +115,15 @@ export class Chat {
     this.user = user
   }
 
-  async createChannel(params: { id: string; name: string }) {
+  async createChannel(id: string, data: ChannelMetadata<ObjectCustom>) {
+    if (!id.length) throw "ID is required when creating a Channel"
     try {
-      await this.sdk.objects.setChannelMetadata({
-        channel: params.id,
-        data: {
-          name: params.name,
-        }
+      const response = await this.sdk.objects.setChannelMetadata({
+        channel: id,
+        data,
       })
 
-      return new Channel({
-        chat: this,
-        id: params.id,
-        name: params.name,
-      })
+      return Channel.fromDTO(this, response.data)
     } catch (e) {
       console.error(e);
       throw e;

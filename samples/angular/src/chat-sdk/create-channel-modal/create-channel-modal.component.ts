@@ -27,7 +27,7 @@ export class CreateChannelModalComponentChat {
       return;
     }
 
-    await this.chat.createChannel({ id: this.channelNameInput.replaceAll(" ", "."), name: this.channelNameInput });
+    await this.chat.createChannel(this.channelNameInput.replaceAll(" ", "."), { name: this.channelNameInput });
     this.toggleCreateChannelModal();
   }
 }

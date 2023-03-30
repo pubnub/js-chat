@@ -37,7 +37,8 @@ export class AppComponent {
   })
 
   async ngOnInit() {
-    const user = this.chat.getUser(userId)
+    const user = await this.chat.getUser(userId)
+
     this.chat.setChatUser(user)
     this.channel = await this.chat.getChannel("test-channel")
 
