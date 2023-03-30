@@ -1,4 +1,4 @@
-import { PublishParameters, ChannelMetadataObject, ObjectCustom } from "pubnub"
+import { PublishParameters } from "pubnub"
 
 export type StatusTypeFields = {
   status?: string
@@ -6,5 +6,3 @@ export type StatusTypeFields = {
 }
 
 export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel">
-
-export type ChannelEntity = ChannelMetadataObject<ObjectCustom>;
