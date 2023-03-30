@@ -2045,7 +2045,7 @@
   resolved "https://registry.yarnpkg.com/@nanostores/persistent/-/persistent-0.7.0.tgz#7c919cbf102770190ed55cea13401a77bfde741e"
   integrity sha512-4PAInL/T1hbftZUJ0cmgdFHBMalUoq7BUXFBy7QfyMv/8X3LPTYNh/yxspL7+J+XM3UNvVI7IFRMMs6FBasjhQ==
 
-"@nanostores/vue@^0.7.0":
+"@nanostores/vue@0.7.0":
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@nanostores/vue/-/vue-0.7.0.tgz#cf0b97d3a8924c4815656792383f0003d606401d"
   integrity sha512-xQiiMlj0dFTAgjxXahPQQcGit7HpTo/lHKwAXg8yRyC6IkoB55tCsRBbAouMLSB4bdBoCgCmuKWcv7MRX1t9Zw==

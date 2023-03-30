@@ -1,4 +1,4 @@
-import PubNub, { SetUUIDMetadataParameters, ObjectCustom } from "pubnub"
+import PubNub, { SetUUIDMetadataParameters, GetAllMetadataParameters, ObjectCustom } from "pubnub"
 import { Channel } from "./channel"
 import { User, UserFields } from "./user"
 
@@ -50,9 +50,8 @@ export class Chat {
   async deleteUser(id: string, soft = false) {
     const uuid = id || this.sdk.getUUID()
     try {
-      let response
       if (soft) {
-        response = await this.sdk.objects.setUUIDMetadata({
+        const response = await this.sdk.objects.setUUIDMetadata({
           uuid,
           data: { status: "deleted" },
         } as SetUUIDMetadataParameters<ObjectCustom>)
@@ -61,34 +60,33 @@ export class Chat {
         await this.sdk.objects.removeUUIDMetadata({ uuid })
         return true
       }
-      console.log(response)
     } catch (error) {
       throw error
     }
   }
 
-  // async getAllUsers(params: PubNub.GetAllMetadataParameters) {
-  //   const forcedOptions = {
-  //     include: {
-  //       totalCount: true,
-  //       customFields: true,
-  //     },
-  //   }
-  //   try {
-  //     const response = await this.sdk.objects.getAllUUIDMetadata(
-  //       Object.assign({}, params, forcedOptions)
-  //     )
-  //     console.log("all users: ", response)
-  //     return {
-  //       users: response.data.map((u) => User.fromDTO(u)),
-  //       next: response.next,
-  //       prev: response.prev,
-  //       total: response.totalCount,
-  //     }
-  //   } catch (error) {
-  //     throw error
-  //   }
-  // }
+  async getUsers(params: Omit<GetAllMetadataParameters, "include">) {
+    const mandatoryOptions = {
+      include: {
+        totalCount: true,
+        customFields: true,
+      },
+    }
+    const options = Object.assign({}, params, mandatoryOptions)
+    try {
+      const response = await this.sdk.objects.getAllUUIDMetadata(options)
+      return {
+        users: response.data.map((u) => User.fromDTO(this, u)),
+        page: {
+          next: response.next,
+          prev: response.prev,
+        },
+        total: response.totalCount,
+      }
+    } catch (error) {
+      throw error
+    }
+  }
 
   getChannel(id: string) {
     // TODO: connect to pubnub instead
