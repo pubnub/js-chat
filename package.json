@@ -8,7 +8,19 @@
   ],
   "scripts": {
     "start": "concurrently \"yarn workspace @pubnub/chat run dev\" \"yarn workspace @pubnub/chat-astro run dev\"",
-    "test": "yarn workspace @pubnub/chat run test"
+    "test": "yarn workspace @pubnub/chat run test",
+    "eslint:base": "eslint --ignore-path .gitignore",
+    "prettier:base": "prettier --ignore-path .gitignore"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx}": [
+      "npm run eslint:base -- --fix",
+      "npm run prettier:base -- --write",
+      "npm run tsc"
+    ],
+    "*.{json,md,mdx}": [
+      "npm run prettier:base -- --write"
+    ]
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "5.37.0",
@@ -18,6 +30,7 @@
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
     "prettier": "2.7.1",
-    "typescript": "4.9.5"
+    "typescript": "4.9.5",
+    "lint-staged": "13.0.3"
   }
 }
