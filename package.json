@@ -10,7 +10,8 @@
     "start": "concurrently \"yarn workspace @pubnub/chat run dev\" \"yarn workspace @pubnub/chat-astro run dev\"",
     "test": "yarn workspace @pubnub/chat run test",
     "eslint:base": "eslint --ignore-path .gitignore",
-    "prettier:base": "prettier --ignore-path .gitignore"
+    "prettier:base": "prettier --ignore-path .gitignore",
+    "prepare": "node -e \"try { require('husky').install() } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\""
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
@@ -23,6 +24,8 @@
     ]
   },
   "devDependencies": {
+    "@commitlint/cli": "17.1.2",
+    "@commitlint/config-conventional": "17.1.0",
     "@typescript-eslint/eslint-plugin": "5.37.0",
     "@typescript-eslint/parser": "5.37.0",
     "concurrently": "7.6.0",
@@ -31,6 +34,7 @@
     "eslint-plugin-prettier": "4.2.1",
     "prettier": "2.7.1",
     "typescript": "4.9.5",
-    "lint-staged": "13.0.3"
+    "lint-staged": "13.0.3",
+    "husky": "8.0.1"
   }
 }
