@@ -37,7 +37,7 @@ export class Chat {
     }
   }
 
-  async createUser(id: string, data: UserFields) {
+  async createUser(id: string, data: Omit<UserFields, "id">) {
     if (!id.length) throw "ID is required when creating a User"
     try {
       const response = await this.sdk.objects.setUUIDMetadata({ uuid: id, data })

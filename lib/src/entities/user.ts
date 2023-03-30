@@ -2,7 +2,10 @@ import { UUIDMetadataObject, ObjectCustom } from "pubnub"
 import { Chat } from "./chat"
 import { StatusTypeFields } from "../types"
 
-export type UserFields = Omit<User, "chat">
+export type UserFields = Pick<
+  User,
+  "id" | "name" | "externalId" | "profileUrl" | "email" | "custom" | "status" | "type"
+>
 
 export class User {
   private chat: Chat
@@ -15,7 +18,7 @@ export class User {
   readonly status?: string
   readonly type?: string
 
-  constructor(chat: Chat, params: Omit<User, "chat" | "delete">) {
+  constructor(chat: Chat, params: UserFields) {
     this.chat = chat
     this.id = params.id
     Object.assign(this, params)
