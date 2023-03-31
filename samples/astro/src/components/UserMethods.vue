@@ -23,15 +23,24 @@ const state: State = reactive({
   page: { next: undefined, prev: undefined },
 })
 
-const createUserForm = reactive({
+const getUserForm = reactive({
   id: $userId.value,
+})
+
+interface UpdateUserForm {
+  id?: string
+  name?: string
+  profileUrl?: string
+  email?: string
+  status?: string
+}
+
+const updateUserForm: UpdateUserForm = reactive({
+  id: undefined,
   name: undefined,
   profileUrl: undefined,
   email: undefined,
-})
-
-const getUserForm = reactive({
-  id: $userId.value,
+  status: undefined,
 })
 
 function extractErrorMessage(e: any) {
@@ -45,6 +54,14 @@ function extractErrorMessage(e: any) {
   return ret
 }
 
+function resetUserForm() {
+  updateUserForm.name =
+    updateUserForm.email =
+    updateUserForm.profileUrl =
+    updateUserForm.status =
+      undefined
+}
+
 async function handleGetAll() {
   try {
     state.error = ""
@@ -52,7 +69,7 @@ async function handleGetAll() {
       const { users, page, total } = await $chat.value.getUsers({ limit: 2, page: state.page })
       state.users.push(...users)
       state.page = page
-      state.total = total
+      state.total = total || 0
     } while (state.users.length < state.total)
   } catch (e: any) {
     state.error = extractErrorMessage(e)
@@ -63,9 +80,16 @@ async function handleGetAll() {
 async function handleGet() {
   try {
     state.error = ""
+    if (!getUserForm.id) return
     const user = await $chat.value.getUser(getUserForm.id)
     console.log("Chat SDK fetched a user: ", user)
-    state.user = user
+    if (user) {
+      state.user = user
+      updateUserForm.id = user.id
+      updateUserForm.name = user.name
+      updateUserForm.profileUrl = user.profileUrl
+      updateUserForm.status = user.status
+    } else state.error = "User not found"
   } catch (e: any) {
     state.error = extractErrorMessage(e)
     console.error(e)
@@ -75,9 +99,11 @@ async function handleGet() {
 async function handleSet() {
   try {
     state.error = ""
-    const { id, ...data } = createUserForm
-    const user = await $chat.value.createUser(id, { ...data })
-    createUserForm.name = createUserForm.email = createUserForm.profileUrl = undefined
+    const { id, ...data } = updateUserForm
+    if (!id) return
+    console.log(id, data)
+    const user = await $chat.value.updateUser(id, { ...data })
+    resetUserForm()
     console.log("Chat SDK created a user: ", user)
   } catch (e: any) {
     state.error = extractErrorMessage(e)
@@ -89,6 +115,7 @@ async function handleHardDelete() {
   try {
     if (!state.user) return
     await state.user.delete(false)
+    resetUserForm()
     console.log("Chat SDK hard deleted a user")
     state.user = undefined
   } catch (e: any) {
@@ -101,6 +128,7 @@ async function handleSoftDelete() {
   try {
     if (!state.user) return
     const user = await state.user.delete(true)
+    resetUserForm()
     console.log("Chat SDK soft deleted a user: ", user)
     state.user = undefined
   } catch (e: any) {
@@ -108,6 +136,10 @@ async function handleSoftDelete() {
     console.error(e)
   }
 }
+
+chatAtom.subscribe((value) => {
+  if (value) handleGet()
+})
 </script>
 
 <template>
@@ -116,23 +148,12 @@ async function handleSoftDelete() {
   <div>
     <h3>Get all users</h3>
     <button class="mb-4" @click="handleGetAll">Get all users</button>
-    <p><b>Total count: </b>{{ state.total }}</p>
-    <p><b>Existing IDs: </b>{{ state.users.map((u) => u.id).join(", ") }}</p>
+    <div v-if="state.users.length">
+      <p><b>Total count: </b>{{ state.total }}</p>
+      <p><b>Existing IDs: </b>{{ state.users.map((u) => u.id).join(", ") }}</p>
+    </div>
   </div>
-  <div class="grid grid-cols-2 gap-4 mt-6">
-    <section>
-      <h3>Create user</h3>
-      <form @submit.prevent="handleSet">
-        <label for="id">User ID</label>
-        <input v-model="createUserForm.id" type="text" name="id" />
-        <label for="name">Name</label>
-        <input v-model="createUserForm.name" type="text" name="name" />
-        <label for="profileUrl">Profile URL</label>
-        <input v-model="createUserForm.profileUrl" type="text" name="profileUrl" />
-        <button type="submit" class="float-right mt-3">Create user</button>
-      </form>
-    </section>
-
+  <div class="grid grid-cols-2 gap-8 mt-6">
     <section>
       <h3>Get user</h3>
       <form @submit.prevent="handleGet">
@@ -140,18 +161,25 @@ async function handleSoftDelete() {
         <input v-model="getUserForm.id" type="text" name="login" />
         <button type="submit" class="float-right mt-3">Get user</button>
       </form>
-      <div class="mt-4">
-        <p><b>Name:</b> {{ state.user?.name }}</p>
-        <p><b>Profile URL:</b> {{ state.user?.profileUrl }}</p>
-        <p><b>Status:</b> {{ state.user?.status }}</p>
-      </div>
+    </section>
 
-      <h3 class="mt-6">Delete user</h3>
-      <div v-if="state.user">
-        <button @click="handleHardDelete" class="mr-2">Hard delete user</button>
-        <button @click="handleSoftDelete">Soft delete user</button>
-      </div>
-      <p v-else>Fetch a user to delete it</p>
+    <section>
+      <h3>Update user</h3>
+      <form>
+        <label for="id">User ID</label>
+        <input v-model="updateUserForm.id" type="text" name="id" />
+        <label for="name">Name</label>
+        <input v-model="updateUserForm.name" type="text" name="name" />
+        <label for="profileUrl">Avatar URL</label>
+        <input v-model="updateUserForm.profileUrl" type="text" name="profileUrl" />
+        <label for="status">Status</label>
+        <input v-model="updateUserForm.status" type="text" name="status" />
+        <nav class="float-right mt-3">
+          <button type="button" @click="handleHardDelete" class="mr-2">Hard delete user</button>
+          <button type="button" @click="handleSoftDelete" class="mr-2">Soft delete user</button>
+          <button type="button" @click="handleSet">Update user</button>
+        </nav>
+      </form>
     </section>
   </div>
 </template>

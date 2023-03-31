@@ -1,13 +1,13 @@
 <script>
   import { userIdAtom, authTokenAtom } from "../store"
 
-  let login, error
+  let login, name, profileUrl, error
 
   async function handleSubmit() {
-    if (!login) return
-    const response = await fetch("api/login", {
+    if (!login || !name) return
+    const response = await fetch("api/register", {
       method: "post",
-      body: JSON.stringify({ login }),
+      body: JSON.stringify({ login, name, profileUrl }),
     })
     const json = await response.json()
 
@@ -31,5 +31,9 @@
 <form on:submit|preventDefault={handleSubmit}>
   <label for="login">User ID</label>
   <input bind:value={login} type="text" name="login" />
-  <button type="submit" class="mt-4">Log in</button>
+  <label for="name">Name</label>
+  <input bind:value={name} type="text" name="name" />
+  <label for="profileUrl">Avatar URL</label>
+  <input bind:value={profileUrl} type="text" name="profileUrl" />
+  <button type="submit" class="mt-4">Register</button>
 </form>
