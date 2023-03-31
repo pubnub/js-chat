@@ -1,19 +1,12 @@
-import {
-  ListenerParameters,
-  SignalEvent,
-  MessageEvent,
-  ObjectCustom,
-  ChannelMetadataObject,
-  ChannelMetadata,
-} from "pubnub"
+import { ListenerParameters, SignalEvent, MessageEvent, ObjectCustom } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
-import { SendTextOptionParams } from "../types"
+import { Nullable, SendTextOptionParams } from "../types"
 
-type ChannelConstructor = {
-  id: string
-  name?: string
-} & ChannelMetadataObject<ObjectCustom>
+export type ChannelFields = Pick<
+  Channel,
+  "id" | "name" | "custom" | "description" | "eTag" | "updated"
+>
 
 export interface TypingData {
   userId: string
@@ -28,27 +21,31 @@ export class Channel {
   private chat: Chat
   readonly id: string
   readonly name?: string
+  readonly custom?: ObjectCustom
+  readonly description?: string
+  readonly eTag?: string
+  readonly updated?: string
   private listeners: ListenerParameters[] = []
   private subscribed = false
   private typingSent = false
   private typingSentTimer?: ReturnType<typeof setTimeout>
   private typingIndicators: TypingDataWithTimer[] = []
 
-  constructor(chat: Chat, params: ChannelConstructor) {
+  constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
     this.id = params.id
     this.name = params.name
     Object.assign(this, params)
   }
 
-  static fromDTO(chat: Chat, params: ChannelMetadataObject<ObjectCustom>) {
+  static fromDTO(chat: Chat, params: Nullable<ChannelFields> & { id: string }) {
     const data = {
       id: params.id,
       name: params.name || undefined,
       custom: params.custom || undefined,
       description: params.description || undefined,
-      eTag: params.eTag,
-      updated: params.updated,
+      eTag: params.eTag || undefined,
+      updated: params.updated || undefined,
     }
 
     return new Channel(chat, data)
@@ -164,18 +161,8 @@ export class Channel {
     if (this.subscribed) this.chat.sdk.unsubscribe({ channels: [this.id] })
   }
 
-  async edit(data: ChannelMetadata<ObjectCustom>) {
-    try {
-      const response = await this.chat.sdk.objects.setChannelMetadata({
-        channel: this.id,
-        data,
-      })
-
-      return Channel.fromDTO(this.chat, response.data)
-    } catch (e) {
-      console.error(e)
-      throw e
-    }
+  async update(data: Omit<ChannelFields, "id">) {
+    return this.chat.updateChannel(this.id, data)
   }
 
   // fetchHistory({ start, end, count = 20 }: { start?: string; end?: string; count?: number }) {

@@ -25,7 +25,7 @@ export class ChannelListComponentChat {
   }
 
   async editChannel() {
-    await this.channels[this.channelClickedNumber].edit({ name: this.nameInput })
+    await this.channels[this.channelClickedNumber].update({ name: this.nameInput })
     this.channelClickedNumber = -1
     this.nameInput = ""
     this.loadChannels()

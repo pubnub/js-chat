@@ -34,10 +34,14 @@ export class AppComponent {
   })
 
   async ngOnInit() {
-    const user = await this.chat.getUser(userId)
+    const user =
+      (await this.chat.getUser(userId)) ||
+      (await this.chat.createUser(userId, { name: "Some name" }))
 
     this.chat.setChatUser(user)
-    this.channel = await this.chat.getChannel("test-channel")
+    this.channel =
+      (await this.chat.getChannel("test-channel")) ||
+      (await this.chat.createChannel("test-channel", { name: "Some channel" }))
 
     this.pubnub.subscribe({
       channels: [this.channel.id],

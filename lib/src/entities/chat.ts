@@ -4,7 +4,7 @@ import PubNub, {
   ObjectCustom,
   ChannelMetadata,
 } from "pubnub"
-import { Channel } from "./channel"
+import { Channel, ChannelFields } from "./channel"
 import { User, UserFields } from "./user"
 
 type ChatConfig = {
@@ -101,8 +101,23 @@ export class Chat {
         channel: id,
       })
       return Channel.fromDTO(this, response.data)
+    } catch (error) {
+      const e = error as { status: { errorData: { status: number } } }
+      if (e?.status?.errorData?.status === 404) return null
+      else throw error
+    }
+  }
+
+  async updateChannel(id: string, data: Omit<ChannelFields, "id">) {
+    try {
+      const response = await this.sdk.objects.setChannelMetadata({
+        channel: id,
+        data,
+      })
+
+      return Channel.fromDTO(this, response.data)
     } catch (e) {
-      console.error("Are you sure this channel exists?")
+      console.error(e)
       throw e
     }
   }
@@ -117,8 +132,10 @@ export class Chat {
   }
 
   async createChannel(id: string, data: ChannelMetadata<ObjectCustom>) {
-    if (!id.length) throw "ID is required when creating a Channel"
+    if (!id.length) throw "ID is required"
     try {
+      const existingChannel = await this.getChannel(id)
+      if (existingChannel) throw "Channel with this ID already exists"
       const response = await this.sdk.objects.setChannelMetadata({
         channel: id,
         data,
@@ -126,7 +143,6 @@ export class Chat {
 
       return Channel.fromDTO(this, response.data)
     } catch (e) {
-      console.error(e)
       throw e
     }
   }

@@ -27,7 +27,7 @@ function clickOnChannel(index: number) {
 }
 
 async function editChannel() {
-  await state.channels[state.channelClickedNumber].edit({ name: state.nameInput });
+  await state.channels[state.channelClickedNumber].update({ name: state.nameInput });
   state.channelClickedNumber = -1;
   state.nameInput = "";
   loadChannels();
