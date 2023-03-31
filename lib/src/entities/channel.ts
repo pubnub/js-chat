@@ -1,12 +1,15 @@
-import { ListenerParameters, SignalEvent, MessageEvent, ObjectCustom } from "pubnub"
+import {
+  ListenerParameters,
+  SignalEvent,
+  MessageEvent,
+  ObjectCustom,
+  ChannelMetadataObject,
+} from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
-import { Nullable, SendTextOptionParams } from "../types"
+import { SendTextOptionParams } from "../types"
 
-export type ChannelFields = Pick<
-  Channel,
-  "id" | "name" | "custom" | "description" | "eTag" | "updated"
->
+export type ChannelFields = Pick<Channel, "id" | "name" | "custom" | "description" | "updated">
 
 export interface TypingData {
   userId: string
@@ -23,7 +26,6 @@ export class Channel {
   readonly name?: string
   readonly custom?: ObjectCustom
   readonly description?: string
-  readonly eTag?: string
   readonly updated?: string
   private listeners: ListenerParameters[] = []
   private subscribed = false
@@ -38,7 +40,7 @@ export class Channel {
     Object.assign(this, params)
   }
 
-  static fromDTO(chat: Chat, params: Nullable<ChannelFields> & { id: string }) {
+  static fromDTO(chat: Chat, params: ChannelMetadataObject<ObjectCustom>) {
     const data = {
       id: params.id,
       name: params.name || undefined,
