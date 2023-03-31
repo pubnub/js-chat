@@ -32,10 +32,10 @@ export class Chat {
     return new Chat(params)
   }
 
-  async getUser(id?: string) {
-    const uuid = id || this.sdk.getUUID()
+  async getUser(id: string) {
+    if (!id.length) throw "ID is required"
     try {
-      const response = await this.sdk.objects.getUUIDMetadata({ uuid })
+      const response = await this.sdk.objects.getUUIDMetadata({ uuid: id })
       return User.fromDTO(this, response.data)
     } catch (error) {
       const e = error as { status: { errorData: { status: number } } }
@@ -45,8 +45,22 @@ export class Chat {
   }
 
   async createUser(id: string, data: Omit<UserFields, "id">) {
-    if (!id.length) throw "ID is required when creating a User"
+    if (!id.length) throw "ID is required"
     try {
+      const existingUser = await this.getUser(id)
+      if (existingUser) throw "User with this ID already exists"
+      const response = await this.sdk.objects.setUUIDMetadata({ uuid: id, data })
+      return User.fromDTO(this, response.data)
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async updateUser(id: string, data: Omit<UserFields, "id">) {
+    if (!id.length) throw "ID is required"
+    try {
+      const existingUser = await this.getUser(id)
+      if (!existingUser) throw "User with this ID does not exist"
       const response = await this.sdk.objects.setUUIDMetadata({ uuid: id, data })
       return User.fromDTO(this, response.data)
     } catch (error) {
@@ -55,16 +69,16 @@ export class Chat {
   }
 
   async deleteUser(id: string, soft = false) {
-    const uuid = id || this.sdk.getUUID()
+    if (!id.length) throw "ID is required"
     try {
       if (soft) {
         const response = await this.sdk.objects.setUUIDMetadata({
-          uuid,
+          uuid: id,
           data: { status: "deleted" },
         } as SetUUIDMetadataParameters<ObjectCustom>)
         return User.fromDTO(this, response.data)
       } else {
-        await this.sdk.objects.removeUUIDMetadata({ uuid })
+        await this.sdk.objects.removeUUIDMetadata({ uuid: id })
         return true
       }
     } catch (error) {
@@ -102,8 +116,8 @@ export class Chat {
       })
       return Channel.fromDTO(this, response.data)
     } catch (e) {
-      console.error("Are you sure this channel exists?");
-      throw e;
+      console.error("Are you sure this channel exists?")
+      throw e
     }
   }
 
@@ -126,8 +140,8 @@ export class Chat {
 
       return Channel.fromDTO(this, response.data)
     } catch (e) {
-      console.error(e);
-      throw e;
+      console.error(e)
+      throw e
     }
   }
 

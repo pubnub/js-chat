@@ -38,6 +38,14 @@ export class User {
     return new User(chat, data)
   }
 
+  async update(data: Omit<UserFields, "id">) {
+    try {
+      return await this.chat.updateUser(this.id, data)
+    } catch (error) {
+      throw error
+    }
+  }
+
   async delete(soft = false) {
     try {
       return await this.chat.deleteUser(this.id, soft)
