@@ -3,11 +3,12 @@ import {
   SignalEvent,
   MessageEvent,
   ObjectCustom,
-  ChannelMetadataObject
+  ChannelMetadataObject,
+  ChannelMetadata,
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
-import { SendTextOptionParams } from "../types";
+import { SendTextOptionParams } from "../types"
 
 type ChannelConstructor = {
   id: string
@@ -161,6 +162,20 @@ export class Channel {
     this.listeners.forEach((listener) => this.chat.sdk.removeListener(listener))
     this.listeners = []
     if (this.subscribed) this.chat.sdk.unsubscribe({ channels: [this.id] })
+  }
+
+  async edit(data: ChannelMetadata<ObjectCustom>) {
+    try {
+      const response = await this.chat.sdk.objects.setChannelMetadata({
+        channel: this.id,
+        data,
+      })
+
+      return Channel.fromDTO(this.chat, response.data)
+    } catch (e) {
+      console.error(e)
+      throw e
+    }
   }
 
   // fetchHistory({ start, end, count = 20 }: { start?: string; end?: string; count?: number }) {

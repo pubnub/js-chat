@@ -67,10 +67,9 @@ const state: State = reactive({
 
 (async function() {
   state.channel = await chat.getChannel(channelId);
+  const user = await chat.getUser(userId)
+  chat.setChatUser(user)
 })();
-
-const user = chat.getUser(userId)
-chat.setChatUser(user)
 
 const toggleCreateChannelModalJSSDK = () => {
   state.createChannelModalJSSDKOpen = !state.createChannelModalJSSDKOpen;

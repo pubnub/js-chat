@@ -1,8 +1,4 @@
-import PubNub, {
-  SetUUIDMetadataParameters,
-  ObjectCustom,
-  ChannelMetadata,
-} from "pubnub"
+import PubNub, { SetUUIDMetadataParameters, ObjectCustom, ChannelMetadata } from "pubnub"
 import { Channel } from "./channel"
 import { User, UserFields } from "./user"
 
@@ -101,8 +97,8 @@ export class Chat {
       })
       return Channel.fromDTO(this, response.data)
     } catch (e) {
-      console.error("Are you sure this channel exists?");
-      throw e;
+      console.error("Are you sure this channel exists?")
+      throw e
     }
   }
 
@@ -125,13 +121,14 @@ export class Chat {
 
       return Channel.fromDTO(this, response.data)
     } catch (e) {
-      console.error(e);
-      throw e;
+      console.error(e)
+      throw e
     }
   }
 
-  getChannels() {
-    // TODO
-    return Promise.resolve({ data: [] })
+  async getChannels() {
+    const response = await this.sdk.objects.getAllChannelMetadata()
+
+    return response.data.slice(0, 5).map((c) => Channel.fromDTO(this, c))
   }
 }

@@ -7,16 +7,39 @@ const props = defineProps<{
 }>()
 
 interface State {
-  channels: ChannelMetadataObject<ObjectCustom>[]
+  channels: ChannelMetadataObject<ObjectCustom>[];
+  channelClickedNumber: number;
+  nameInput: string;
 }
 
 const state: State = reactive({
   channels: [],
+  channelClickedNumber: -1,
+  nameInput: "",
 })
 
-async function init() {
+async function loadChannels() {
   const channelsResponse = await props.pubnub.objects.getAllChannelMetadata();
-  state.channels = channelsResponse.data.slice(0, 1);
+  state.channels = channelsResponse.data.slice(0, 5);
+}
+
+function clickOnChannel(index: number) {
+  state.channelClickedNumber = index;
+}
+
+async function editChannel() {
+  await props.pubnub.objects.setChannelMetadata({
+    channel: state.channels[state.channelClickedNumber].id,
+    data: { name: state.nameInput },
+  })
+
+  state.channelClickedNumber = -1;
+  state.nameInput = "";
+  loadChannels();
+}
+
+async function init() {
+  loadChannels();
 }
 
 init();
@@ -29,7 +52,15 @@ init();
       channel list
     </h1>
     <ul>
-      <li v-for="channel in state.channels">{{ channel.name }}</li>
+      <li v-for="(channel, index) in state.channels">
+        <div v-if="index === state.channelClickedNumber">
+          <input type="text" v-model="state.nameInput" />
+          <button @click="editChannel()">Edit</button>
+        </div>
+        <div v-if="index !== state.channelClickedNumber">
+          <span @click="clickOnChannel(index)">{{ channel.name || "No channel name provided" }}</span>
+        </div>
+      </li>
     </ul>
   </div>
 </template>

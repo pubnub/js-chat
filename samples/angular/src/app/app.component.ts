@@ -1,27 +1,24 @@
-import { Component } from '@angular/core';
-import PubNub from "pubnub";
-import { Channel, Chat } from "@pubnub/chat";
-import { StateService } from "./state.service";
+import { Component } from "@angular/core"
+import PubNub from "pubnub"
+import { Channel, Chat } from "@pubnub/chat"
+import { StateService } from "./state.service"
 
 const userId = "test-user"
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
+  selector: "app-root",
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"],
 })
 export class AppComponent {
-  title = 'angular';
-  pubnubInput = "";
-  messages = [] as any[];
-  typingReceived = false;
-  typingSent = false;
-  channel: Channel | null = null;
+  title = "angular"
+  pubnubInput = ""
+  messages = [] as any[]
+  typingReceived = false
+  typingSent = false
+  channel: Channel | null = null
 
-  constructor(private stateService: StateService) {
-
-  }
-
+  constructor(private stateService: StateService) {}
 
   pubnub = new PubNub({
     publishKey: "demo",
@@ -44,7 +41,7 @@ export class AppComponent {
 
     this.pubnub.subscribe({
       channels: [this.channel.id],
-    });
+    })
 
     this.pubnub.addListener({
       message: (event) => {
@@ -59,10 +56,10 @@ export class AppComponent {
   }
 
   toggleCreateChannelModalChatSDK() {
-    this.stateService.toggleCreateChannelModalChatSDK();
+    this.stateService.toggleCreateChannelModalChatSDK()
   }
 
   toggleCreateChannelModalJSSDK() {
-    this.stateService.toggleCreateChannelModalJSSDK();
+    this.stateService.toggleCreateChannelModalJSSDK()
   }
 }

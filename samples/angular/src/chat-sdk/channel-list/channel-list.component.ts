@@ -9,9 +9,25 @@ import { Channel, Chat } from "@pubnub/chat"
 export class ChannelListComponentChat {
   @Input() chat!: Chat
   channels: Channel[] = []
+  channelClickedNumber = -1
+  nameInput = ""
+
+  async loadChannels() {
+    this.channels = await this.chat.getChannels()
+  }
 
   async ngOnInit() {
-    const channelsResponse = await this.chat.getChannels()
-    this.channels = channelsResponse.data
+    this.loadChannels()
+  }
+
+  clickOnChannel(index: number) {
+    this.channelClickedNumber = index
+  }
+
+  async editChannel() {
+    await this.channels[this.channelClickedNumber].edit({ name: this.nameInput })
+    this.channelClickedNumber = -1
+    this.nameInput = ""
+    this.loadChannels()
   }
 }
