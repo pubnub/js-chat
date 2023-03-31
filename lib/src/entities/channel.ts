@@ -3,16 +3,13 @@ import {
   SignalEvent,
   MessageEvent,
   ObjectCustom,
-  ChannelMetadataObject
+  ChannelMetadataObject,
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
-import { SendTextOptionParams } from "../types";
+import { SendTextOptionParams } from "../types"
 
-type ChannelConstructor = {
-  id: string
-  name?: string
-} & ChannelMetadataObject<ObjectCustom>
+export type ChannelFields = Pick<Channel, "id" | "name" | "custom" | "description" | "updated">
 
 export interface TypingData {
   userId: string
@@ -27,13 +24,16 @@ export class Channel {
   private chat: Chat
   readonly id: string
   readonly name?: string
+  readonly custom?: ObjectCustom
+  readonly description?: string
+  readonly updated?: string
   private listeners: ListenerParameters[] = []
   private subscribed = false
   private typingSent = false
   private typingSentTimer?: ReturnType<typeof setTimeout>
   private typingIndicators: TypingDataWithTimer[] = []
 
-  constructor(chat: Chat, params: ChannelConstructor) {
+  constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
     this.id = params.id
     this.name = params.name
@@ -46,8 +46,8 @@ export class Channel {
       name: params.name || undefined,
       custom: params.custom || undefined,
       description: params.description || undefined,
-      eTag: params.eTag,
-      updated: params.updated,
+      eTag: params.eTag || undefined,
+      updated: params.updated || undefined,
     }
 
     return new Channel(chat, data)
@@ -161,6 +161,10 @@ export class Channel {
     this.listeners.forEach((listener) => this.chat.sdk.removeListener(listener))
     this.listeners = []
     if (this.subscribed) this.chat.sdk.unsubscribe({ channels: [this.id] })
+  }
+
+  async update(data: Omit<ChannelFields, "id">) {
+    return this.chat.updateChannel(this.id, data)
   }
 
   // fetchHistory({ start, end, count = 20 }: { start?: string; end?: string; count?: number }) {
