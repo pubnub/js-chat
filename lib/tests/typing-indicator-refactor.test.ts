@@ -10,7 +10,6 @@ describe("Typing indicator test", () => {
       subscribeKey: "demo",
       userId: "test-user",
     })
-    console.log("chat initialized", chat)
   })
 
   beforeEach(async () => {
