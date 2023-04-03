@@ -36,4 +36,11 @@ export class ChannelListComponentSDK {
     this.nameInput = ""
     this.loadChannels()
   }
+
+  async deleteChannel(channelId: string) {
+    await this.pubnub.objects.removeChannelMetadata({
+      channel: channelId,
+    })
+    await this.loadChannels()
+  }
 }

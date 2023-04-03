@@ -165,6 +165,12 @@ export class Chat {
   async getChannels() {
     const response = await this.sdk.objects.getAllChannelMetadata()
 
-    return response.data.slice(0, 5).map((c) => Channel.fromDTO(this, c))
+    return response.data.map((c) => Channel.fromDTO(this, c))
+  }
+
+  async deleteChannel(id: string) {
+    return await this.sdk.objects.removeChannelMetadata({
+      channel: id,
+    })
   }
 }
