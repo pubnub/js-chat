@@ -6,7 +6,7 @@
         Click on the channel name to edit it
     </p>
     <ul>
-        <li *ngFor="let channel of channels; index as i">
+        <li *ngFor="let channel of channels; index as i" class="channel-row">
             <div *ngIf="i === channelClickedNumber">
                 <input type="text" [(ngModel)]="nameInput" />
                 <button (click)="editChannel()">Edit</button>
@@ -14,6 +14,7 @@
             <div *ngIf="i !== channelClickedNumber">
                 <span (click)="clickOnChannel(i)">{{ channel.name || "No channel name provided" }}</span>
             </div>
+            <button (click)="deleteChannel(channel.id)">delete</button>
         </li>
     </ul>
 </div>

@@ -30,4 +30,9 @@ export class ChannelListComponentChat {
     this.nameInput = ""
     this.loadChannels()
   }
+
+  async deleteChannel(channelId: string) {
+    await this.chat.deleteChannel(channelId)
+    await this.loadChannels()
+  }
 }

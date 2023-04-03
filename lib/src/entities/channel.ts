@@ -167,6 +167,10 @@ export class Channel {
     return this.chat.updateChannel(this.id, data)
   }
 
+  async delete() {
+    return this.chat.deleteChannel(this.id)
+  }
+
   // fetchHistory({ start, end, count = 20 }: { start?: string; end?: string; count?: number }) {
   //   // API should allow to differentiate between thread messages and
   //   // root messages

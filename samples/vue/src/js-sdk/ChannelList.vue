@@ -38,6 +38,13 @@ async function editChannel() {
   loadChannels();
 }
 
+async function deleteChannel(channelId: string) {
+  await props.pubnub.objects.removeChannelMetadata({
+    channel: channelId,
+  });
+  await loadChannels();
+}
+
 async function init() {
   loadChannels();
 }
@@ -52,7 +59,7 @@ init();
       channel list
     </h1>
     <ul>
-      <li v-for="(channel, index) in state.channels">
+      <li v-for="(channel, index) in state.channels" class="channel-row">
         <div v-if="index === state.channelClickedNumber">
           <input type="text" v-model="state.nameInput" />
           <button @click="editChannel()">Edit</button>
@@ -60,7 +67,15 @@ init();
         <div v-if="index !== state.channelClickedNumber">
           <span @click="clickOnChannel(index)">{{ channel.name || "No channel name provided" }}</span>
         </div>
+        <button @click="deleteChannel(channel.id)">delete</button>
       </li>
     </ul>
   </div>
 </template>
+
+<style scoped>
+  .channel-row {
+    display: flex;
+    flex-direction: row;
+  }
+</style>
