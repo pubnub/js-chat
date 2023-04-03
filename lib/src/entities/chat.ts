@@ -1,36 +1,176 @@
-import PubNub from "pubnub"
-import { Channel } from "./channel"
+import PubNub, {
+  SetUUIDMetadataParameters,
+  GetAllMetadataParameters,
+  ObjectCustom,
+  ChannelMetadata,
+} from "pubnub"
+import { Channel, ChannelFields } from "./channel"
+import { User, UserFields } from "./user"
 
-type ChatConstructor = {
-  saveDebugLog?: boolean
-} & PubNub.PubnubConfig
+type ChatConfig = {
+  saveDebugLog: boolean
+  typingTimeout: number
+}
+
+type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
 
 export class Chat {
   readonly sdk: PubNub
+  readonly config: ChatConfig
+  private user?: User
 
   constructor(params: ChatConstructor) {
-    const { saveDebugLog, ...pubnubConfig } = params
+    const { saveDebugLog, typingTimeout, ...pubnubConfig } = params
     this.sdk = new PubNub(pubnubConfig)
+    this.config = {
+      saveDebugLog: saveDebugLog || false,
+      typingTimeout: typingTimeout || 5000,
+    }
   }
 
   static init(params: ChatConstructor) {
     return new Chat(params)
   }
 
-  getChannel(id: string) {
-    // TODO: connect to pubnub instead
-    return new Channel({
-      sdk: this.sdk,
-      id,
-      name: id,
+  async getUser(id: string) {
+    if (!id.length) throw "ID is required"
+    try {
+      const response = await this.sdk.objects.getUUIDMetadata({ uuid: id })
+      return User.fromDTO(this, response.data)
+    } catch (error) {
+      const e = error as { status: { errorData: { status: number } } }
+      if (e?.status?.errorData?.status === 404) return null
+      else throw error
+    }
+  }
+
+  async createUser(id: string, data: Omit<UserFields, "id">) {
+    if (!id.length) throw "ID is required"
+    try {
+      const existingUser = await this.getUser(id)
+      if (existingUser) throw "User with this ID already exists"
+      const response = await this.sdk.objects.setUUIDMetadata({ uuid: id, data })
+      return User.fromDTO(this, response.data)
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async updateUser(id: string, data: Omit<UserFields, "id">) {
+    if (!id.length) throw "ID is required"
+    try {
+      const existingUser = await this.getUser(id)
+      if (!existingUser) throw "User with this ID does not exist"
+      const response = await this.sdk.objects.setUUIDMetadata({ uuid: id, data })
+      return User.fromDTO(this, response.data)
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async deleteUser(id: string, soft = false) {
+    if (!id.length) throw "ID is required"
+    try {
+      if (soft) {
+        const response = await this.sdk.objects.setUUIDMetadata({
+          uuid: id,
+          data: { status: "deleted" },
+        } as SetUUIDMetadataParameters<ObjectCustom>)
+        return User.fromDTO(this, response.data)
+      } else {
+        await this.sdk.objects.removeUUIDMetadata({ uuid: id })
+        return true
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async getUsers(params: Omit<GetAllMetadataParameters, "include">) {
+    const mandatoryOptions = {
+      include: {
+        totalCount: true,
+        customFields: true,
+      },
+    }
+    const options = Object.assign({}, params, mandatoryOptions)
+    try {
+      const response = await this.sdk.objects.getAllUUIDMetadata(options)
+      return {
+        users: response.data.map((u) => User.fromDTO(this, u)),
+        page: {
+          next: response.next,
+          prev: response.prev,
+        },
+        total: response.totalCount,
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async getChannel(id: string) {
+    try {
+      const response = await this.sdk.objects.getChannelMetadata({
+        channel: id,
+      })
+      return Channel.fromDTO(this, response.data)
+    } catch (error) {
+      const e = error as { status: { errorData: { status: number } } }
+      if (e?.status?.errorData?.status === 404) return null
+      else throw error
+    }
+  }
+
+  async updateChannel(id: string, data: Omit<ChannelFields, "id">) {
+    try {
+      const response = await this.sdk.objects.setChannelMetadata({
+        channel: id,
+        data,
+      })
+
+      return Channel.fromDTO(this, response.data)
+    } catch (e) {
+      console.error(e)
+      throw e
+    }
+  }
+
+  getChatUser() {
+    return this.user
+  }
+
+  setChatUser(user: User) {
+    // this.sdk.setUUID(user.id)
+    this.user = user
+  }
+
+  async createChannel(id: string, data: ChannelMetadata<ObjectCustom>) {
+    if (!id.length) throw "ID is required"
+    try {
+      const existingChannel = await this.getChannel(id)
+      if (existingChannel) throw "Channel with this ID already exists"
+      const response = await this.sdk.objects.setChannelMetadata({
+        channel: id,
+        data,
+      })
+
+      return Channel.fromDTO(this, response.data)
+    } catch (e) {
+      console.error(e)
+      throw e
+    }
+  }
+
+  async getChannels() {
+    const response = await this.sdk.objects.getAllChannelMetadata()
+
+    return response.data.map((c) => Channel.fromDTO(this, c))
+  }
+
+  async deleteChannel(id: string) {
+    return await this.sdk.objects.removeChannelMetadata({
+      channel: id,
     })
-  }
-
-  createUser(params: { id: string; name: string }) {
-    // create user
-  }
-
-  createChannel(params: { id: string; name: string }) {
-    // create channel
   }
 }

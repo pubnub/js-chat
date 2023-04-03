@@ -4,17 +4,32 @@
   "private": true,
   "workspaces": [
     "lib",
-    "sample/*"
+    "samples/*"
   ],
   "scripts": {
-    "start": "concurrently \"yarn workspace @pubnub/chat run dev\" \"yarn workspace sample run dev\"",
-    "test": "yarn workspace @pubnub/chat run test"
+    "start": "concurrently \"yarn workspace @pubnub/chat run dev\" \"yarn workspace @pubnub/chat-astro run dev\"",
+    "test": "yarn workspace @pubnub/chat run test",
+    "eslint:base": "eslint --ignore-path .gitignore",
+    "prettier:base": "prettier --ignore-path .gitignore",
+    "prepare": "node -e \"try { require('husky').install() } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\""
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx}": [
+      "npm run eslint:base -- --fix",
+      "npm run prettier:base -- --write"
+    ],
+    "*.{json,md,mdx}": [
+      "npm run prettier:base -- --write"
+    ]
   },
   "devDependencies": {
     "@types/axios": "0.14.0",
+    "@commitlint/cli": "17.1.2",
+    "@commitlint/config-conventional": "17.1.0",
     "@typescript-eslint/eslint-plugin": "5.37.0",
     "@typescript-eslint/parser": "5.37.0",
-    "concurrently": "^7.6.0",
+    "buffer": "5.5.0",
+    "concurrently": "7.6.0",
     "eslint": "8.22.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
@@ -23,6 +38,8 @@
     "@jest/globals": "29.4.3",
     "@types/jest": "29.4.0",
     "jest": "29.4.3",
-    "ts-jest": "29.0.5"
+    "ts-jest": "29.0.5",
+    "husky": "8.0.1",
+    "lint-staged": "13.0.3"
   }
 }

@@ -1,0 +1,61 @@
+---
+export interface Props {
+  title: string
+}
+
+const { title } = Astro.props
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <main class="container mx-auto px-8 lg:px-48">
+      <h1>
+        Welcome to
+        <span class="text-gradient bg-gradient-to-r from-accent to-pink-500">PubNub Chat</span>
+      </h1>
+      <slot />
+    </main>
+  </body>
+</html>
+<style is:global>
+  .text-gradient {
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  button {
+    @apply border-2 rounded border-accent text-accent hover:bg-accent focus:bg-accent hover:text-white focus:text-white outline-none transition px-4 py-2;
+  }
+
+  label {
+    @apply block font-bold mt-2 mb-1;
+  }
+
+  input {
+    @apply border-2 rounded border-gray-400 hover:border-accent focus:border-accent outline-none transition px-4 py-2 w-full;
+  }
+
+  h1 {
+    @apply text-5xl font-extrabold mb-8 mt-12;
+  }
+
+  h2 {
+    @apply text-3xl font-extrabold mb-4 mt-8;
+  }
+
+  h3 {
+    @apply text-xl font-bold mb-4;
+  }
+
+  .error {
+    @apply border-2 rounded border-accent text-accent px-4 py-2;
+  }
+</style>
