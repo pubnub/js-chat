@@ -17,7 +17,6 @@ export class MessageInputComponentChat {
 
   async handleSend() {
     const response = await this.channel.sendText(this.pubnubInput, { meta: { foo: "bar" } })
-    console.log("response3", response)
     this.pubnubInput = ""
   }
 }
