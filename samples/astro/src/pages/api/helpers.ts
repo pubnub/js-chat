@@ -28,9 +28,11 @@ export const getGrantParams = (id) => ({
   patterns: {
     channels: {
       ".*": {
+        delete: true,
         get: true,
         join: true,
         read: true,
+        update: true,
         write: true,
       },
     },

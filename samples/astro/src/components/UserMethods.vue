@@ -3,6 +3,7 @@ import { reactive } from "vue"
 import { userIdAtom, chatAtom } from "../store"
 import { useStore } from "@nanostores/vue"
 import type { User } from "@pubnub/chat"
+import { extractErrorMessage } from "./helpers"
 
 const $userId = useStore(userIdAtom)
 const $chat = useStore(chatAtom)
@@ -13,6 +14,7 @@ interface State {
   users: User[]
   total: number
   page: { next?: string; prev?: string }
+  presence?: string[]
 }
 
 const state: State = reactive({
@@ -21,6 +23,7 @@ const state: State = reactive({
   users: [],
   total: 0,
   page: { next: undefined, prev: undefined },
+  presence: [],
 })
 
 const getUserForm = reactive({
@@ -43,16 +46,24 @@ const updateUserForm: UpdateUserForm = reactive({
   status: undefined,
 })
 
-function extractErrorMessage(e: any) {
-  if (typeof e === "string") return e
-  let ret = ""
-  const status = e?.status?.errorData?.status
-  const message =
-    e?.status?.errorData?.message || e?.status?.errorData?.error?.message || "Unknown error"
-  if (status) ret += `${status}: `
-  ret += message
-  return ret
+interface Forms {
+  getUser: {
+    id?: string
+  }
+  presence: {
+    checkChannel: string
+  }
 }
+
+const forms: Forms = reactive({
+  getUser: {
+    id: $userId.value,
+  },
+  presence: {
+    subscriptions: "",
+    checkChannel: "",
+  },
+})
 
 function resetUserForm() {
   updateUserForm.name =
@@ -137,6 +148,25 @@ async function handleSoftDelete() {
   }
 }
 
+async function handleGetPresence() {
+  try {
+    state.presence = await state.user?.wherePresent()
+  } catch (e: any) {
+    state.error = extractErrorMessage(e)
+    console.error(e)
+  }
+}
+
+async function handleCheckPresence() {
+  try {
+    const isPresent = await state.user?.isPresentOn(forms.presence.checkChannel)
+    alert(`User is ${isPresent ? "" : "NOT"} present on the ${forms.presence.checkChannel} channel`)
+  } catch (e: any) {
+    state.error = extractErrorMessage(e)
+    console.error(e)
+  }
+}
+
 chatAtom.subscribe((value) => {
   if (value) handleGet()
 })
@@ -144,7 +174,6 @@ chatAtom.subscribe((value) => {
 
 <template>
   <p class="error my-4" v-if="state.error">{{ state.error }}</p>
-
   <div>
     <h3>Get all users</h3>
     <button class="mb-4" @click="handleGetAll">Get all users</button>
@@ -153,7 +182,7 @@ chatAtom.subscribe((value) => {
       <p><b>Existing IDs: </b>{{ state.users.map((u) => u.id).join(", ") }}</p>
     </div>
   </div>
-  <div class="grid grid-cols-2 gap-8 mt-6">
+  <div class="grid lg:grid-cols-2 gap-8 mt-6">
     <section>
       <h3>Get user</h3>
       <form @submit.prevent="handleGet">
@@ -180,6 +209,19 @@ chatAtom.subscribe((value) => {
           <button type="button" @click="handleSet">Update user</button>
         </nav>
       </form>
+    </section>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-8 mt-6">
+    <section>
+      <h3>User presence</h3>
+      <button @click="handleGetPresence" class="mb-3">Get user presence</button>
+      <p><b>User present on: </b> {{ state.presence?.join(", ") }}</p>
+      <label for="check-channel" class="mt-3">Check presence on channel</label>
+      <div class="flex">
+        <input v-model="forms.presence.checkChannel" type="text" name="check-channel" />
+        <button class="ml-2 flex-none" @click="handleCheckPresence">Check presence</button>
+      </div>
     </section>
   </div>
 </template>
