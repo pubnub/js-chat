@@ -173,4 +173,38 @@ export class Chat {
       channel: id,
     })
   }
+
+  /**
+   *  Presence
+   */
+  async wherePresent(id: string) {
+    if (!id.length) throw "ID is required"
+    try {
+      const response = await this.sdk.whereNow({ uuid: id })
+      return response.channels
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async whoIsPresent(id: string) {
+    if (!id.length) throw "ID is required"
+    try {
+      const response = await this.sdk.hereNow({ channels: [id] })
+      return response.channels[id].occupants.map((u) => u.uuid)
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async isPresent(userId: string, channelId: string) {
+    if (!userId.length) throw "User ID is required"
+    if (!channelId.length) throw "Channel ID is required"
+    try {
+      const response = await this.sdk.whereNow({ uuid: userId })
+      return response.channels.includes(channelId)
+    } catch (error) {
+      throw error
+    }
+  }
 }

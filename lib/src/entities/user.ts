@@ -39,18 +39,18 @@ export class User {
   }
 
   async update(data: Omit<UserFields, "id">) {
-    try {
-      return await this.chat.updateUser(this.id, data)
-    } catch (error) {
-      throw error
-    }
+    return this.chat.updateUser(this.id, data)
   }
 
   async delete(soft = false) {
-    try {
-      return await this.chat.deleteUser(this.id, soft)
-    } catch (error) {
-      throw error
-    }
+    return this.chat.deleteUser(this.id, soft)
+  }
+
+  async wherePresent() {
+    return this.chat.wherePresent(this.id)
+  }
+
+  async isPresentOn(channelId: string) {
+    return this.chat.isPresent(this.id, channelId)
   }
 }

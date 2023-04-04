@@ -2,7 +2,9 @@
 import Layout from "../layouts/Layout.astro"
 import AuthGate from "../components/AuthGate.svelte"
 import UserInfo from "../components/UserInfo.svelte"
+import Subscriptions from "../components/Subscriptions.svelte"
 import UserMethods from "../components/UserMethods.vue"
+import ChannelMethods from "../components/ChannelMethods.tsx"
 ---
 
 <Layout title="Chat">
@@ -10,7 +12,11 @@ import UserMethods from "../components/UserMethods.vue"
     <AuthGate client:only />
     <h2>PAM tokens (Svelte)</h2>
     <UserInfo client:only />
+    <h2>Subscriptions (Svelte)</h2>
+    <Subscriptions client:only />
     <h2>User methods (Vue)</h2>
     <UserMethods client:only />
+    <h2>Channel methods (React)</h2>
+    <ChannelMethods client:only="react" />
   </main>
 </Layout>

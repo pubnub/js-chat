@@ -171,6 +171,14 @@ export class Channel {
     return this.chat.deleteChannel(this.id)
   }
 
+  async whoIsPresent() {
+    return this.chat.whoIsPresent(this.id)
+  }
+
+  async isPresent(userId: string) {
+    return this.chat.isPresent(userId, this.id)
+  }
+
   // fetchHistory({ start, end, count = 20 }: { start?: string; end?: string; count?: number }) {
   //   // API should allow to differentiate between thread messages and
   //   // root messages
