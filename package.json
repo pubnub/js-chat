@@ -7,7 +7,7 @@
     "samples/*"
   ],
   "scripts": {
-    "start": "npm-run-all --parallel build astro",
+    "start": "npm-run-all --parallel build:watch astro",
     "test": "yarn workspace @pubnub/chat run test",
     "build": "yarn workspace @pubnub/chat run build",
     "build:watch": "yarn workspace @pubnub/chat run dev",
