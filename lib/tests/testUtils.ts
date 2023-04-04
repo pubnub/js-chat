@@ -2,8 +2,13 @@
 import { Chat } from "../src"
 import { Channel } from "../src"
 import * as dotenv from "dotenv"
+import { nanoid } from "nanoid"
 
 dotenv.config()
+
+export const createRandomUserId = (prefix = "user"): string => {
+  return `${prefix}_${nanoid(8)}`
+}
 
 export const initTestChat = (): Chat => {
   return Chat.init({
