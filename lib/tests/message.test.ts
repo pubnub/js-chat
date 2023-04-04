@@ -1,28 +1,27 @@
 import { Chat, Channel } from "../src"
+import * as dotenv from "dotenv"
+import { initTestChannel, initTestChat } from "./testUtils"
+
+dotenv.config()
 
 describe("Send message test", () => {
   let channel: Channel | null
   let chat: Chat
 
   beforeEach(async () => {
-    chat = Chat.init({
-      publishKey: "pub-c-8a081a4d-b13d-42e7-81a8-fe5bfc090ab5",
-      subscribeKey: "sub-c-cee9c6c0-72b1-4a7a-8cb1-4cccb728250a",
-      userId: "test-user",
-    })
-    channel = await chat.getChannel("test-react-channel-C1")
-    if (!channel) {
-      channel = await chat.createChannel("test-react-channel-C1", {
-        name: "test-channel",
-      })
-    }
+    chat = initTestChat()
+    channel = await initTestChannel(chat)
   })
 
   test("should verify if message sent", async () => {
     const messages = []
     let receiveTime = 0
 
-    channel?.connect((message) => {
+    if (!channel) {
+      throw new Error("Channel is undefined")
+    }
+
+    channel.connect((message) => {
       receiveTime = Date.now()
       messages.push(message.content)
     })
