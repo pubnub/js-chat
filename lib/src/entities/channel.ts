@@ -176,7 +176,7 @@ export class Channel {
   }
 
   async isPresent(userId: string) {
-    return this.chat.isPresent(this.id, userId)
+    return this.chat.isPresent(userId, this.id)
   }
 
   // fetchHistory({ start, end, count = 20 }: { start?: string; end?: string; count?: number }) {
