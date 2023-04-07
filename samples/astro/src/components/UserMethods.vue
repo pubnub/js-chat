@@ -206,7 +206,7 @@ chatAtom.subscribe((value) => {
         <nav class="float-right mt-3">
           <button type="button" @click="handleHardDelete" class="mr-2">Hard delete user</button>
           <button type="button" @click="handleSoftDelete" class="mr-2">Soft delete user</button>
-          <button type="button" @click="handleSet">Update user</button>
+          <button type="button" @click="handleSet" class="mt-2">Update user</button>
         </nav>
       </form>
     </section>
