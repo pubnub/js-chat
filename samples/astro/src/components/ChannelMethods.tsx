@@ -10,6 +10,8 @@ export default function () {
   const [presence, setPresence] = useState<string[]>([])
   const [channel, setChannel] = useState<Channel>()
   const [input, setInput] = useState("")
+  const [textInput, setTextInput] = useState("")
+  const [typingUserIds, setTypingUserIds] = useState<string[]>([])
   const [error, setError] = useState("")
 
   async function handleCreateChannel() {
@@ -26,6 +28,7 @@ export default function () {
   async function handleGetChannel() {
     try {
       const channel = await chat.getChannel(input)
+      channel?.getTyping((userIds) => setTypingUserIds(userIds))
       setChannel(channel)
     } catch (e: any) {
       setError(extractErrorMessage(e))
@@ -41,6 +44,13 @@ export default function () {
       setError(extractErrorMessage(e))
       console.error(e)
     }
+  }
+
+  async function handleTextInput(e) {
+    const newText = e.target.value
+    setTextInput(newText)
+    if (newText) await channel?.startTyping()
+    else await channel?.stopTyping()
   }
 
   return (
@@ -86,18 +96,40 @@ export default function () {
         </section>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8 mt-6">
-        <section>
-          <h3>Channel presence</h3>
-          <button className="mb-3" onClick={handleGetPresence}>
-            Get channel presence
-          </button>
-          <p>
-            <b>Channel presence: </b>
-            {presence.join(", ")}
-          </p>
-        </section>
-      </div>
+      {channel ? (
+        <>
+          <div className="grid lg:grid-cols-2 gap-8 mt-6">
+            <section>
+              <h3>Channel presence</h3>
+              <button className="mb-3" onClick={handleGetPresence}>
+                Get channel presence
+              </button>
+              <p>
+                <b>Channel presence: </b>
+                {presence.join(", ")}
+              </p>
+            </section>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8 mt-6">
+            <section>
+              <h3>Sending text messages</h3>
+              <label htmlFor="sendText">Type a message</label>
+              <input type="text" name="sendText" value={textInput} onChange={handleTextInput} />
+            </section>
+
+            <section>
+              <h3>Typing indicators</h3>
+              <p>
+                <b>Currently typing user ids: </b>
+                {typingUserIds.join(", ")}
+              </p>
+            </section>
+          </div>
+        </>
+      ) : (
+        <p>Get a channel to unlock additional features</p>
+      )}
     </>
   )
 }

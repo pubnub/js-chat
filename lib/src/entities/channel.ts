@@ -11,15 +11,6 @@ import { SendTextOptionParams } from "../types"
 
 export type ChannelFields = Pick<Channel, "id" | "name" | "custom" | "description" | "updated">
 
-export interface TypingData {
-  userId: string
-  name?: string
-}
-
-interface TypingDataWithTimer extends TypingData {
-  timer: ReturnType<typeof setTimeout>
-}
-
 export class Channel {
   private chat: Chat
   readonly id: string
@@ -31,7 +22,7 @@ export class Channel {
   private subscribed = false
   private typingSent = false
   private typingSentTimer?: ReturnType<typeof setTimeout>
-  private typingIndicators: TypingDataWithTimer[] = []
+  private typingIndicators: Map<string, ReturnType<typeof setTimeout>> = new Map()
 
   constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
@@ -70,7 +61,6 @@ export class Channel {
       message: {
         type: "typing",
         value,
-        name: this.chat.getChatUser()?.name,
       },
     })
   }
@@ -92,42 +82,37 @@ export class Channel {
     return await this.sendTypingSignal(false)
   }
 
-  getTyping(callback: (typingIndicators: TypingData[]) => unknown) {
+  getTyping(callback: (typingUserIds: string[]) => unknown) {
     const typingListener = {
       signal: (event: SignalEvent) => {
         const { channel, message, publisher } = event
         if (channel !== this.id) return
         if (message.type !== "typing") return
-        const indicator = this.typingIndicators.find((t) => t.userId === publisher)
+        const timer = this.typingIndicators.get(publisher)
 
-        if (!message.value && indicator) {
-          this.typingIndicators = this.typingIndicators.filter((t) => t.userId !== publisher)
-          clearTimeout(indicator.timer)
+        if (!message.value && timer) {
+          clearTimeout(timer)
+          this.typingIndicators.delete(publisher)
         }
 
-        if (message.value && indicator) {
-          clearTimeout(indicator.timer)
-          indicator.timer = setTimeout(() => {
-            this.typingIndicators = this.typingIndicators.filter((t) => t.userId !== publisher)
-            callback(this.typingIndicators.map((t) => ({ userId: t.userId, name: t.name })))
+        if (message.value && timer) {
+          clearTimeout(timer)
+          const newTimer = setTimeout(() => {
+            this.typingIndicators.delete(publisher)
+            callback(Array.from(this.typingIndicators.keys()))
           }, this.chat.config.typingTimeout)
+          this.typingIndicators.set(publisher, newTimer)
         }
 
-        if (message.value && !indicator) {
-          this.typingIndicators = [
-            ...this.typingIndicators,
-            {
-              userId: publisher,
-              name: message.name,
-              timer: setTimeout(() => {
-                this.typingIndicators = this.typingIndicators.filter((t) => t.userId !== publisher)
-                callback(this.typingIndicators.map((t) => ({ userId: t.userId, name: t.name })))
-              }, this.chat.config.typingTimeout),
-            },
-          ]
+        if (message.value && !timer) {
+          const newTimer = setTimeout(() => {
+            this.typingIndicators.delete(publisher)
+            callback(Array.from(this.typingIndicators.keys()))
+          }, this.chat.config.typingTimeout)
+          this.typingIndicators.set(publisher, newTimer)
         }
 
-        callback(this.typingIndicators.map((t) => ({ userId: t.userId, name: t.name })))
+        callback(Array.from(this.typingIndicators.keys()))
       },
     }
 
