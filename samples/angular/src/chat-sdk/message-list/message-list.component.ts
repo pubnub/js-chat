@@ -1,18 +1,18 @@
-import { Component, Input } from '@angular/core';
-import { Channel } from "@pubnub/chat";
+import { Component, Input } from "@angular/core"
+import { Channel } from "@pubnub/chat"
 
 @Component({
-  selector: 'app-message-list-chat',
-  templateUrl: './message-list.component.html',
-  styleUrls: ['./message-list.component.scss']
+  selector: "app-message-list-chat",
+  templateUrl: "./message-list.component.html",
+  styleUrls: ["./message-list.component.scss"],
 })
 export class MessageListComponentChat {
-  @Input() channel!: Channel;
+  @Input() channel!: Channel
 
-  messages: any[];
+  messages: any[]
 
   constructor() {
-    this.messages = [];
+    this.messages = []
   }
 
   ngOnInit() {

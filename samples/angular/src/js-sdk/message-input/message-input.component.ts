@@ -1,17 +1,16 @@
-import { Component, Input } from '@angular/core';
-import PubNub from "pubnub";
+import { Component, Input } from "@angular/core"
+import PubNub from "pubnub"
 
 @Component({
-  selector: 'app-message-input-sdk',
-  templateUrl: './message-input.component.html',
-  styleUrls: ['./message-input.component.scss']
+  selector: "app-message-input-sdk",
+  templateUrl: "./message-input.component.html",
+  styleUrls: ["./message-input.component.scss"],
 })
 export class MessageInputComponentSDK {
-  pubnubInput = "";
-  @Input() channel!: string;
-  @Input() pubnub!: PubNub;
-  @Input() typingSent!: boolean;
-
+  pubnubInput = ""
+  @Input() channel!: string
+  @Input() pubnub!: PubNub
+  @Input() typingSent!: boolean
 
   async sendTyping(value: boolean) {
     await this.pubnub.signal({ channel: this.channel, message: { type: "typing", value } })
@@ -29,8 +28,11 @@ export class MessageInputComponentSDK {
   }
 
   async handleSend() {
-    await this.pubnub.publish({ channel: this.channel, message: { text: this.pubnubInput, type: "text" } })
+    await this.pubnub.publish({
+      channel: this.channel,
+      message: { text: this.pubnubInput, type: "text" },
+    })
     await this.sendTyping(false)
-    this.pubnubInput = "";
+    this.pubnubInput = ""
   }
 }

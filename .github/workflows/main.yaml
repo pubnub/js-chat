@@ -10,4 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: yarn install
-      - run: yarn test
+      - run: yarn test --forceExit
+        env:
+          PUBLISH_KEY: ${{ secrets.PUBLISH_KEY }}
+          SUBSCRIBE_KEY: ${{ secrets.SUBSCRIBE_KEY }}
+          USER_ID: ${{ secrets.USER_ID }}
+

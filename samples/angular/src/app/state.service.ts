@@ -1,38 +1,38 @@
-import { Injectable } from '@angular/core';
-import { Subject } from "rxjs";
+import { Injectable } from "@angular/core"
+import { Subject } from "rxjs"
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class StateService {
-  createChannelModalJSSDKOpen = false;
-  createChannelModalChatSDKOpen = false;
+  createChannelModalJSSDKOpen = false
+  createChannelModalChatSDKOpen = false
 
-  JSSDKModalVisibilityChange: Subject<boolean> = new Subject<boolean>();
-  chatSDKModalVisibilityChange: Subject<boolean> = new Subject<boolean>();
+  JSSDKModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
+  chatSDKModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
 
   constructor() {
     this.JSSDKModalVisibilityChange.subscribe((value) => {
       this.createChannelModalJSSDKOpen = value
-    });
+    })
     this.chatSDKModalVisibilityChange.subscribe((value) => {
       this.createChannelModalChatSDKOpen = value
-    });
+    })
   }
 
   toggleCreateChannelModalChatSDK() {
-    this.chatSDKModalVisibilityChange.next(!this.createChannelModalChatSDKOpen);
+    this.chatSDKModalVisibilityChange.next(!this.createChannelModalChatSDKOpen)
   }
 
   toggleCreateChannelModalJSSDK() {
-    this.JSSDKModalVisibilityChange.next(!this.createChannelModalJSSDKOpen);
+    this.JSSDKModalVisibilityChange.next(!this.createChannelModalJSSDKOpen)
   }
 
   getCreateChannelModalJSSDKOpen() {
-    return this.createChannelModalJSSDKOpen;
+    return this.createChannelModalJSSDKOpen
   }
 
   getCreateChannelModalChatSDKOpen() {
-    return this.createChannelModalChatSDKOpen;
+    return this.createChannelModalChatSDKOpen
   }
 }

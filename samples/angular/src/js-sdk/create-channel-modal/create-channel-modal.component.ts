@@ -1,39 +1,37 @@
-import { Component, Input } from '@angular/core';
-import PubNub from "pubnub";
-import {StateService} from "../../app/state.service";
+import { Component, Input } from "@angular/core"
+import PubNub from "pubnub"
+import { StateService } from "../../app/state.service"
 
 @Component({
-  selector: 'app-create-channel-modal-sdk',
-  templateUrl: './create-channel-modal.component.html',
-  styleUrls: ['./create-channel-modal.component.scss']
+  selector: "app-create-channel-modal-sdk",
+  templateUrl: "./create-channel-modal.component.html",
+  styleUrls: ["./create-channel-modal.component.scss"],
 })
 export class CreateChannelModalComponentSDK {
-  channelNameInput = "";
-  @Input() pubnub!: PubNub;
+  channelNameInput = ""
+  @Input() pubnub!: PubNub
 
   get createChannelModalOpen(): boolean {
-    return this.stateService.createChannelModalJSSDKOpen;
+    return this.stateService.createChannelModalJSSDKOpen
   }
 
-  constructor(private stateService: StateService) {
-
-  }
+  constructor(private stateService: StateService) {}
 
   toggleCreateChannelModal() {
-    this.stateService.toggleCreateChannelModalJSSDK();
+    this.stateService.toggleCreateChannelModalJSSDK()
   }
 
   async submitCreateChannelForm() {
     if (!this.channelNameInput) {
-      return;
+      return
     }
     await this.pubnub.objects.setChannelMetadata({
       channel: this.channelNameInput.replaceAll(" ", "."),
       data: {
         name: this.channelNameInput,
-      }
+      },
     })
 
-    this.stateService.toggleCreateChannelModalJSSDK();
+    this.stateService.toggleCreateChannelModalJSSDK()
   }
 }

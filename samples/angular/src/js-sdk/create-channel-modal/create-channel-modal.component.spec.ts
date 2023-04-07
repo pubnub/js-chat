@@ -1,23 +1,22 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from "@angular/core/testing"
 
-import { CreateChannelModalComponent } from './create-channel-modal.component';
+import { CreateChannelModalComponent } from "./create-channel-modal.component"
 
-describe('CreateChannelModalComponent', () => {
-  let component: CreateChannelModalComponent;
-  let fixture: ComponentFixture<CreateChannelModalComponent>;
+describe("CreateChannelModalComponent", () => {
+  let component: CreateChannelModalComponent
+  let fixture: ComponentFixture<CreateChannelModalComponent>
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ CreateChannelModalComponent ]
-    })
-    .compileComponents();
+      declarations: [CreateChannelModalComponent],
+    }).compileComponents()
 
-    fixture = TestBed.createComponent(CreateChannelModalComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    fixture = TestBed.createComponent(CreateChannelModalComponent)
+    component = fixture.componentInstance
+    fixture.detectChanges()
+  })
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
+  it("should create", () => {
+    expect(component).toBeTruthy()
+  })
+})
