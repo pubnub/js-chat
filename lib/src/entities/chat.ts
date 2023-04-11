@@ -1,5 +1,6 @@
 import PubNub, {
   SetUUIDMetadataParameters,
+  SetChannelMetadataParameters,
   GetAllMetadataParameters,
   ObjectCustom,
   ChannelMetadata,
@@ -32,6 +33,21 @@ export class Chat {
     return new Chat(params)
   }
 
+  /**
+   * Current user
+   */
+  getChatUser() {
+    return this.user
+  }
+
+  setChatUser(user: User) {
+    // this.sdk.setUUID(user.id)
+    this.user = user
+  }
+
+  /**
+   * Users
+   */
   async getUser(id: string) {
     if (!id.length) throw "ID is required"
     try {
@@ -109,7 +125,11 @@ export class Chat {
     }
   }
 
+  /**
+   *  Channels
+   */
   async getChannel(id: string) {
+    if (!id.length) throw "ID is required"
     try {
       const response = await this.sdk.objects.getChannelMetadata({
         channel: id,
@@ -123,26 +143,19 @@ export class Chat {
   }
 
   async updateChannel(id: string, data: Omit<ChannelFields, "id">) {
+    if (!id.length) throw "ID is required"
     try {
+      const existingChannel = await this.getChannel(id)
+      if (!existingChannel) throw "Channel with this ID does not exist"
       const response = await this.sdk.objects.setChannelMetadata({
         channel: id,
         data,
       })
-
       return Channel.fromDTO(this, response.data)
     } catch (e) {
       console.error(e)
       throw e
     }
-  }
-
-  getChatUser() {
-    return this.user
-  }
-
-  setChatUser(user: User) {
-    // this.sdk.setUUID(user.id)
-    this.user = user
   }
 
   async createChannel(id: string, data: ChannelMetadata<ObjectCustom>) {
@@ -154,7 +167,6 @@ export class Chat {
         channel: id,
         data,
       })
-
       return Channel.fromDTO(this, response.data)
     } catch (e) {
       console.error(e)
@@ -162,10 +174,27 @@ export class Chat {
     }
   }
 
-  async getChannels() {
-    const response = await this.sdk.objects.getAllChannelMetadata()
-
-    return response.data.map((c) => Channel.fromDTO(this, c))
+  async getChannels(params: Omit<GetAllMetadataParameters, "include">) {
+    const mandatoryOptions = {
+      include: {
+        totalCount: true,
+        customFields: true,
+      },
+    }
+    const options = Object.assign({}, params, mandatoryOptions)
+    try {
+      const response = await this.sdk.objects.getAllChannelMetadata(options)
+      return {
+        channels: response.data.map((u) => Channel.fromDTO(this, u)),
+        page: {
+          next: response.next,
+          prev: response.prev,
+        },
+        total: response.totalCount,
+      }
+    } catch (error) {
+      throw error
+    }
   }
 
   async deleteChannel(id: string) {

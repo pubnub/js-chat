@@ -17,6 +17,7 @@ export class User {
   readonly custom?: ObjectCustom
   readonly status?: string
   readonly type?: string
+  readonly updated?: string
 
   constructor(chat: Chat, params: UserFields) {
     this.chat = chat
@@ -32,6 +33,7 @@ export class User {
       profileUrl: params.profileUrl || undefined,
       email: params.email || undefined,
       custom: params.custom || undefined,
+      updated: params.updated || undefined,
       status: params.status || undefined,
       type: params.type || undefined,
     }
