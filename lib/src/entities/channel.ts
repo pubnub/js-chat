@@ -7,9 +7,12 @@ import {
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
-import { SendTextOptionParams } from "../types"
+import { SendTextOptionParams, StatusTypeFields } from "../types"
 
-export type ChannelFields = Pick<Channel, "id" | "name" | "custom" | "description" | "updated">
+export type ChannelFields = Pick<
+  Channel,
+  "id" | "name" | "custom" | "description" | "updated" | "status" | "type"
+>
 
 export class Channel {
   private chat: Chat
@@ -18,6 +21,8 @@ export class Channel {
   readonly custom?: ObjectCustom
   readonly description?: string
   readonly updated?: string
+  readonly status?: string
+  readonly type?: string
   private listeners: ListenerParameters[] = []
   private subscribed = false
   private typingSent = false
@@ -27,18 +32,18 @@ export class Channel {
   constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
     this.id = params.id
-    this.name = params.name
     Object.assign(this, params)
   }
 
-  static fromDTO(chat: Chat, params: ChannelMetadataObject<ObjectCustom>) {
+  static fromDTO(chat: Chat, params: ChannelMetadataObject<ObjectCustom> & StatusTypeFields) {
     const data = {
       id: params.id,
       name: params.name || undefined,
       custom: params.custom || undefined,
       description: params.description || undefined,
-      eTag: params.eTag || undefined,
       updated: params.updated || undefined,
+      status: params.status || undefined,
+      type: params.type || undefined,
     }
 
     return new Channel(chat, data)

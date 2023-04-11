@@ -1,20 +1,34 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useStore } from "@nanostores/react"
 import { chatAtom } from "../store"
 import { extractErrorMessage } from "./helpers"
 import { Channel } from "@pubnub/chat"
+
+type GetAllState = {
+  channels: Channel[]
+  total: number
+  page: { next?: string; prev?: string }
+}
+
+const defaultGetAllState = {
+  channels: [],
+  total: 0,
+  page: { next: undefined, prev: undefined },
+}
 
 export default function () {
   const chat = useStore(chatAtom)
   const [createForm, setCreateForm] = useState({ id: "", name: "" })
   const [presence, setPresence] = useState<string[]>([])
   const [channel, setChannel] = useState<Channel>()
+  const [getAllState, setGetAllState] = useState<GetAllState>(defaultGetAllState)
+  const getAllRef = useRef(defaultGetAllState)
   const [input, setInput] = useState("")
   const [textInput, setTextInput] = useState("")
   const [typingUserIds, setTypingUserIds] = useState<string[]>([])
   const [error, setError] = useState("")
 
-  async function handleCreateChannel() {
+  async function handleCreate() {
     try {
       const channel = await chat.createChannel(createForm.id, { name: createForm.name })
       setCreateForm({ id: "", name: "" })
@@ -25,11 +39,31 @@ export default function () {
     }
   }
 
-  async function handleGetChannel() {
+  async function handleGet() {
     try {
       const channel = await chat.getChannel(input)
       channel?.getTyping((userIds) => setTypingUserIds(userIds))
       setChannel(channel)
+    } catch (e: any) {
+      setError(extractErrorMessage(e))
+      console.error(e)
+    }
+  }
+
+  async function handleGetAll() {
+    try {
+      do {
+        const { channels, page, total } = await chat.getChannels({
+          limit: 2,
+          page: getAllRef.current.page,
+        })
+        getAllRef.current = {
+          channels: [...getAllRef.current.channels, ...channels],
+          page,
+          total,
+        }
+      } while (getAllRef.current.channels.length < getAllRef.current.total)
+      setGetAllState(getAllRef.current)
     } catch (e: any) {
       setError(extractErrorMessage(e))
       console.error(e)
@@ -59,6 +93,25 @@ export default function () {
 
       <div className="grid lg:grid-cols-2 gap-8 mt-6">
         <section>
+          <h3>Get all channels</h3>
+          <button className="mb-4" onClick={handleGetAll}>
+            Get all channels
+          </button>
+          {getAllState.channels.length ? (
+            <div>
+              <p>
+                <b>Total count: </b>
+                {getAllState.total}
+              </p>
+              <p>
+                <b>Existing Channels: </b>
+                {getAllState.channels.map((c) => c.id).join(", ")}
+              </p>
+            </div>
+          ) : null}
+        </section>
+
+        <section>
           <h3>Create channel</h3>
           <label htmlFor="getChannel">Channel ID</label>
           <input
@@ -74,7 +127,7 @@ export default function () {
             value={createForm.name}
             onChange={(e) => setCreateForm((f) => ({ ...f, name: e.target.value }))}
           />
-          <button className="float-right mt-3" onClick={handleCreateChannel}>
+          <button className="float-right mt-3" onClick={handleCreate}>
             Create channel
           </button>
         </section>
@@ -90,7 +143,7 @@ export default function () {
             value={input}
             onChange={(e) => setInput(e.target.value)}
           />
-          <button className="float-right mt-3" onClick={handleGetChannel}>
+          <button className="float-right mt-3" onClick={handleGet}>
             Get channel
           </button>
         </section>
@@ -128,7 +181,7 @@ export default function () {
           </div>
         </>
       ) : (
-        <p>Get a channel to unlock additional features</p>
+        <p className="mt-6">Get a channel to unlock additional features</p>
       )}
     </>
   )
