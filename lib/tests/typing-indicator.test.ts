@@ -26,6 +26,6 @@ describe("Typing indicator test", () => {
     await channel?.getTyping(callback)
     await channel?.startTyping()
     await new Promise((resolve) => setTimeout(resolve, 2000))
-    expect(callback).toHaveBeenCalledWith([{ name: undefined, userId: "test-user" }])
+    expect(callback).toHaveBeenCalledWith(["test-user"])
   })
 })
