@@ -157,8 +157,8 @@ export class Channel {
     return this.chat.updateChannel(this.id, data)
   }
 
-  async delete() {
-    return this.chat.deleteChannel(this.id)
+  async delete(soft = false) {
+    return this.chat.deleteChannel(this.id, soft)
   }
 
   async whoIsPresent() {

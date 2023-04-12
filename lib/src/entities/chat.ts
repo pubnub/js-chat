@@ -197,10 +197,22 @@ export class Chat {
     }
   }
 
-  async deleteChannel(id: string) {
-    return await this.sdk.objects.removeChannelMetadata({
-      channel: id,
-    })
+  async deleteChannel(id: string, soft = false) {
+    if (!id.length) throw "ID is required"
+    try {
+      if (soft) {
+        const response = await this.sdk.objects.setChannelMetadata({
+          channel: id,
+          data: { status: "deleted" },
+        } as SetChannelMetadataParameters<ObjectCustom>)
+        return Channel.fromDTO(this, response.data)
+      } else {
+        await this.sdk.objects.removeChannelMetadata({ channel: id })
+        return true
+      }
+    } catch (error) {
+      throw error
+    }
   }
 
   /**
