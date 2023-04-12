@@ -7,6 +7,7 @@ import PubNub, {
 } from "pubnub"
 import { Channel, ChannelFields } from "./channel"
 import { User, UserFields } from "./user"
+import { DeleteOptions } from "../types"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -84,8 +85,9 @@ export class Chat {
     }
   }
 
-  async deleteUser(id: string, soft = false) {
+  async deleteUser(id: string, options: DeleteOptions = {}) {
     if (!id.length) throw "ID is required"
+    const { soft } = options
     try {
       if (soft) {
         const response = await this.sdk.objects.setUUIDMetadata({
@@ -197,8 +199,9 @@ export class Chat {
     }
   }
 
-  async deleteChannel(id: string, soft = false) {
+  async deleteChannel(id: string, options: DeleteOptions = {}) {
     if (!id.length) throw "ID is required"
+    const { soft } = options
     try {
       if (soft) {
         const response = await this.sdk.objects.setChannelMetadata({

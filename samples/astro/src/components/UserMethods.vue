@@ -125,7 +125,7 @@ async function handleSet() {
 async function handleHardDelete() {
   try {
     if (!state.user) return
-    await state.user.delete(false)
+    await state.user.delete()
     resetUserForm()
     console.log("Chat SDK hard deleted a user")
     state.user = undefined
@@ -138,7 +138,7 @@ async function handleHardDelete() {
 async function handleSoftDelete() {
   try {
     if (!state.user) return
-    const user = await state.user.delete(true)
+    const user = await state.user.delete({ soft: true })
     resetUserForm()
     console.log("Chat SDK soft deleted a user: ", user)
     state.user = undefined

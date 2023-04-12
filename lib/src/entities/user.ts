@@ -1,6 +1,6 @@
 import { UUIDMetadataObject, ObjectCustom } from "pubnub"
 import { Chat } from "./chat"
-import { StatusTypeFields } from "../types"
+import { StatusTypeFields, DeleteOptions } from "../types"
 
 export type UserFields = Pick<
   User,
@@ -44,8 +44,8 @@ export class User {
     return this.chat.updateUser(this.id, data)
   }
 
-  async delete(soft = false) {
-    return this.chat.deleteUser(this.id, soft)
+  async delete(options: DeleteOptions = {}) {
+    return this.chat.deleteUser(this.id, options)
   }
 
   async wherePresent() {

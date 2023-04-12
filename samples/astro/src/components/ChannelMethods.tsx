@@ -99,7 +99,7 @@ export default function () {
   async function handleSoftDelete() {
     try {
       if (!channel) return
-      await channel.delete(true)
+      await channel.delete({ soft: true })
       setUpdateForm({ id: "", name: "", description: "", status: "" })
       setChannel(undefined)
     } catch (e: any) {
