@@ -134,7 +134,7 @@ export class Channel {
         if (!["text"].includes(message.type)) return
         callback(
           new Message({
-            sdk: this.chat.sdk,
+            chat: this.chat,
             timetoken: event.timetoken,
             content: event.message,
           })
@@ -169,10 +169,36 @@ export class Channel {
     return this.chat.isPresent(userId, this.id)
   }
 
-  // fetchHistory({ start, end, count = 20 }: { start?: string; end?: string; count?: number }) {
-  //   // API should allow to differentiate between thread messages and
-  //   // root messages
-  // }
+  async getHistory(
+    params: { startTimetoken?: string; endTimetoken?: string; count?: number } = {}
+  ) {
+    try {
+      const options = {
+        channels: [this.id],
+        count: params.count || 25,
+        start: params.startTimetoken,
+        end: params.endTimetoken,
+        includeMessageActions: true,
+        includeMeta: true,
+      }
+
+      const response = await this.chat.sdk.fetchMessages(options)
+
+      return {
+        messages: response.channels[this.id].map(
+          (messageObject) =>
+            new Message({
+              chat: this.chat,
+              content: messageObject.message,
+              timetoken: String(messageObject.timetoken),
+            })
+        ),
+        isMore: response.channels[this.id].length === (params.count || 25),
+      }
+    } catch (error) {
+      throw error
+    }
+  }
 
   // togglePinMessage(messageTimeToken: string) {}
 

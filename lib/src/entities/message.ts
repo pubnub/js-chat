@@ -1,5 +1,4 @@
-import PubNub, { UriFileInput } from "pubnub"
-import { User } from "./user"
+import { Chat } from "./chat"
 
 export type MessageContent = {
   type: "text"
@@ -7,7 +6,7 @@ export type MessageContent = {
 }
 
 export type MessageConstructorParams = {
-  sdk: PubNub
+  chat: Chat
   timetoken: string
   content: MessageContent
   // parentMessageId?: string
@@ -20,7 +19,7 @@ export type MessageConstructorParams = {
 }
 
 export class Message {
-  private sdk: PubNub
+  private chat: Chat
   readonly timetoken: string
   readonly content: MessageContent
 
@@ -32,7 +31,7 @@ export class Message {
   // reactions: { reaction: string; count: number; users: User[] }[] = []
 
   constructor(params: MessageConstructorParams) {
-    this.sdk = params.sdk
+    this.chat = params.chat
     this.timetoken = params.timetoken
     this.content = params.content
   }

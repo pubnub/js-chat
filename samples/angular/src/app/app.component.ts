@@ -42,21 +42,6 @@ export class AppComponent {
     this.channel =
       (await this.chat.getChannel("test-channel")) ||
       (await this.chat.createChannel("test-channel", { name: "Some channel" }))
-
-    this.pubnub.subscribe({
-      channels: [this.channel.id],
-    })
-
-    this.pubnub.addListener({
-      message: (event) => {
-        const { message } = event
-        if (message.type === "text") this.messages.push(message)
-      },
-      signal: (event) => {
-        const { message } = event
-        if (message.type === "typing") this.typingReceived = message.value
-      },
-    })
   }
 
   toggleCreateChannelModalChatSDK() {

@@ -1,4 +1,5 @@
 <div class="message-list">
     <h1>Message List</h1>
-    <p *ngFor="let message of messages">{{ message.text }}</p>
+    <p *ngFor="let message of messages">{{ message.message.text }}</p>
+    <button [disabled]="isPaginationEnd" (click)="getHistory()">Load more historical messages</button>
 </div>
