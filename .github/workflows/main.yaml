@@ -27,7 +27,7 @@ jobs:
         if: always()
         uses: dorny/test-reporter@v1
         with:
-          access-token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           name: 'Test results'
           path: 'test-results/junit/results.xml'
-          reporter: 'junit'
+          reporter: 'junit-xml'
