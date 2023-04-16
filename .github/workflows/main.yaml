@@ -29,5 +29,5 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: 'Test results'
-          path: 'test-results/junit/results.xml'
+          path: 'lib/test-results/junit/results.xml'
           reporter: 'jest-junit'
