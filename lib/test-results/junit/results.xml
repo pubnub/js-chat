@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="5" failures="0" errors="0" time="11.125">
+  <testsuite name="Typing indicator test" errors="0" failures="0" skipped="0" timestamp="2023-04-16T20:29:01" time="7.268" tests="1">
+    <testcase classname="Typing indicator test should call the callback with the typing value when a typing signal is received" name="Typing indicator test should call the callback with the typing value when a typing signal is received" time="2.829">
+    </testcase>
+  </testsuite>
+  <testsuite name="Send message test" errors="0" failures="0" skipped="0" timestamp="2023-04-16T20:29:01" time="7.28" tests="1">
+    <testcase classname="Send message test should verify if message sent" name="Send message test should verify if message sent" time="2.844">
+    </testcase>
+  </testsuite>
+  <testsuite name="User test" errors="0" failures="0" skipped="0" timestamp="2023-04-16T20:29:01" time="10.037" tests="3">
+    <testcase classname="User test Should be able to create user" name="User test Should be able to create user" time="1.18">
+    </testcase>
+    <testcase classname="User test Should be able to update user" name="User test Should be able to update user" time="2.218">
+    </testcase>
+    <testcase classname="User test Should be able to delete (archive) user" name="User test Should be able to delete (archive) user" time="2.197">
+    </testcase>
+  </testsuite>
+</testsuites>
