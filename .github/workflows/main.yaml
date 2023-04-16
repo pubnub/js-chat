@@ -30,3 +30,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: 'Test results'
           path: 'test-results/junit/results.xml'
+          reporter: 'github-check'
