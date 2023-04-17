@@ -7,7 +7,7 @@ import {
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
-import { SendTextOptionParams, StatusTypeFields } from "../types"
+import { SendTextOptionParams, StatusTypeFields, DeleteOptions } from "../types"
 
 export type ChannelFields = Pick<
   Channel,
@@ -157,8 +157,8 @@ export class Channel {
     return this.chat.updateChannel(this.id, data)
   }
 
-  async delete() {
-    return this.chat.deleteChannel(this.id)
+  async delete(options: DeleteOptions = {}) {
+    return this.chat.deleteChannel(this.id, options)
   }
 
   async whoIsPresent() {
