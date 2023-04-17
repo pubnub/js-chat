@@ -1,4 +1,5 @@
 import { Chat } from "./chat"
+import { FetchMessagesResponse, MessageEvent } from "pubnub"
 
 export type MessageContent = {
   type: "text"
@@ -6,7 +7,6 @@ export type MessageContent = {
 }
 
 export type MessageConstructorParams = {
-  chat: Chat
   timetoken: string
   content: MessageContent
   // parentMessageId?: string
@@ -30,10 +30,22 @@ export class Message {
   // destructionTime?: number
   // reactions: { reaction: string; count: number; users: User[] }[] = []
 
-  constructor(params: MessageConstructorParams) {
-    this.chat = params.chat
+  constructor(chat: Chat, params: MessageConstructorParams) {
+    this.chat = chat
     this.timetoken = params.timetoken
     this.content = params.content
+  }
+
+  static fromDTO(
+    chat: Chat,
+    params: FetchMessagesResponse["channels"]["channel"][0] | MessageEvent
+  ) {
+    const data = {
+      timetoken: String(params.timetoken),
+      content: params.message,
+    }
+
+    return new Message(chat, data)
   }
 
   // edit(newText: string) {}

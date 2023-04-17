@@ -132,13 +132,7 @@ export class Channel {
         const { message, channel } = event
         if (channel !== this.id) return
         if (!["text"].includes(message.type)) return
-        callback(
-          new Message({
-            chat: this.chat,
-            timetoken: event.timetoken,
-            content: event.message,
-          })
-        )
+        callback(Message.fromDTO(this.chat, event))
       },
     }
 
@@ -185,13 +179,8 @@ export class Channel {
       const response = await this.chat.sdk.fetchMessages(options)
 
       return {
-        messages: response.channels[this.id].map(
-          (messageObject) =>
-            new Message({
-              chat: this.chat,
-              content: messageObject.message,
-              timetoken: String(messageObject.timetoken),
-            })
+        messages: response.channels[this.id].map((messageObject) =>
+          Message.fromDTO(this.chat, messageObject)
         ),
         isMore: response.channels[this.id].length === (params.count || 25),
       }
