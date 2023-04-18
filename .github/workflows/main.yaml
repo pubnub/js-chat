@@ -21,7 +21,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: test-results
-          path: lib/test-results/junit/results.xml
+          path: lib/junit.xml
 
       - name: Publish test results
         if: always()
@@ -29,5 +29,5 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: 'Test results'
-          path: 'lib/test-results/junit/results.xml'
+          path: 'lib/junit.xml'
           reporter: 'jest-junit'
