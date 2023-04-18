@@ -93,7 +93,7 @@ describe("User test", () => {
       fail("User to delete is null")
     }
     if (userToDelete) {
-      const deleteResult = await userToDelete.delete(false)
+      const deleteResult = await chat.deleteUser(userId, { soft: false })
       expect(deleteResult).toBe(true)
     }
 

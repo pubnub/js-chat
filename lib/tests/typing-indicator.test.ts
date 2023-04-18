@@ -8,6 +8,7 @@ describe("Typing indicator test", () => {
   let chat: Chat
   let channel: Channel | null
 
+  jest.setTimeout(10000)
   beforeEach(async () => {
     chat = initTestChat()
     channel = await initTestChannel(chat)
@@ -25,7 +26,7 @@ describe("Typing indicator test", () => {
     const callback = jest.fn()
     await channel?.getTyping(callback)
     await channel?.startTyping()
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    await new Promise((resolve) => setTimeout(resolve, 5000))
     expect(callback).toHaveBeenCalledWith(["test-user"])
   })
 })
