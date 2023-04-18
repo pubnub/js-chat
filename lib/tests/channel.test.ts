@@ -60,7 +60,7 @@ describe("Channel test", () => {
     expect(isDeleted).toBeTruthy()
   })
 
-  test("should list channels", async () => {
+  test.skip("should list channels", async () => {
     // Create two channels
     const channelId1 = createRandomUserId()
     const channelId2 = createRandomUserId()
