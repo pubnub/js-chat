@@ -1,5 +1,5 @@
 import { Component, Input } from "@angular/core"
-import { Channel } from "@pubnub/chat"
+import { Channel, Message } from "@pubnub/chat"
 
 @Component({
   selector: "app-message-list-chat",
@@ -9,13 +9,27 @@ import { Channel } from "@pubnub/chat"
 export class MessageListComponentChat {
   @Input() channel!: Channel
 
-  messages: any[]
+  messages: Message[]
+  isPaginationEnd: boolean
 
   constructor() {
     this.messages = []
+    this.isPaginationEnd = false
   }
 
-  ngOnInit() {
-    this.channel.connect((message) => this.messages.push(message.content))
+  async ngOnInit() {
+    await this.loadMoreHistoricalMessages()
+
+    this.channel.connect((message) => this.messages.push(message))
+  }
+
+  async loadMoreHistoricalMessages() {
+    const historicalMessagesObject = await this.channel.getHistory({
+      startTimetoken: this.messages?.[0]?.timetoken,
+    })
+
+    this.isPaginationEnd = !historicalMessagesObject.isMore
+
+    this.messages = [...historicalMessagesObject.messages, ...this.messages]
   }
 }

@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing"
 
-import { TypingIndicatorComponent } from "./typing-indicator.component"
+import { TypingIndicatorComponentChat } from "./typing-indicator.component"
 
 describe("TypingIndicatorComponent", () => {
-  let component: TypingIndicatorComponent
-  let fixture: ComponentFixture<TypingIndicatorComponent>
+  let component: TypingIndicatorComponentChat
+  let fixture: ComponentFixture<TypingIndicatorComponentChat>
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TypingIndicatorComponent],
+      declarations: [TypingIndicatorComponentChat],
     }).compileComponents()
 
-    fixture = TestBed.createComponent(TypingIndicatorComponent)
+    fixture = TestBed.createComponent(TypingIndicatorComponentChat)
     component = fixture.componentInstance
     fixture.detectChanges()
   })
