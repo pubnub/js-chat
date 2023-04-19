@@ -60,33 +60,27 @@ describe("Channel test", () => {
     expect(isDeleted).toBeTruthy()
   })
 
-  // test.skip("should list channels", async () => {
-  //   // Create two channels
-  //   const channelId1 = createRandomUserId()
-  //   const channelId2 = createRandomUserId()
-  //
-  //   const channelName1 = "Test Channel 1"
-  //   const channelName2 = "Test Channel 2"
-  //
-  //   const channelData1 = {
-  //     name: channelName1,
-  //   }
-  //
-  //   const channelData2 = {
-  //     name: channelName2,
-  //   }
-  //
-  //   const createdChannel1 = await chat.createChannel(channelId1, channelData1)
-  //   const createdChannel2 = await chat.createChannel(channelId2, channelData2)
-  //
-  //   // List channels
-  //   const listedChannels = await chat.listChannels()
-  //
-  //   // Check if both created channels are listed
-  //   const channel1InList = listedChannels.some((channel) => channel.id === channelId1)
-  //   const channel2InList = listedChannels.some((channel) => channel.id === channelId2)
-  //
-  //   expect(channel1InList).toBeTruthy()
-  //   expect(channel2InList).toBeTruthy()
-  // })
+  test("should get channel history", async () => {
+    const messageText1 = "Test message 1"
+    const messageText2 = "Test message 2"
+
+    if (channel) {
+      await channel.sendText(messageText1)
+      await channel.sendText(messageText2)
+
+      const history = await channel.getHistory()
+
+      const message1InHistory = history.messages.some(
+        (message) => message.content.text === messageText1
+      )
+      const message2InHistory = history.messages.some(
+        (message) => message.content.text === messageText2
+      )
+
+      expect(message1InHistory).toBeTruthy()
+      expect(message2InHistory).toBeTruthy()
+    } else {
+      fail("Channel is null")
+    }
+  })
 })
