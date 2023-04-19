@@ -19,6 +19,7 @@ const defaultGetAllState = {
 export default function () {
   const chat = useStore(chatAtom)
   const [createForm, setCreateForm] = useState({ id: "", name: "" })
+  const [updateForm, setUpdateForm] = useState({ id: "", name: "", description: "", status: "" })
   const [presence, setPresence] = useState<string[]>([])
   const [channel, setChannel] = useState<Channel>()
   const [getAllState, setGetAllState] = useState<GetAllState>(defaultGetAllState)
@@ -39,9 +40,22 @@ export default function () {
     }
   }
 
+  async function handleUpdate() {
+    try {
+      const { name, description, status } = updateForm
+      const channel = await chat.updateChannel(updateForm.id, { name, description, status })
+      setUpdateForm({ id: "", name: "", description: "", status: "" })
+      setChannel(channel)
+    } catch (e: any) {
+      setError(extractErrorMessage(e))
+      console.error(e)
+    }
+  }
+
   async function handleGet() {
     try {
       const channel = await chat.getChannel(input)
+      setUpdateForm({ ...channel })
       channel?.getTyping((userIds) => setTypingUserIds(userIds))
       setChannel(channel)
     } catch (e: any) {
@@ -64,6 +78,30 @@ export default function () {
         }
       } while (getAllRef.current.channels.length < getAllRef.current.total)
       setGetAllState(getAllRef.current)
+    } catch (e: any) {
+      setError(extractErrorMessage(e))
+      console.error(e)
+    }
+  }
+
+  async function handleHardDelete() {
+    try {
+      if (!channel) return
+      await channel.delete()
+      setUpdateForm({ id: "", name: "", description: "", status: "" })
+      setChannel(undefined)
+    } catch (e: any) {
+      setError(extractErrorMessage(e))
+      console.error(e)
+    }
+  }
+
+  async function handleSoftDelete() {
+    try {
+      if (!channel) return
+      await channel.delete({ soft: true })
+      setUpdateForm({ id: "", name: "", description: "", status: "" })
+      setChannel(undefined)
     } catch (e: any) {
       setError(extractErrorMessage(e))
       console.error(e)
@@ -120,7 +158,7 @@ export default function () {
             value={createForm.id}
             onChange={(e) => setCreateForm((f) => ({ ...f, id: e.target.value }))}
           />
-          <label htmlFor="getChannel">Channel name</label>
+          <label htmlFor="getChannel">Name</label>
           <input
             type="text"
             name="getChannel"
@@ -147,6 +185,49 @@ export default function () {
             Get channel
           </button>
         </section>
+
+        {channel ? (
+          <section>
+            <h3>Update channel</h3>
+            <label htmlFor="update-id">Channel ID</label>
+            <input
+              type="text"
+              name="update-id"
+              value={updateForm.id}
+              onChange={(e) => setUpdateForm((f) => ({ ...f, id: e.target.value }))}
+            />
+            <label htmlFor="update-name">Name</label>
+            <input
+              type="text"
+              name="update-name"
+              value={updateForm.name}
+              onChange={(e) => setUpdateForm((f) => ({ ...f, name: e.target.value }))}
+            />
+            <label htmlFor="update-desc">Description</label>
+            <input
+              type="text"
+              name="update-desc"
+              value={updateForm.description}
+              onChange={(e) => setUpdateForm((f) => ({ ...f, description: e.target.value }))}
+            />
+            <label htmlFor="update-status">Status</label>
+            <input
+              type="text"
+              name="update-status"
+              value={updateForm.status}
+              onChange={(e) => setUpdateForm((f) => ({ ...f, status: e.target.value }))}
+            />
+            <nav className="float-right mt-3">
+              <button className="mr-2" onClick={handleHardDelete}>
+                Hard delete channel
+              </button>
+              <button className="mr-2" onClick={handleSoftDelete}>
+                Soft delete channel
+              </button>
+              <button onClick={handleUpdate}>Update channel</button>
+            </nav>
+          </section>
+        ) : null}
       </div>
 
       {channel ? (
