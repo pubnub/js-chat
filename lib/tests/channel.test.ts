@@ -83,4 +83,28 @@ describe("Channel test", () => {
       fail("Channel is null")
     }
   })
+
+  test("should get channel history with pagination", async () => {
+    const messageText1 = "Test message 1"
+    const messageText2 = "Test message 2"
+    const messageText3 = "Test message 3"
+
+    if (channel) {
+      const result1 = await channel.sendText(messageText1)
+      const result2 = await channel.sendText(messageText2)
+      const result3 = await channel.sendText(messageText3)
+
+      const history = await channel.getHistory({ count: 2 })
+
+      expect(history.messages.length).toBe(2)
+
+      expect(history.isMore).toBeTruthy()
+
+      const secondPage = await channel.getHistory({ startTimetoken: history.messages[0].timetoken })
+
+      expect(secondPage.messages.length).toBeGreaterThanOrEqual(1)
+    } else {
+      fail("Channel is null")
+    }
+  })
 })
