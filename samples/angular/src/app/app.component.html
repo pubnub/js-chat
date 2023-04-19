@@ -6,7 +6,7 @@
     </div>
     <app-message-input-sdk [pubnub]="pubnub" [channel]="channel.id" [typingSent]="typingSent" />
     <app-typing-indicator-sdk [typingReceived]="typingReceived" [pubnub]="pubnub" />
-    <app-message-list-sdk [messages]="messages" />
+    <app-message-list-sdk [pubnub]="pubnub" [channel]="channel.id" />
     <app-create-channel-modal-sdk [pubnub]="pubnub" />
     <app-channel-list-sdk [pubnub]="pubnub" />
     <button (click)="toggleCreateChannelModalJSSDK()">Open create channel modal</button>

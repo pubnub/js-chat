@@ -1,5 +1,5 @@
 import { Component, Input } from "@angular/core"
-import { Channel, TypingData } from "@pubnub/chat"
+import { Channel } from "@pubnub/chat"
 import PubNub from "pubnub"
 
 @Component({
@@ -10,7 +10,7 @@ import PubNub from "pubnub"
 export class TypingIndicatorComponentChat {
   @Input() channel!: Channel
   @Input() pubnub!: PubNub
-  typingData: TypingData[] = []
+  typingData: string[] = []
 
   ngOnInit() {
     this.channel.getTyping((value) => (this.typingData = value))

@@ -1,5 +1,5 @@
-import PubNub, { UriFileInput } from "pubnub"
-import { User } from "./user"
+import { Chat } from "./chat"
+import { FetchMessagesResponse, MessageEvent } from "pubnub"
 
 export type MessageContent = {
   type: "text"
@@ -7,7 +7,6 @@ export type MessageContent = {
 }
 
 export type MessageConstructorParams = {
-  sdk: PubNub
   timetoken: string
   content: MessageContent
   // parentMessageId?: string
@@ -20,7 +19,7 @@ export type MessageConstructorParams = {
 }
 
 export class Message {
-  private sdk: PubNub
+  private chat: Chat
   readonly timetoken: string
   readonly content: MessageContent
 
@@ -31,10 +30,22 @@ export class Message {
   // destructionTime?: number
   // reactions: { reaction: string; count: number; users: User[] }[] = []
 
-  constructor(params: MessageConstructorParams) {
-    this.sdk = params.sdk
+  constructor(chat: Chat, params: MessageConstructorParams) {
+    this.chat = chat
     this.timetoken = params.timetoken
     this.content = params.content
+  }
+
+  static fromDTO(
+    chat: Chat,
+    params: FetchMessagesResponse["channels"]["channel"][0] | MessageEvent
+  ) {
+    const data = {
+      timetoken: String(params.timetoken),
+      content: params.message,
+    }
+
+    return new Message(chat, data)
   }
 
   // edit(newText: string) {}
