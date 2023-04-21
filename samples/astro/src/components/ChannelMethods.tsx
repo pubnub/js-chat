@@ -23,6 +23,7 @@ export default function () {
   const [presence, setPresence] = useState<string[]>([])
   const [channel, setChannel] = useState<Channel>()
   const [messages, setMessages] = useState<Message[]>([])
+  const [editingMessage, setEditingMessage] = useState<Message>()
   const [getAllState, setGetAllState] = useState<GetAllState>(defaultGetAllState)
   const getAllRef = useRef(defaultGetAllState)
   const [input, setInput] = useState("")
@@ -131,13 +132,23 @@ export default function () {
   }
 
   async function handleSend() {
-    await channel?.sendText(textInput)
+    if (editingMessage) {
+      await editingMessage.editText(textInput)
+      setEditingMessage(null)
+    } else {
+      await channel?.sendText(textInput)
+    }
     setTextInput("")
   }
 
   async function handleDeleteMessage(message: Message, soft) {
     message.delete({ soft })
     setMessages((messages) => messages.filter((msg) => message.timetoken !== msg.timetoken))
+  }
+
+  async function handleEditMessage(message: Message) {
+    setEditingMessage(message)
+    setTextInput(message.getText())
   }
 
   return (
@@ -289,12 +300,15 @@ export default function () {
                   <li key={msg.timetoken}>
                     <div className="flex items-center">
                       <span className="flex-1">
-                        {msg.userId}: {msg.content.text}
+                        {msg.userId}: {msg.getText()}
                         {msg.actions?.deleted ? "(soft deleted)" : ""}
                       </span>
                       <nav>
+                        <button className="py-0.5 px-2" onClick={() => handleEditMessage(msg)}>
+                          Edit
+                        </button>
                         <button
-                          className="py-0.5 px-2"
+                          className="py-0.5 px-2 ml-2"
                           onClick={() => handleDeleteMessage(msg, true)}
                         >
                           Soft Delete

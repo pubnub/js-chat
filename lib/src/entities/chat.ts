@@ -282,4 +282,21 @@ export class Chat {
       throw error
     }
   }
+
+  async editMessageText(channelId: string, timetoken: string, newText: string) {
+    if (!channelId.length) throw "Channel ID is required"
+    if (!timetoken.length) throw "Message timetoken is required"
+    try {
+      await this.sdk.addMessageAction({
+        channel: channelId,
+        messageTimetoken: timetoken,
+        action: {
+          type: "edited",
+          value: newText,
+        },
+      })
+    } catch (error) {
+      throw error
+    }
+  }
 }

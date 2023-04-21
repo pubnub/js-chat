@@ -47,7 +47,20 @@ export class Message {
     return new Message(chat, data)
   }
 
-  // edit(newText: string) {}
+  getText() {
+    const edits = this.actions?.edited
+    if (edits) {
+      const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
+      const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
+      return lastEdit.value
+    }
+    return this.content.text
+  }
+
+  editText(newText: string) {
+    this.chat.editMessageText(this.channelId, this.timetoken, newText)
+    this.content.text = newText // TODO: should we do this?
+  }
 
   // toggleReaction(reaction: string) {
   //   // toggle reaction
