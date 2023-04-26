@@ -5,7 +5,16 @@ export type StatusTypeFields = {
   type?: string
 }
 
-export type DeleteOptions = {
+export type MessageActions = {
+  [type: string]: {
+    [value: string]: Array<{
+      uuid: string
+      actionTimetoken: string | number
+    }>
+  }
+}
+
+export type DeleteParameters = {
   soft?: boolean
 }
 

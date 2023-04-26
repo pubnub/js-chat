@@ -2,7 +2,7 @@ import { useState, useRef } from "react"
 import { useStore } from "@nanostores/react"
 import { chatAtom } from "../store"
 import { extractErrorMessage } from "./helpers"
-import { Channel } from "@pubnub/chat"
+import { Channel, Message } from "@pubnub/chat"
 
 type GetAllState = {
   channels: Channel[]
@@ -22,6 +22,7 @@ export default function () {
   const [updateForm, setUpdateForm] = useState({ id: "", name: "", description: "", status: "" })
   const [presence, setPresence] = useState<string[]>([])
   const [channel, setChannel] = useState<Channel>()
+  const [messages, setMessages] = useState<Message[]>([])
   const [getAllState, setGetAllState] = useState<GetAllState>(defaultGetAllState)
   const getAllRef = useRef(defaultGetAllState)
   const [input, setInput] = useState("")
@@ -56,7 +57,11 @@ export default function () {
     try {
       const channel = await chat.getChannel(input)
       setUpdateForm({ ...channel })
+      const { messages } = await channel?.getHistory()
+      setMessages(messages)
+      console.log("Channel history: ", messages)
       channel?.getTyping((userIds) => setTypingUserIds(userIds))
+      channel?.connect((msg) => setMessages((messages) => [...messages, msg]))
       setChannel(channel)
     } catch (e: any) {
       setError(extractErrorMessage(e))
@@ -123,6 +128,16 @@ export default function () {
     setTextInput(newText)
     if (newText) await channel?.startTyping()
     else await channel?.stopTyping()
+  }
+
+  async function handleSend() {
+    await channel?.sendText(textInput)
+    setTextInput("")
+  }
+
+  async function handleDeleteMessage(message: Message, soft) {
+    message.delete({ soft })
+    setMessages((messages) => messages.filter((msg) => message.timetoken !== msg.timetoken))
   }
 
   return (
@@ -249,7 +264,12 @@ export default function () {
             <section>
               <h3>Sending text messages</h3>
               <label htmlFor="sendText">Type a message</label>
-              <input type="text" name="sendText" value={textInput} onChange={handleTextInput} />
+              <div className="flex">
+                <input type="text" name="sendText" value={textInput} onChange={handleTextInput} />
+                <button className="ml-2 flex-none" onClick={handleSend}>
+                  Send
+                </button>
+              </div>
             </section>
 
             <section>
@@ -258,6 +278,39 @@ export default function () {
                 <b>Currently typing user ids: </b>
                 {typingUserIds.join(", ")}
               </p>
+            </section>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8 mt-6">
+            <section>
+              <h3>Channel history</h3>
+              <ul>
+                {messages?.map((msg) => (
+                  <li key={msg.timetoken}>
+                    <div className="flex items-center">
+                      <span className="flex-1">
+                        {msg.userId}: {msg.content.text}
+                        {msg.actions?.deleted ? "(soft deleted)" : ""}
+                      </span>
+                      <nav>
+                        <button
+                          className="py-0.5 px-2"
+                          onClick={() => handleDeleteMessage(msg, true)}
+                        >
+                          Soft Delete
+                        </button>
+                        <button
+                          className="py-0.5 px-2 ml-2"
+                          onClick={() => handleDeleteMessage(msg, false)}
+                        >
+                          Hard Delete
+                        </button>
+                      </nav>
+                    </div>
+                    <hr className="my-1" />
+                  </li>
+                ))}
+              </ul>
             </section>
           </div>
         </>

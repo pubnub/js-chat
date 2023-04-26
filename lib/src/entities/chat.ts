@@ -7,7 +7,7 @@ import PubNub, {
 } from "pubnub"
 import { Channel, ChannelFields } from "./channel"
 import { User, UserFields } from "./user"
-import { DeleteOptions } from "../types"
+import { DeleteParameters } from "../types"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -85,9 +85,9 @@ export class Chat {
     }
   }
 
-  async deleteUser(id: string, options: DeleteOptions = {}) {
+  async deleteUser(id: string, params: DeleteParameters = {}) {
     if (!id.length) throw "ID is required"
-    const { soft } = options
+    const { soft } = params
     try {
       if (soft) {
         const response = await this.sdk.objects.setUUIDMetadata({
@@ -199,9 +199,9 @@ export class Chat {
     }
   }
 
-  async deleteChannel(id: string, options: DeleteOptions = {}) {
+  async deleteChannel(id: string, params: DeleteParameters = {}) {
     if (!id.length) throw "ID is required"
-    const { soft } = options
+    const { soft } = params
     try {
       if (soft) {
         const response = await this.sdk.objects.setChannelMetadata({
@@ -247,6 +247,37 @@ export class Chat {
     try {
       const response = await this.sdk.whereNow({ uuid: userId })
       return response.channels.includes(channelId)
+    } catch (error) {
+      throw error
+    }
+  }
+
+  /**
+   * Messages
+   */
+
+  async deleteMessage(channelId: string, timetoken: string, params: DeleteParameters = {}) {
+    if (!channelId.length) throw "Channel ID is required"
+    if (!timetoken.length) throw "Message timetoken is required"
+    const { soft } = params
+    try {
+      if (soft) {
+        await this.sdk.addMessageAction({
+          channel: channelId,
+          messageTimetoken: timetoken,
+          action: {
+            type: "deleted",
+            value: "deleted",
+          },
+        })
+      } else {
+        const previousTimetoken = String(BigInt(timetoken) - BigInt(1))
+        await this.sdk.deleteMessages({
+          channel: channelId,
+          start: previousTimetoken,
+          end: timetoken,
+        })
+      }
     } catch (error) {
       throw error
     }

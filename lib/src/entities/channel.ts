@@ -7,7 +7,7 @@ import {
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
-import { SendTextOptionParams, StatusTypeFields, DeleteOptions } from "../types"
+import { SendTextOptionParams, StatusTypeFields, DeleteParameters } from "../types"
 
 export type ChannelFields = Pick<
   Channel,
@@ -151,7 +151,7 @@ export class Channel {
     return this.chat.updateChannel(this.id, data)
   }
 
-  async delete(options: DeleteOptions = {}) {
+  async delete(options: DeleteParameters = {}) {
     return this.chat.deleteChannel(this.id, options)
   }
 
@@ -179,14 +179,20 @@ export class Channel {
       const response = await this.chat.sdk.fetchMessages(options)
 
       return {
-        messages: response.channels[this.id].map((messageObject) =>
-          Message.fromDTO(this.chat, messageObject)
-        ),
-        isMore: response.channels[this.id].length === (params.count || 25),
+        messages:
+          response.channels[this.id]?.map((messageObject) =>
+            Message.fromDTO(this.chat, messageObject)
+          ) || [],
+        isMore: response.channels[this.id]?.length === (params.count || 25),
       }
     } catch (error) {
       throw error
     }
+  }
+
+  deleteMessage(message: string | Message, params: DeleteParameters = {}) {
+    const timetoken = typeof message === "string" ? message : message.timetoken
+    this.chat.deleteMessage(this.id, timetoken, params)
   }
 
   // togglePinMessage(messageTimeToken: string) {}
