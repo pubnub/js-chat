@@ -133,7 +133,8 @@ export default function () {
 
   async function handleSend() {
     if (editingMessage) {
-      await editingMessage.editText(textInput)
+      const edited = await editingMessage.editText(textInput)
+      setMessages((ls) => ls.map((msg) => (msg.timetoken === edited.timetoken ? edited : msg)))
       setEditingMessage(null)
     } else {
       await channel?.sendText(textInput)
@@ -142,8 +143,10 @@ export default function () {
   }
 
   async function handleDeleteMessage(message: Message, soft) {
-    message.delete({ soft })
-    setMessages((messages) => messages.filter((msg) => message.timetoken !== msg.timetoken))
+    const deleted = await message.delete({ soft })
+    if (deleted === true)
+      setMessages((messages) => messages.filter((msg) => message.timetoken !== msg.timetoken))
+    else setMessages((ls) => ls.map((msg) => (msg.timetoken === deleted.timetoken ? deleted : msg)))
   }
 
   async function handleEditMessage(message: Message) {

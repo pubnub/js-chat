@@ -255,14 +255,13 @@ export class Chat {
   /**
    * Messages
    */
-
   async deleteMessage(channelId: string, timetoken: string, params: DeleteParameters = {}) {
     if (!channelId.length) throw "Channel ID is required"
     if (!timetoken.length) throw "Message timetoken is required"
     const { soft } = params
     try {
       if (soft) {
-        await this.sdk.addMessageAction({
+        const { data } = await this.sdk.addMessageAction({
           channel: channelId,
           messageTimetoken: timetoken,
           action: {
@@ -270,6 +269,7 @@ export class Chat {
             value: "deleted",
           },
         })
+        return data
       } else {
         const previousTimetoken = String(BigInt(timetoken) - BigInt(1))
         await this.sdk.deleteMessages({
@@ -277,6 +277,7 @@ export class Chat {
           start: previousTimetoken,
           end: timetoken,
         })
+        return true
       }
     } catch (error) {
       throw error
@@ -287,7 +288,7 @@ export class Chat {
     if (!channelId.length) throw "Channel ID is required"
     if (!timetoken.length) throw "Message timetoken is required"
     try {
-      await this.sdk.addMessageAction({
+      const { data } = await this.sdk.addMessageAction({
         channel: channelId,
         messageTimetoken: timetoken,
         action: {
@@ -295,6 +296,7 @@ export class Chat {
           value: newText,
         },
       })
+      return data
     } catch (error) {
       throw error
     }
