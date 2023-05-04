@@ -46,12 +46,23 @@ export class MessageListComponentSDK {
 
     this.pubnub.addListener({
       message: (event) => {
+        console.log("event", event)
         const { message } = event
         if (message.type === "text") this.messages.push(message)
       },
       signal: (event) => {
         const { message } = event
         if (message.type === "typing") this.typingReceived = message.value
+      },
+    })
+  }
+
+  async forwardMessage(message: any) {
+    await this.pubnub.publish({
+      channel: "forward-channel",
+      message: { text: message.message?.text || message.text, type: "text" },
+      meta: {
+        originalPublisher: message.publisher,
       },
     })
   }

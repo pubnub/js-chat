@@ -7,7 +7,13 @@ export type MessageContent = {
   text: string
 }
 
-export type MessageFields = Pick<Message, "timetoken" | "content" | "channelId">
+export type MessageFields = Pick<Message, "timetoken" | "content" | "channelId" | "meta">
+
+type EnhancedMessageEvent = MessageEvent & {
+  userMetadata?: {
+    [key: string]: any
+  }
+}
 
 export class Message {
   private chat: Chat
@@ -16,6 +22,9 @@ export class Message {
   readonly channelId: string
   readonly userId?: string
   readonly actions?: MessageActions
+  readonly meta?: {
+    [key: string]: any
+  }
 
   // parentMessageId?: string
   // quote?: string
@@ -29,12 +38,13 @@ export class Message {
     this.timetoken = params.timetoken
     this.content = params.content
     this.channelId = params.channelId
+    this.meta = params.meta
     Object.assign(this, params)
   }
 
   static fromDTO(
     chat: Chat,
-    params: FetchMessagesResponse["channels"]["channel"][0] | MessageEvent
+    params: FetchMessagesResponse["channels"]["channel"][0] | EnhancedMessageEvent
   ) {
     const data = {
       timetoken: String(params.timetoken),
@@ -42,6 +52,8 @@ export class Message {
       channelId: params.channel,
       userId: "publisher" in params ? params.publisher : params.uuid,
       actions: "actions" in params ? params.actions : undefined,
+      meta:
+        "meta" in params ? params.meta : "userMetadata" in params ? params.userMetadata : undefined,
     }
 
     return new Message(chat, data)
@@ -59,6 +71,10 @@ export class Message {
 
   delete(params: DeleteParameters = {}) {
     this.chat.deleteMessage(this.channelId, this.timetoken, params)
+  }
+
+  async forward(channelId: string) {
+    return this.chat.forwardMessage(this, channelId)
   }
 
   // setEphemeral(timeInMs: number) {

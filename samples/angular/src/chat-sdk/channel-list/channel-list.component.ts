@@ -13,7 +13,7 @@ export class ChannelListComponentChat {
   nameInput = ""
 
   async loadChannels() {
-    this.channels = (await this.chat.getChannels({})).channels
+    this.channels = (await this.chat.getChannels({ limit: 5 })).channels
   }
 
   async ngOnInit() {

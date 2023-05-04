@@ -195,6 +195,10 @@ export class Channel {
     this.chat.deleteMessage(this.id, timetoken, params)
   }
 
+  async forwardMessage(message: Message, channelId: string) {
+    return this.chat.forwardMessage(message, channelId)
+  }
+
   // togglePinMessage(messageTimeToken: string) {}
 
   // getUnreadMessagesCount() {}
