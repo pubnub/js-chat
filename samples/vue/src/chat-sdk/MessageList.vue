@@ -30,7 +30,7 @@ async function forwardMessage(message: Message) {
       (await props.chat.getChannel("forward-channel")) ||
       (await props.chat.createChannel("forward-channel", { name: "forward channel" }))
 
-  await props.channel.forwardMessage(message, forwardChannel.id)
+  await forwardChannel.forwardMessage(message)
 
   console.log("Message forwarded to:", forwardChannel.id)
 }

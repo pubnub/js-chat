@@ -195,8 +195,8 @@ export class Channel {
     this.chat.deleteMessage(this.id, timetoken, params)
   }
 
-  async forwardMessage(message: Message, channelId: string) {
-    return this.chat.forwardMessage(message, channelId)
+  async forwardMessage(message: Message) {
+    return this.chat.forwardMessage(message, this.id)
   }
 
   // togglePinMessage(messageTimeToken: string) {}

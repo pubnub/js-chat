@@ -39,7 +39,7 @@ export class MessageListComponentChat {
       (await this.chat.getChannel("forward-channel")) ||
       (await this.chat.createChannel("forward-channel", { name: "forward channel" }))
 
-    await this.channel.forwardMessage(message, forwardChannel.id)
+    await forwardChannel.forwardMessage(message)
 
     console.log("Message forwarded to:", forwardChannel.id)
   }
