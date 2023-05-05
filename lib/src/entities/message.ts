@@ -70,9 +70,20 @@ export class Message {
   }
 
   async editText(newText: string) {
-    const action = await this.chat.editMessageText(this.channelId, this.timetoken, newText)
-    const actions = this.assignAction(action)
-    return this.clone({ actions })
+    try {
+      const { data } = await this.chat.sdk.addMessageAction({
+        channel: this.channelId,
+        messageTimetoken: this.timetoken,
+        action: {
+          type: "edited",
+          value: newText,
+        },
+      })
+      const actions = this.assignAction(data)
+      return this.clone({ actions })
+    } catch (error) {
+      throw error
+    }
   }
 
   // toggleReaction(reaction: string) {
@@ -84,10 +95,31 @@ export class Message {
   // }
 
   async delete(params: DeleteParameters = {}) {
-    const action = await this.chat.deleteMessage(this.channelId, this.timetoken, params)
-    if (action === true) return action
-    const actions = this.assignAction(action)
-    return this.clone({ actions })
+    const { soft } = params
+    try {
+      if (soft) {
+        const { data } = await this.chat.sdk.addMessageAction({
+          channel: this.channelId,
+          messageTimetoken: this.timetoken,
+          action: {
+            type: "deleted",
+            value: "deleted",
+          },
+        })
+        const actions = this.assignAction(data)
+        return this.clone({ actions })
+      } else {
+        const previousTimetoken = String(BigInt(this.timetoken) - BigInt(1))
+        await this.chat.sdk.deleteMessages({
+          channel: this.channelId,
+          start: previousTimetoken,
+          end: this.timetoken,
+        })
+        return true
+      }
+    } catch (error) {
+      throw error
+    }
   }
 
   // setEphemeral(timeInMs: number) {

@@ -190,11 +190,6 @@ export class Channel {
     }
   }
 
-  deleteMessage(message: string | Message, params: DeleteParameters = {}) {
-    const timetoken = typeof message === "string" ? message : message.timetoken
-    this.chat.deleteMessage(this.id, timetoken, params)
-  }
-
   // togglePinMessage(messageTimeToken: string) {}
 
   // getUnreadMessagesCount() {}
