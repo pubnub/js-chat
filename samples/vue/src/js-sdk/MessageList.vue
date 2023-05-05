@@ -6,6 +6,7 @@ interface Message {
   text: string
   type: string
   timetoken: string
+  publisher: string
 }
 
 const props = defineProps<{
@@ -42,6 +43,18 @@ async function getHistory() {
   }
 }
 
+async function forwardMessage(message: Message) {
+  await props.pubnub.publish({
+    channel: "forward-channel",
+    message: { text: message.message?.text || message.text, type: "text" },
+    meta: {
+      originalPublisher: message.publisher,
+    }
+  })
+
+  console.log("Message forwarded to: forward-channel")
+}
+
 async function init() {
   await getHistory()
 
@@ -64,7 +77,36 @@ init()
 <template>
   <div class="message-list">
     <h1>SDK Message List</h1>
-    <p v-for="message in state.messages">{{ message.message.text }}</p>
+    <div>
+      <div v-for="message in state.messages">
+        <div class="message-row">
+          <p>
+            {{ message.message?.text || message.content?.text }}
+          </p>
+          <div class="message-row__forward-icon__container" @click="forwardMessage(message)">
+            <img src="../assets/forwardIcon.png" class="message-row__forward-icon" />
+          </div>
+        </div>
+      </div>
+    </div>
     <button :disabled="state.isPaginationEnd" @click="getHistory()">Load more historical messages</button>
   </div>
 </template>
+
+<style scoped>
+  .message-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    max-width: 250px;
+  }
+
+  .message-row__forward-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .message-row__forward-icon__container {
+    cursor: pointer;
+  }
+</style>

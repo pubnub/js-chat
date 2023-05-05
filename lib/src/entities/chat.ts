@@ -8,6 +8,7 @@ import PubNub, {
 import { Channel, ChannelFields } from "./channel"
 import { User, UserFields } from "./user"
 import { DeleteParameters } from "../types"
+import { Message } from "./message"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -278,6 +279,27 @@ export class Chat {
           end: timetoken,
         })
       }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  /** @internal */
+  async forwardMessage(message: Message, channelId: string) {
+    if (!channelId) throw "Channel ID is required"
+    if (!message) throw "Message is required"
+    if (message.channelId === channelId) throw "You cannot forward the message to the same channel"
+
+    try {
+      const existingChannel = await this.getChannel(channelId)
+      if (!existingChannel) throw "Channel with this ID does not exist"
+
+      await existingChannel.sendText(message.content.text, {
+        meta: {
+          ...(message.meta || {}),
+          originalPublisher: message.userId,
+        },
+      })
     } catch (error) {
       throw error
     }
