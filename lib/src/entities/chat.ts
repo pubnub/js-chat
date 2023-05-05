@@ -284,6 +284,7 @@ export class Chat {
     }
   }
 
+  /** @internal */
   async forwardMessage(message: Message, channelId: string) {
     if (!channelId) throw "Channel ID is required"
     if (!message) throw "Message is required"
