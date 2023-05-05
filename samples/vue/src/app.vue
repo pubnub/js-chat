@@ -18,6 +18,9 @@
       <CreateChannelModalChat :chat="chat" :toggleCreateChannelModal="toggleCreateChannelModalChatSDK" :createChannelModalOpen="state.createChannelModalChatsSDKOpen" />
       <ChannelListChat :chat="chat" />
       <button @click="toggleCreateChannelModalChatSDK">Open create channel modal</button>
+      <div v-if="state.forwardChannel">
+        <MessageListChat :chat="chat" :channel="state.forwardChannel" />
+      </div>
     </div>
   </div>
 </template>
@@ -39,6 +42,7 @@ import { reactive } from "vue";
 
 interface State {
   channel?: Channel
+  forwardChannel?: Channel
   createChannelModalJSSDKOpen: boolean;
   createChannelModalChatsSDKOpen: boolean;
 }
@@ -61,6 +65,7 @@ const chat = Chat.init({
 
 const state: State = reactive({
   channel: undefined,
+  forwardChannel: undefined,
   createChannelModalJSSDKOpen: false,
   createChannelModalChatsSDKOpen: false,
 });
@@ -74,6 +79,10 @@ const state: State = reactive({
   state.channel =
       (await chat.getChannel("test-channel")) ||
       (await chat.createChannel("test-channel", { name: "Some channel" }))
+
+  state.forwardChannel =
+      (await chat.getChannel("forward-channel")) ||
+      (await chat.createChannel("forward-channel", { name: "forward channel" }))
 })();
 
 const toggleCreateChannelModalJSSDK = () => {

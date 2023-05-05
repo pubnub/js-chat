@@ -17,6 +17,7 @@ export class AppComponent {
   typingReceived = false
   typingSent = false
   channel: Channel | null = null
+  forwardChannel: Channel | null = null
 
   constructor(private stateService: StateService) {}
 
@@ -42,6 +43,9 @@ export class AppComponent {
     this.channel =
       (await this.chat.getChannel("test-channel")) ||
       (await this.chat.createChannel("test-channel", { name: "Some channel" }))
+    this.forwardChannel =
+      (await this.chat.getChannel("forward-channel")) ||
+      (await this.chat.createChannel("forward-channel", { name: "forward channel" }))
   }
 
   toggleCreateChannelModalChatSDK() {

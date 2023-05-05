@@ -9,8 +9,14 @@ export type MessageContent = {
 
 export type MessageFields = Pick<
   Message,
-  "timetoken" | "content" | "channelId" | "userId" | "actions"
+  "timetoken" | "content" | "channelId" | "userId" | "actions" | "meta"
 >
+
+type EnhancedMessageEvent = PubNub.MessageEvent & {
+  userMetadata?: {
+    [key: string]: any
+  }
+}
 
 export class Message {
   private chat: Chat
@@ -19,6 +25,9 @@ export class Message {
   readonly channelId: string
   readonly userId?: string
   readonly actions?: MessageActions
+  readonly meta?: {
+    [key: string]: any
+  }
 
   /** @internal */
   constructor(chat: Chat, params: MessageFields) {
@@ -32,7 +41,7 @@ export class Message {
   /** @internal */
   static fromDTO(
     chat: Chat,
-    params: PubNub.FetchMessagesResponse["channels"]["channel"][0] | PubNub.MessageEvent
+    params: PubNub.FetchMessagesResponse["channels"]["channel"][0] | EnhancedMessageEvent
   ) {
     const data = {
       timetoken: String(params.timetoken),
@@ -40,6 +49,8 @@ export class Message {
       channelId: params.channel,
       userId: "publisher" in params ? params.publisher : params.uuid,
       actions: "actions" in params ? params.actions : undefined,
+      meta:
+        "meta" in params ? params.meta : "userMetadata" in params ? params.userMetadata : undefined,
     }
 
     return new Message(chat, data)
@@ -120,6 +131,10 @@ export class Message {
     } catch (error) {
       throw error
     }
+  }
+
+  async forward(channelId: string) {
+    return this.chat.forwardMessage(this, channelId)
   }
 
   // setEphemeral(timeInMs: number) {

@@ -55,4 +55,14 @@ export class MessageListComponentSDK {
       },
     })
   }
+
+  async forwardMessage(message: any) {
+    await this.pubnub.publish({
+      channel: "forward-channel",
+      message: { text: message.message?.text || message.text, type: "text" },
+      meta: {
+        originalPublisher: message.publisher,
+      },
+    })
+  }
 }

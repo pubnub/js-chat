@@ -190,6 +190,10 @@ export class Channel {
     }
   }
 
+  async forwardMessage(message: Message) {
+    return this.chat.forwardMessage(message, this.id)
+  }
+
   // togglePinMessage(messageTimeToken: string) {}
 
   // getUnreadMessagesCount() {}
