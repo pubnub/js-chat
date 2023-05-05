@@ -1,5 +1,5 @@
 import { Component, Input } from "@angular/core"
-import { Channel, Message } from "@pubnub/chat"
+import { Channel, Chat, Message } from "@pubnub/chat"
 
 @Component({
   selector: "app-message-list-chat",
@@ -8,6 +8,7 @@ import { Channel, Message } from "@pubnub/chat"
 })
 export class MessageListComponentChat {
   @Input() channel!: Channel
+  @Input() chat!: Chat
 
   messages: Message[]
   isPaginationEnd: boolean
@@ -31,5 +32,15 @@ export class MessageListComponentChat {
     this.isPaginationEnd = !historicalMessagesObject.isMore
 
     this.messages = [...historicalMessagesObject.messages, ...this.messages]
+  }
+
+  async forwardMessage(message: Message) {
+    const forwardChannel =
+      (await this.chat.getChannel("forward-channel")) ||
+      (await this.chat.createChannel("forward-channel", { name: "forward channel" }))
+
+    await forwardChannel.forwardMessage(message)
+
+    console.log("Message forwarded to:", forwardChannel.id)
   }
 }

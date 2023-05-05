@@ -1,5 +1,14 @@
 <div class="message-list">
     <h1>Message List</h1>
-    <p *ngFor="let message of messages">{{ message.message?.text || message.text }}</p>
+    <div *ngFor="let message of messages">
+        <div class="message-row">
+            <p>
+                {{ message.message?.text || message.text }}
+            </p>
+            <div class="message-row__forward-icon__container" (click)="forwardMessage(message)">
+                <img src="assets/forwardIcon.png" class="message-row__forward-icon" />
+            </div>
+        </div>
+    </div>
     <button [disabled]="isPaginationEnd" (click)="getHistory()">Load more historical messages</button>
 </div>

@@ -1,0 +1,15 @@
+.message-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  max-width: 250px;
+}
+
+.message-row__forward-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.message-row__forward-icon__container {
+  cursor: pointer;
+}
