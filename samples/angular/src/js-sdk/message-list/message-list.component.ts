@@ -46,7 +46,6 @@ export class MessageListComponentSDK {
 
     this.pubnub.addListener({
       message: (event) => {
-        console.log("event", event)
         const { message } = event
         if (message.type === "text") this.messages.push(message)
       },
