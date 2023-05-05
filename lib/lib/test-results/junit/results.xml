@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="9" failures="1" errors="0" time="24.224">
+  <testsuite name="Send message test" errors="0" failures="0" skipped="0" timestamp="2023-05-05T08:27:05" time="4.502" tests="1">
+    <testcase classname="Send message test should verify if message sent" name="Send message test should verify if message sent" time="2.573">
+    </testcase>
+  </testsuite>
+  <testsuite name="Channel test" errors="0" failures="0" skipped="0" timestamp="2023-05-05T08:27:05" time="6.698" tests="4">
+    <testcase classname="Channel test should create a channel" name="Channel test should create a channel" time="1.277">
+    </testcase>
+    <testcase classname="Channel test should soft delete a channel" name="Channel test should soft delete a channel" time="1.404">
+    </testcase>
+    <testcase classname="Channel test should get channel history" name="Channel test should get channel history" time="0.841">
+    </testcase>
+    <testcase classname="Channel test should get channel history with pagination" name="Channel test should get channel history with pagination" time="1.22">
+    </testcase>
+  </testsuite>
+  <testsuite name="User test" errors="0" failures="0" skipped="0" timestamp="2023-05-05T08:27:05" time="7.202" tests="3">
+    <testcase classname="User test Should be able to create user" name="User test Should be able to create user" time="1.061">
+    </testcase>
+    <testcase classname="User test Should be able to update user" name="User test Should be able to update user" time="2.087">
+    </testcase>
+    <testcase classname="User test Should be able to delete (archive) user" name="User test Should be able to delete (archive) user" time="2.06">
+    </testcase>
+  </testsuite>
+  <testsuite name="Typing indicator test" errors="0" failures="1" skipped="0" timestamp="2023-05-05T08:27:05" time="24.022" tests="1">
+    <testcase classname="Typing indicator test should call the callback with the typing value when a typing signal is received" name="Typing indicator test should call the callback with the typing value when a typing signal is received" time="5.498">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+- Expected
++ Received
+
+  Array [
+-   &quot;test-user&quot;,
++   &quot;Hello&quot;,
+  ],
+
+Number of calls: 1
+    at /Users/piotr.suwala/pubnub/js-chat/lib/tests/typing-indicator.test.ts:30:22
+    at Generator.next (&lt;anonymous&gt;)
+    at fulfilled (/Users/piotr.suwala/pubnub/js-chat/lib/tests/typing-indicator.test.ts:28:58)</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

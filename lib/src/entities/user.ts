@@ -55,4 +55,8 @@ export class User {
   async isPresentOn(channelId: string) {
     return this.chat.isPresent(this.id, channelId)
   }
+
+  async getMemberships() {
+    return this.chat.sdk.objects.getMemberships()
+  }
 }

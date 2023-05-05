@@ -21,14 +21,14 @@ export class AppComponent {
   constructor(private stateService: StateService) {}
 
   pubnub = new PubNub({
-    publishKey: "demo",
-    subscribeKey: "demo",
+    publishKey: "pub-c-0457cb83-0786-43df-bc70-723b16a6e816",
+    subscribeKey: "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de",
     userId,
   })
 
   chat = Chat.init({
-    publishKey: "demo",
-    subscribeKey: "demo",
+    publishKey: "pub-c-0457cb83-0786-43df-bc70-723b16a6e816",
+    subscribeKey: "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de",
     userId,
     typingTimeout: 2000,
   })
@@ -37,6 +37,8 @@ export class AppComponent {
     const user =
       (await this.chat.getUser(userId)) ||
       (await this.chat.createUser(userId, { name: "Some name" }))
+
+    console.log("memberships", await user.getMemberships())
 
     this.chat.setChatUser(user)
     this.channel =
