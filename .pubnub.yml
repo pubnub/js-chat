@@ -1,0 +1,13 @@
+---
+name: pubnub-js-chat
+version: v0.1.0
+scm: github.com/pubnub/js-chat
+schema: 1
+files:
+  - lib/dist/index.js
+changelog:
+  - date: 2023-03-30
+    version: v0.1.0
+    changes:
+      - type: feature
+        text: Initial implementation
