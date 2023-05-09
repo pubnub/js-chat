@@ -154,6 +154,12 @@ export default function () {
     setTextInput(message.getText())
   }
 
+  async function handleToggleReaction(message, reaction) {
+    const newMsg = await message.toggleReaction(reaction)
+    console.log("Message after reacting: ", newMsg)
+    setMessages((msgs) => msgs.map((msg) => (msg.timetoken === newMsg.timetoken ? newMsg : msg)))
+  }
+
   return (
     <>
       {error ? <p className="error my-4">{error}</p> : null}
@@ -299,34 +305,9 @@ export default function () {
             <section>
               <h3>Channel history</h3>
               <ul>
-                {messages?.map((msg) => (
-                  <li key={msg.timetoken}>
-                    <div className="flex items-center">
-                      <span className="flex-1">
-                        {msg.userId}: {msg.getText()}
-                        {msg.actions?.deleted ? "(soft deleted)" : ""}
-                      </span>
-                      <nav>
-                        <button className="py-0.5 px-2" onClick={() => handleEditMessage(msg)}>
-                          Edit
-                        </button>
-                        <button
-                          className="py-0.5 px-2 ml-2"
-                          onClick={() => handleDeleteMessage(msg, true)}
-                        >
-                          Soft Delete
-                        </button>
-                        <button
-                          className="py-0.5 px-2 ml-2"
-                          onClick={() => handleDeleteMessage(msg, false)}
-                        >
-                          Hard Delete
-                        </button>
-                      </nav>
-                    </div>
-                    <hr className="my-1" />
-                  </li>
-                ))}
+                {messages.map((msg) =>
+                  RenderMessage(msg, handleEditMessage, handleDeleteMessage, handleToggleReaction)
+                )}
               </ul>
             </section>
           </div>
@@ -335,5 +316,55 @@ export default function () {
         <p className="mt-6">Get a channel to unlock additional features</p>
       )}
     </>
+  )
+}
+
+function RenderMessage(
+  message: Message,
+  handleEditMessage,
+  handleDeleteMessage,
+  handleToggleReaction
+) {
+  return (
+    <li key={message.timetoken}>
+      <div className="flex items-center">
+        <span className="flex-1">
+          {message.userId}: {message.text}
+          {message.deleted ? "(soft deleted)" : ""}
+        </span>
+        <nav>
+          <button
+            className={`py-0.5 px-2 ${
+              message.hasUserReaction("👍")
+                ? "bg-accent focus:bg-accent"
+                : "bg-transparent focus:bg-transparent"
+            }`}
+            onClick={() => handleToggleReaction(message, "👍")}
+          >
+            👍
+          </button>
+          <button
+            className={`py-0.5 px-2 ml-2 ${
+              message.hasUserReaction("👎")
+                ? "bg-accent focus:bg-accent"
+                : "bg-transparent focus:bg-transparent"
+            }`}
+            onClick={() => handleToggleReaction(message, "👎")}
+          >
+            👎
+          </button>
+          <button className="py-0.5 px-2 ml-2" onClick={() => handleEditMessage(message)}>
+            Edit
+          </button>
+          <button className="py-0.5 px-2 ml-2" onClick={() => handleDeleteMessage(message, true)}>
+            Soft del
+          </button>
+          <button className="py-0.5 px-2 ml-2" onClick={() => handleDeleteMessage(message, false)}>
+            Hard del
+          </button>
+        </nav>
+      </div>
+      <hr className="my-1" />
+    </li>
   )
 }
