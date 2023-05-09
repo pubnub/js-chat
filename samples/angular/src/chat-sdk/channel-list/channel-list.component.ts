@@ -1,5 +1,7 @@
 import { Component, Input } from "@angular/core"
 import { Channel, Chat } from "@pubnub/chat"
+import { ManageMembershipsResponse, ObjectCustom } from "pubnub"
+import { StateService } from "../../app/state.service"
 
 @Component({
   selector: "app-channel-list-chat",
@@ -11,13 +13,30 @@ export class ChannelListComponentChat {
   channels: Channel[] = []
   channelClickedNumber = -1
   nameInput = ""
+  memberships: ManageMembershipsResponse<ObjectCustom, ObjectCustom> | null = null
+  buttonTexts: { [key: string]: string } = {}
+
+  constructor(private stateService: StateService) {}
 
   async loadChannels() {
     this.channels = (await this.chat.getChannels({ limit: 5 })).channels
   }
 
+  async loadMemberships() {
+    const user = await this.chat.getUser("test-user")
+    this.memberships = await user!.getMemberships()
+
+    this.channels.forEach((c) => {
+      this.buttonTexts[c.id] = this.memberships?.data.find((m) => m.channel.id === c.id)
+        ? "Leave"
+        : "Join"
+    })
+  }
+
   async ngOnInit() {
-    this.loadChannels()
+    await this.loadChannels()
+
+    this.loadMemberships()
   }
 
   clickOnChannel(index: number) {
@@ -34,5 +53,12 @@ export class ChannelListComponentChat {
   async deleteChannel(channelId: string) {
     await this.chat.deleteChannel(channelId)
     await this.loadChannels()
+  }
+
+  async toggleChannel(channelId: string) {
+    const channel = await this.chat.getChannel(channelId)
+
+    await this.stateService.toggleChannel(channel!, this.buttonTexts[channelId] === "Join")
+    await this.loadMemberships()
   }
 }

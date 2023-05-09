@@ -8,6 +8,7 @@ import {
 import { Chat } from "./chat"
 import { Message } from "./message"
 import { SendTextOptionParams, StatusTypeFields, DeleteParameters } from "../types"
+import { Membership } from "./membership"
 
 export type ChannelFields = Pick<
   Channel,
@@ -197,6 +198,27 @@ export class Channel {
 
   async forwardMessage(message: Message) {
     return this.chat.forwardMessage(message, this.id)
+  }
+
+  async join(callback: (message: Message) => void) {
+    const setMembershipResponse = await this.chat.sdk.objects.setMemberships({
+      channels: [this.id],
+    })
+
+    // make sure that we do not attach a second event listener to this channel
+    this.disconnect()
+
+    this.connect(callback)
+
+    return Membership.fromDTO(this.chat, setMembershipResponse)
+  }
+
+  async leave() {
+    this.disconnect()
+
+    return this.chat.sdk.objects.removeMemberships({
+      channels: [this.id],
+    })
   }
 
   // togglePinMessage(messageTimeToken: string) {}

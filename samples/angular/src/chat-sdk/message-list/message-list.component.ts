@@ -1,5 +1,6 @@
 import { Component, Input } from "@angular/core"
 import { Channel, Chat, Message } from "@pubnub/chat"
+import { StateService } from "../../app/state.service"
 
 @Component({
   selector: "app-message-list-chat",
@@ -13,7 +14,7 @@ export class MessageListComponentChat {
   messages: Message[]
   isPaginationEnd: boolean
 
-  constructor() {
+  constructor(private stateService: StateService) {
     this.messages = []
     this.isPaginationEnd = false
   }
@@ -21,7 +22,10 @@ export class MessageListComponentChat {
   async ngOnInit() {
     await this.loadMoreHistoricalMessages()
 
-    this.channel.connect((message) => this.messages.push(message))
+    this.stateService.currentChannelChange.subscribe((channel) => {
+      this.messages = []
+      channel!.join((message) => (this.messages = [...this.messages, message]))
+    })
   }
 
   async loadMoreHistoricalMessages() {

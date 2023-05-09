@@ -1,4 +1,4 @@
-import { UUIDMetadataObject, ObjectCustom } from "pubnub"
+import { UUIDMetadataObject, ObjectCustom, GetMembershipsParametersv2 } from "pubnub"
 import { Chat } from "./chat"
 import { StatusTypeFields, DeleteParameters } from "../types"
 
@@ -56,7 +56,15 @@ export class User {
     return this.chat.isPresent(this.id, channelId)
   }
 
-  async getMemberships() {
-    return this.chat.sdk.objects.getMemberships()
+  async getMemberships(params: Omit<GetMembershipsParametersv2, "include"> = {}) {
+    return this.chat.sdk.objects.getMemberships({
+      ...params,
+      include: {
+        totalCount: true,
+        customFields: true,
+        channelFields: true,
+        customChannelFields: true,
+      },
+    })
   }
 }
