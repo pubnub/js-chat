@@ -4,12 +4,6 @@ import { chatAtom } from "../store"
 import { extractErrorMessage } from "./helpers"
 import { Channel, Message } from "@pubnub/chat"
 
-type GetAllState = {
-  channels: Channel[]
-  total: number
-  page: { next?: string; prev?: string }
-}
-
 const defaultGetAllState = {
   channels: [],
   total: 0,
@@ -24,7 +18,7 @@ export default function () {
   const [channel, setChannel] = useState<Channel>()
   const [messages, setMessages] = useState<Message[]>([])
   const [editingMessage, setEditingMessage] = useState<Message>()
-  const [getAllState, setGetAllState] = useState<GetAllState>(defaultGetAllState)
+  const [allChannels, setAllChannels] = useState<Channel[]>([])
   const getAllRef = useRef(defaultGetAllState)
   const [input, setInput] = useState("")
   const [textInput, setTextInput] = useState("")
@@ -83,7 +77,7 @@ export default function () {
           total,
         }
       } while (getAllRef.current.channels.length < getAllRef.current.total)
-      setGetAllState(getAllRef.current)
+      setAllChannels(getAllRef.current.channels)
     } catch (e: any) {
       setError(extractErrorMessage(e))
       console.error(e)
@@ -170,15 +164,15 @@ export default function () {
           <button className="mb-4" onClick={handleGetAll}>
             Get all channels
           </button>
-          {getAllState.channels.length ? (
+          {allChannels.length ? (
             <div>
               <p>
                 <b>Total count: </b>
-                {getAllState.total}
+                {allChannels.length}
               </p>
               <p>
                 <b>Existing Channels: </b>
-                {getAllState.channels.map((c) => c.id).join(", ")}
+                {allChannels.map((c) => c.id).join(", ")}
               </p>
             </div>
           ) : null}
