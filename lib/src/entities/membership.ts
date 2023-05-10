@@ -3,21 +3,21 @@ import Pubnub, { ChannelMembershipObject, ObjectCustom, UUIDMembershipObject } f
 import { Channel } from "./channel"
 import { User } from "./user"
 
-export type MembershipFields = Pick<ChannelMembership, "channel" | "user" | "custom">
+export type MembershipFields = Pick<Membership, "channel" | "user" | "custom">
 
-export class ChannelMembership {
+export class Membership {
   private chat: Chat
   readonly channel: Channel
   readonly user: User
   readonly custom: ObjectCustom | null | undefined
-
+  /** @internal */
   constructor(chat: Chat, params: MembershipFields) {
     this.chat = chat
     this.channel = params.channel
     this.user = params.user
     this.custom = params.custom
   }
-
+  /** @internal */
   static fromMembershipDTO(
     chat: Chat,
     channelMembershipObject: ChannelMembershipObject<Pubnub.ObjectCustom, Pubnub.ObjectCustom>,
@@ -29,9 +29,9 @@ export class ChannelMembership {
       custom: channelMembershipObject.custom,
     }
 
-    return new ChannelMembership(chat, data)
+    return new Membership(chat, data)
   }
-
+  /** @internal */
   static fromChannelMemberDTO(
     chat: Chat,
     userMembershipObject: UUIDMembershipObject<Pubnub.ObjectCustom, Pubnub.ObjectCustom>,
@@ -43,6 +43,6 @@ export class ChannelMembership {
       custom: userMembershipObject.custom,
     }
 
-    return new ChannelMembership(chat, data)
+    return new Membership(chat, data)
   }
 }

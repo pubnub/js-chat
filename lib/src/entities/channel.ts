@@ -10,7 +10,7 @@ import {
 import { Chat } from "./chat"
 import { Message } from "./message"
 import { SendTextOptionParams, StatusTypeFields, DeleteParameters } from "../types"
-import { ChannelMembership } from "./channel-membership"
+import { Membership } from "./membership"
 import { User } from "./user"
 
 export type ChannelFields = Pick<
@@ -32,13 +32,13 @@ export class Channel {
   private typingSent = false
   private typingSentTimer?: ReturnType<typeof setTimeout>
   private typingIndicators: Map<string, ReturnType<typeof setTimeout>> = new Map()
-
+  /** @internal */
   constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
     this.id = params.id
     Object.assign(this, params)
   }
-
+  /** @internal */
   static fromDTO(
     chat: Chat,
     params: Partial<ChannelMetadataObject<ObjectCustom>> &
@@ -215,7 +215,7 @@ export class Channel {
     } = {}
   ) {
     const { custom, ...rest } = params
-    const setMembershipResponse = await this.chat.sdk.objects.setMemberships({
+    await this.chat.sdk.objects.setMemberships({
       ...rest,
       channels: [{ id: this.id, custom }],
       include: {
@@ -227,16 +227,9 @@ export class Channel {
     })
 
     this.connect(callback)
-
-    return {
-      next: setMembershipResponse.next,
-      prev: setMembershipResponse.prev,
-      totalCount: setMembershipResponse.totalCount,
-      status: setMembershipResponse.status,
-      data: setMembershipResponse.data.map((m) =>
-        ChannelMembership.fromMembershipDTO(this.chat, m, this.chat.getChatUser() as User)
-      ),
-    }
+    // this method does not return the affected membership because objects.setMemberships
+    // returns the full list of user's memberships and the affected membership might not even be there
+    // so it returns Promise<undefined>
   }
 
   async leave() {
@@ -247,7 +240,7 @@ export class Channel {
     })
   }
 
-  async getChannelMembers(params: Omit<GetChannelMembersParameters, "channel" | "include"> = {}) {
+  async getMembers(params: Omit<GetChannelMembersParameters, "channel" | "include"> = {}) {
     const membersResponse = await this.chat.sdk.objects.getChannelMembers({
       ...params,
       channel: this.id,
@@ -260,13 +253,13 @@ export class Channel {
     })
 
     return {
-      next: membersResponse.next,
-      prev: membersResponse.prev,
-      totalCount: membersResponse.totalCount,
+      page: {
+        next: membersResponse.next,
+        prev: membersResponse.prev,
+      },
+      total: membersResponse.totalCount,
       status: membersResponse.status,
-      data: membersResponse.data.map((m) =>
-        ChannelMembership.fromChannelMemberDTO(this.chat, m, this)
-      ),
+      members: membersResponse.data.map((m) => Membership.fromChannelMemberDTO(this.chat, m, this)),
     }
   }
 

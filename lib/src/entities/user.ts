@@ -1,7 +1,7 @@
 import { UUIDMetadataObject, ObjectCustom, GetMembershipsParametersv2 } from "pubnub"
 import { Chat } from "./chat"
 import { StatusTypeFields, DeleteParameters } from "../types"
-import { ChannelMembership } from "./channel-membership"
+import { Membership } from "./membership"
 
 export type UserFields = Pick<
   User,
@@ -19,13 +19,13 @@ export class User {
   readonly status?: string
   readonly type?: string
   readonly updated?: string
-
+  /** @internal */
   constructor(chat: Chat, params: UserFields) {
     this.chat = chat
     this.id = params.id
     Object.assign(this, params)
   }
-
+  /** @internal */
   static fromDTO(
     chat: Chat,
     params: Partial<UUIDMetadataObject<ObjectCustom>> &
@@ -78,8 +78,8 @@ export class User {
       prev: membershipsResponse.prev,
       totalCount: membershipsResponse.totalCount,
       status: membershipsResponse.status,
-      data: membershipsResponse.data.map((m) =>
-        ChannelMembership.fromMembershipDTO(this.chat, m, this)
+      memberships: membershipsResponse.data.map((m) =>
+        Membership.fromMembershipDTO(this.chat, m, this)
       ),
     }
   }

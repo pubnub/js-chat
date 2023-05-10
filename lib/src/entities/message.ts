@@ -32,7 +32,7 @@ export class Message {
   // timetoken!: string
   // destructionTime?: number
   // reactions: { reaction: string; count: number; users: User[] }[] = []
-
+  /** @internal */
   constructor(chat: Chat, params: MessageFields) {
     this.chat = chat
     this.timetoken = params.timetoken
@@ -41,7 +41,7 @@ export class Message {
     this.meta = params.meta
     Object.assign(this, params)
   }
-
+  /** @internal */
   static fromDTO(
     chat: Chat,
     params: FetchMessagesResponse["channels"]["channel"][0] | EnhancedMessageEvent

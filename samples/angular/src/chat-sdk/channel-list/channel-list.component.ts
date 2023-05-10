@@ -26,7 +26,9 @@ export class ChannelListComponentChat {
     this.membershipResponse = await user!.getMemberships()
 
     this.channels.forEach((c) => {
-      this.buttonTexts[c.id] = this.membershipResponse?.data.find((m) => m.channel.id === c.id)
+      this.buttonTexts[c.id] = this.membershipResponse?.memberships.find(
+        (m) => m.channel.id === c.id
+      )
         ? "Leave"
         : "Join"
     })
@@ -56,7 +58,9 @@ export class ChannelListComponentChat {
 
   async toggleChannel(channelId: string) {
     const channel = await this.chat.getChannel(channelId)
-    const isAlreadyMember = !!this.membershipResponse!.data.find((m) => m.channel.id === channelId)
+    const isAlreadyMember = !!this.membershipResponse!.memberships.find(
+      (m) => m.channel.id === channelId
+    )
 
     if (isAlreadyMember) {
       await channel!.leave()
