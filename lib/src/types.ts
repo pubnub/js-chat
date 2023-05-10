@@ -28,3 +28,5 @@ export type DeleteParameters = {
 export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel">
 
 export type MembershipResponse = Awaited<ReturnType<User["getMemberships"]>>
+
+export type OptionalAllBut<T, K extends keyof T> = Partial<T> & Pick<T, K>

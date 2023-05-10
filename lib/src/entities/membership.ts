@@ -1,5 +1,5 @@
 import { Chat } from "./chat"
-import Pubnub, { ChannelMembershipObject, ObjectCustom, UUIDMembershipObject } from "pubnub"
+import { ChannelMembershipObject, ObjectCustom, UUIDMembershipObject } from "pubnub"
 import { Channel } from "./channel"
 import { User } from "./user"
 
@@ -20,7 +20,7 @@ export class Membership {
   /** @internal */
   static fromMembershipDTO(
     chat: Chat,
-    channelMembershipObject: ChannelMembershipObject<Pubnub.ObjectCustom, Pubnub.ObjectCustom>,
+    channelMembershipObject: ChannelMembershipObject<ObjectCustom, ObjectCustom>,
     user: User
   ) {
     const data = {
@@ -34,7 +34,7 @@ export class Membership {
   /** @internal */
   static fromChannelMemberDTO(
     chat: Chat,
-    userMembershipObject: UUIDMembershipObject<Pubnub.ObjectCustom, Pubnub.ObjectCustom>,
+    userMembershipObject: UUIDMembershipObject<ObjectCustom, ObjectCustom>,
     channel: Channel
   ) {
     const data = {

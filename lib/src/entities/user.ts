@@ -1,6 +1,6 @@
 import { UUIDMetadataObject, ObjectCustom, GetMembershipsParametersv2 } from "pubnub"
 import { Chat } from "./chat"
-import { StatusTypeFields, DeleteParameters } from "../types"
+import { StatusTypeFields, DeleteParameters, OptionalAllBut } from "../types"
 import { Membership } from "./membership"
 
 export type UserFields = Pick<
@@ -28,9 +28,7 @@ export class User {
   /** @internal */
   static fromDTO(
     chat: Chat,
-    params: Partial<UUIDMetadataObject<ObjectCustom>> &
-      Pick<UUIDMetadataObject<ObjectCustom>, "id"> &
-      StatusTypeFields
+    params: OptionalAllBut<UUIDMetadataObject<ObjectCustom>, "id"> & StatusTypeFields
   ) {
     const data = {
       id: params.id,

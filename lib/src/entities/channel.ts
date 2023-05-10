@@ -9,9 +9,8 @@ import {
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
-import { SendTextOptionParams, StatusTypeFields, DeleteParameters } from "../types"
+import { SendTextOptionParams, StatusTypeFields, DeleteParameters, OptionalAllBut } from "../types"
 import { Membership } from "./membership"
-import { User } from "./user"
 
 export type ChannelFields = Pick<
   Channel,
@@ -41,9 +40,7 @@ export class Channel {
   /** @internal */
   static fromDTO(
     chat: Chat,
-    params: Partial<ChannelMetadataObject<ObjectCustom>> &
-      Pick<ChannelMetadataObject<ObjectCustom>, "id"> &
-      StatusTypeFields
+    params: OptionalAllBut<ChannelMetadataObject<ObjectCustom>, "id"> & StatusTypeFields
   ) {
     const data = {
       id: params.id,
