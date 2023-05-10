@@ -4,10 +4,13 @@ import {
   MessageEvent,
   ObjectCustom,
   ChannelMetadataObject,
+  GetChannelMembersParameters,
+  SetMembershipsParameters,
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
-import { SendTextOptionParams, StatusTypeFields, DeleteParameters } from "../types"
+import { SendTextOptionParams, StatusTypeFields, DeleteParameters, OptionalAllBut } from "../types"
+import { Membership } from "./membership"
 
 export type ChannelFields = Pick<
   Channel,
@@ -28,14 +31,17 @@ export class Channel {
   private typingSent = false
   private typingSentTimer?: ReturnType<typeof setTimeout>
   private typingIndicators: Map<string, ReturnType<typeof setTimeout>> = new Map()
-
+  /** @internal */
   constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
     this.id = params.id
     Object.assign(this, params)
   }
-
-  static fromDTO(chat: Chat, params: ChannelMetadataObject<ObjectCustom> & StatusTypeFields) {
+  /** @internal */
+  static fromDTO(
+    chat: Chat,
+    params: OptionalAllBut<ChannelMetadataObject<ObjectCustom>, "id"> & StatusTypeFields
+  ) {
     const data = {
       id: params.id,
       name: params.name || undefined,
@@ -192,6 +198,61 @@ export class Channel {
 
   async forwardMessage(message: Message) {
     return this.chat.forwardMessage(message, this.id)
+  }
+
+  async join(
+    callback: (message: Message) => void,
+    params: Omit<SetMembershipsParameters<ObjectCustom>, "channels" | "include"> & {
+      custom?: ObjectCustom
+    } = {}
+  ) {
+    const { custom, ...rest } = params
+    await this.chat.sdk.objects.setMemberships({
+      ...rest,
+      channels: [{ id: this.id, custom }],
+      include: {
+        totalCount: true,
+        customFields: true,
+        channelFields: true,
+        customChannelFields: true,
+      },
+    })
+
+    this.connect(callback)
+    // this method does not return the affected membership because objects.setMemberships
+    // returns the full list of user's memberships and the affected membership might not even be there
+    // so it returns Promise<undefined>
+  }
+
+  async leave() {
+    this.disconnect()
+
+    return this.chat.sdk.objects.removeMemberships({
+      channels: [this.id],
+    })
+  }
+
+  async getMembers(params: Omit<GetChannelMembersParameters, "channel" | "include"> = {}) {
+    const membersResponse = await this.chat.sdk.objects.getChannelMembers({
+      ...params,
+      channel: this.id,
+      include: {
+        totalCount: true,
+        customFields: true,
+        UUIDFields: true,
+        customUUIDFields: true,
+      },
+    })
+
+    return {
+      page: {
+        next: membersResponse.next,
+        prev: membersResponse.prev,
+      },
+      total: membersResponse.totalCount,
+      status: membersResponse.status,
+      members: membersResponse.data.map((m) => Membership.fromChannelMemberDTO(this.chat, m, this)),
+    }
   }
 
   // togglePinMessage(messageTimeToken: string) {}

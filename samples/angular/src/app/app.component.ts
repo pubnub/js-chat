@@ -19,7 +19,7 @@ export class AppComponent {
   channel: Channel | null = null
   forwardChannel: Channel | null = null
 
-  constructor(private stateService: StateService) {}
+  constructor(public stateService: StateService) {}
 
   pubnub = new PubNub({
     publishKey: "demo",
@@ -40,9 +40,13 @@ export class AppComponent {
       (await this.chat.createUser(userId, { name: "Some name" }))
 
     this.chat.setChatUser(user)
-    this.channel =
-      (await this.chat.getChannel("test-channel")) ||
-      (await this.chat.createChannel("test-channel", { name: "Some channel" }))
+    const channel =
+      (await this.chat.getChannel("123")) ||
+      (await this.chat.createChannel("123", { name: "Some channel" }))
+
+    await this.stateService.toggleChannel(channel)
+    this.channel = this.stateService.currentChannel
+
     this.forwardChannel =
       (await this.chat.getChannel("forward-channel")) ||
       (await this.chat.createChannel("forward-channel", { name: "forward channel" }))

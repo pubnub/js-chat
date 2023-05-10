@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core"
 import { Subject } from "rxjs"
+import { Channel } from "@pubnub/chat"
 
 @Injectable({
   providedIn: "root",
@@ -7,9 +8,11 @@ import { Subject } from "rxjs"
 export class StateService {
   createChannelModalJSSDKOpen = false
   createChannelModalChatSDKOpen = false
+  currentChannel: Channel | null = null
 
   JSSDKModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
   chatSDKModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
+  currentChannelChange: Subject<Channel | null> = new Subject<Channel | null>()
 
   constructor() {
     this.JSSDKModalVisibilityChange.subscribe((value) => {
@@ -17,6 +20,9 @@ export class StateService {
     })
     this.chatSDKModalVisibilityChange.subscribe((value) => {
       this.createChannelModalChatSDKOpen = value
+    })
+    this.currentChannelChange.subscribe((value) => {
+      this.currentChannel = value
     })
   }
 
@@ -26,6 +32,10 @@ export class StateService {
 
   toggleCreateChannelModalJSSDK() {
     this.JSSDKModalVisibilityChange.next(!this.createChannelModalJSSDKOpen)
+  }
+
+  toggleChannel(nextChannel: Channel) {
+    this.currentChannelChange.next(nextChannel)
   }
 
   getCreateChannelModalJSSDKOpen() {

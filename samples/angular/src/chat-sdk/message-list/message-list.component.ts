@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core"
+import { Component, Input, SimpleChanges } from "@angular/core"
 import { Channel, Chat, Message } from "@pubnub/chat"
 
 @Component({
@@ -18,10 +18,16 @@ export class MessageListComponentChat {
     this.isPaginationEnd = false
   }
 
-  async ngOnInit() {
-    await this.loadMoreHistoricalMessages()
-
-    this.channel.connect((message) => this.messages.push(message))
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes["channel"].previousValue) {
+      changes["channel"].previousValue.disconnect()
+    }
+    if (changes["channel"].currentValue) {
+      this.messages = []
+      changes["channel"].currentValue.join(
+        (message: Message) => (this.messages = [...this.messages, message])
+      )
+    }
   }
 
   async loadMoreHistoricalMessages() {
