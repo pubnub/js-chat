@@ -1,6 +1,6 @@
 import { Chat } from "./chat"
 import PubNub from "pubnub"
-import { MessageActions, DeleteParameters } from "../types"
+import { MessageActionType, MessageActions, DeleteParameters } from "../types"
 
 export type MessageContent = {
   type: "text"
@@ -68,12 +68,29 @@ export class Message {
     const { actionTimetoken, type, value, uuid } = action
     const newActions = this.actions || {}
     newActions[type] ||= {}
-    newActions[type][value] = [{ actionTimetoken, uuid }]
+    newActions[type][value] ||= []
+    newActions[type][value] = [...newActions[type][value], { uuid, actionTimetoken }]
     return newActions
   }
 
-  getText() {
-    const edits = this.actions?.edited
+  /** @internal */
+  private filterAction(action: PubNub.MessageAction) {
+    const { actionTimetoken, type, value, uuid } = action
+    const newActions = this.actions || {}
+    newActions[type] ||= {}
+    newActions[type][value] ||= []
+    newActions[type][value] = newActions[type][value].filter(
+      (r) => r.actionTimetoken !== actionTimetoken || r.uuid !== uuid
+    )
+    return newActions
+  }
+
+  /*
+   * Message text
+   */
+  get text() {
+    const type = MessageActionType.EDITED
+    const edits = this.actions?.[type]
     if (!edits) return this.content.text
     const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
     const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
@@ -81,14 +98,12 @@ export class Message {
   }
 
   async editText(newText: string) {
+    const type = MessageActionType.EDITED
     try {
       const { data } = await this.chat.sdk.addMessageAction({
         channel: this.channelId,
         messageTimetoken: this.timetoken,
-        action: {
-          type: "edited",
-          value: newText,
-        },
+        action: { type, value: newText },
       })
       const actions = this.assignAction(data)
       return this.clone({ actions })
@@ -97,25 +112,23 @@ export class Message {
     }
   }
 
-  // toggleReaction(reaction: string) {
-  //   // toggle reaction
-  // }
-
-  // getReactions() {
-  //   return this.reactions
-  // }
+  /*
+   * Deletions
+   */
+  get deleted() {
+    const type = MessageActionType.DELETED
+    return !!this.actions?.[type]
+  }
 
   async delete(params: DeleteParameters = {}) {
     const { soft } = params
+    const type = MessageActionType.DELETED
     try {
       if (soft) {
         const { data } = await this.chat.sdk.addMessageAction({
           channel: this.channelId,
           messageTimetoken: this.timetoken,
-          action: {
-            type: "deleted",
-            value: "deleted",
-          },
+          action: { type, value: type },
         })
         const actions = this.assignAction(data)
         return this.clone({ actions })
@@ -133,15 +146,50 @@ export class Message {
     }
   }
 
+  /**
+   * Reactions
+   */
+  get reactions() {
+    const type = MessageActionType.REACTIONS
+    return this.actions?.[type] || {}
+  }
+
+  hasUserReaction(reaction: string) {
+    return !!this.reactions[reaction]?.find((r) => r.uuid === this.chat.sdk.getUUID())
+  }
+
+  async toggleReaction(reaction: string) {
+    const type = MessageActionType.REACTIONS
+    const uuid = this.chat.sdk.getUUID()
+    const messageTimetoken = this.timetoken
+    const channel = this.channelId
+    const value = reaction
+    let actions
+
+    try {
+      const existingReaction = this.reactions[value]?.find((r) => r.uuid === uuid)
+      if (existingReaction) {
+        const actionTimetoken = String(existingReaction.actionTimetoken)
+        await this.chat.sdk.removeMessageAction({ actionTimetoken, channel, messageTimetoken })
+        actions = this.filterAction({ actionTimetoken, messageTimetoken, type, uuid, value })
+      } else {
+        const { data } = await this.chat.sdk.addMessageAction({
+          channel,
+          messageTimetoken,
+          action: { type, value },
+        })
+        actions = this.assignAction(data)
+      }
+      return this.clone({ actions })
+    } catch (error) {
+      throw error
+    }
+  }
+
+  /*
+   * Other
+   */
   async forward(channelId: string) {
     return this.chat.forwardMessage(this, channelId)
   }
-
-  // setEphemeral(timeInMs: number) {
-  //   this.destructionTime = timeInMs
-  // }
-
-  // setThreadId(threadId: string) {
-  //   this.parentMessageId = threadId
-  // }
 }
