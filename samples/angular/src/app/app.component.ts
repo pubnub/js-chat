@@ -41,8 +41,8 @@ export class AppComponent {
 
     this.chat.setChatUser(user)
     const channel =
-      (await this.chat.getChannel("test-channel-4")) ||
-      (await this.chat.createChannel("test-channel-4", { name: "Some channel" }))
+      (await this.chat.getChannel("123")) ||
+      (await this.chat.createChannel("123", { name: "Some channel" }))
 
     await this.stateService.toggleChannel(channel)
     this.channel = this.stateService.currentChannel

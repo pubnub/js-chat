@@ -1,5 +1,5 @@
 import { Component, Input } from "@angular/core"
-import { Channel, Chat, Message } from "@pubnub/chat"
+import { Chat, Message } from "@pubnub/chat"
 import { StateService } from "../../app/state.service"
 
 @Component({
@@ -8,7 +8,6 @@ import { StateService } from "../../app/state.service"
   styleUrls: ["./message-list.component.scss"],
 })
 export class MessageListComponentChat {
-  @Input() channel!: Channel
   @Input() chat!: Chat
 
   messages: Message[]
@@ -20,16 +19,17 @@ export class MessageListComponentChat {
   }
 
   async ngOnInit() {
-    await this.loadMoreHistoricalMessages()
-
-    this.stateService.currentChannelChange.subscribe((channel) => {
+    this.stateService.currentChannelChange.subscribe(async (channel) => {
       this.messages = []
-      channel!.join((message) => (this.messages = [...this.messages, message]))
+      await this.loadMoreHistoricalMessages()
+      await channel!.join((message) => (this.messages = [...this.messages, message]))
     })
+
+    const channelMembers = await this.stateService.currentChannel!.getChannelMembers()
   }
 
   async loadMoreHistoricalMessages() {
-    const historicalMessagesObject = await this.channel.getHistory({
+    const historicalMessagesObject = await this.stateService.currentChannel!.getHistory({
       startTimetoken: this.messages?.[0]?.timetoken,
     })
 

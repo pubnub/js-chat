@@ -1,6 +1,5 @@
 import { Component, Input } from "@angular/core"
-import { Channel, Chat } from "@pubnub/chat"
-import { ManageMembershipsResponse, ObjectCustom } from "pubnub"
+import { Channel, Chat, MembershipResponse } from "@pubnub/chat"
 import { StateService } from "../../app/state.service"
 
 @Component({
@@ -13,7 +12,7 @@ export class ChannelListComponentChat {
   channels: Channel[] = []
   channelClickedNumber = -1
   nameInput = ""
-  memberships: ManageMembershipsResponse<ObjectCustom, ObjectCustom> | null = null
+  membershipResponse: MembershipResponse | null = null
   buttonTexts: { [key: string]: string } = {}
 
   constructor(private stateService: StateService) {}
@@ -24,10 +23,10 @@ export class ChannelListComponentChat {
 
   async loadMemberships() {
     const user = await this.chat.getUser("test-user")
-    this.memberships = await user!.getMemberships()
+    this.membershipResponse = await user!.getMemberships()
 
     this.channels.forEach((c) => {
-      this.buttonTexts[c.id] = this.memberships?.data.find((m) => m.channel.id === c.id)
+      this.buttonTexts[c.id] = this.membershipResponse?.data.find((m) => m.channel.id === c.id)
         ? "Leave"
         : "Join"
     })

@@ -1,6 +1,7 @@
 import { UUIDMetadataObject, ObjectCustom, GetMembershipsParametersv2 } from "pubnub"
 import { Chat } from "./chat"
 import { StatusTypeFields, DeleteParameters } from "../types"
+import { ChannelMembership } from "./channel-membership"
 
 export type UserFields = Pick<
   User,
@@ -25,7 +26,12 @@ export class User {
     Object.assign(this, params)
   }
 
-  static fromDTO(chat: Chat, params: UUIDMetadataObject<ObjectCustom> & StatusTypeFields) {
+  static fromDTO(
+    chat: Chat,
+    params: Partial<UUIDMetadataObject<ObjectCustom>> &
+      Pick<UUIDMetadataObject<ObjectCustom>, "id"> &
+      StatusTypeFields
+  ) {
     const data = {
       id: params.id,
       name: params.name || undefined,
@@ -57,7 +63,7 @@ export class User {
   }
 
   async getMemberships(params: Omit<GetMembershipsParametersv2, "include"> = {}) {
-    return this.chat.sdk.objects.getMemberships({
+    const membershipsResponse = await this.chat.sdk.objects.getMemberships({
       ...params,
       include: {
         totalCount: true,
@@ -66,5 +72,15 @@ export class User {
         customChannelFields: true,
       },
     })
+
+    return {
+      next: membershipsResponse.next,
+      prev: membershipsResponse.prev,
+      totalCount: membershipsResponse.totalCount,
+      status: membershipsResponse.status,
+      data: membershipsResponse.data.map((m) =>
+        ChannelMembership.fromMembershipDTO(this.chat, m, this)
+      ),
+    }
   }
 }

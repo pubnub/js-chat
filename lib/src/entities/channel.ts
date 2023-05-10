@@ -4,11 +4,14 @@ import {
   MessageEvent,
   ObjectCustom,
   ChannelMetadataObject,
+  GetChannelMembersParameters,
+  SetMembershipsParameters,
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
 import { SendTextOptionParams, StatusTypeFields, DeleteParameters } from "../types"
-import { Membership } from "./membership"
+import { ChannelMembership } from "./channel-membership"
+import { User } from "./user"
 
 export type ChannelFields = Pick<
   Channel,
@@ -36,7 +39,12 @@ export class Channel {
     Object.assign(this, params)
   }
 
-  static fromDTO(chat: Chat, params: ChannelMetadataObject<ObjectCustom> & StatusTypeFields) {
+  static fromDTO(
+    chat: Chat,
+    params: Partial<ChannelMetadataObject<ObjectCustom>> &
+      Pick<ChannelMetadataObject<ObjectCustom>, "id"> &
+      StatusTypeFields
+  ) {
     const data = {
       id: params.id,
       name: params.name || undefined,
@@ -200,9 +208,19 @@ export class Channel {
     return this.chat.forwardMessage(message, this.id)
   }
 
-  async join(callback: (message: Message) => void) {
+  async join(
+    callback: (message: Message) => void,
+    params: Omit<SetMembershipsParameters<ObjectCustom>, "channels" | "include"> = {}
+  ) {
     const setMembershipResponse = await this.chat.sdk.objects.setMemberships({
-      channels: [this.id],
+      ...params,
+      channels: [{ id: this.id, custom: { hello: "world" } }],
+      include: {
+        totalCount: true,
+        customFields: true,
+        channelFields: true,
+        customChannelFields: true,
+      },
     })
 
     // make sure that we do not attach a second event listener to this channel
@@ -210,7 +228,15 @@ export class Channel {
 
     this.connect(callback)
 
-    return Membership.fromDTO(this.chat, setMembershipResponse)
+    return {
+      next: setMembershipResponse.next,
+      prev: setMembershipResponse.prev,
+      totalCount: setMembershipResponse.totalCount,
+      status: setMembershipResponse.status,
+      data: setMembershipResponse.data.map((m) =>
+        ChannelMembership.fromMembershipDTO(this.chat, m, this.chat.getChatUser() as User)
+      ),
+    }
   }
 
   async leave() {
@@ -219,6 +245,29 @@ export class Channel {
     return this.chat.sdk.objects.removeMemberships({
       channels: [this.id],
     })
+  }
+
+  async getChannelMembers(params: Omit<GetChannelMembersParameters, "channel" | "include"> = {}) {
+    const membersResponse = await this.chat.sdk.objects.getChannelMembers({
+      ...params,
+      channel: this.id,
+      include: {
+        totalCount: true,
+        customFields: true,
+        UUIDFields: true,
+        customUUIDFields: true,
+      },
+    })
+
+    return {
+      next: membersResponse.next,
+      prev: membersResponse.prev,
+      totalCount: membersResponse.totalCount,
+      status: membersResponse.status,
+      data: membersResponse.data.map((m) =>
+        ChannelMembership.fromChannelMemberDTO(this.chat, m, this)
+      ),
+    }
   }
 
   // togglePinMessage(messageTimeToken: string) {}
