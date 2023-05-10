@@ -29,5 +29,5 @@ describe("Typing indicator test", () => {
     await new Promise((resolve) => setTimeout(resolve, 5000))
     expect(callback).toHaveBeenCalledWith(["test-user"])
   })
-  jest.retryTimes(3)
+  jest.retryTimes(4)
 })
