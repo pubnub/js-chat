@@ -210,11 +210,14 @@ export class Channel {
 
   async join(
     callback: (message: Message) => void,
-    params: Omit<SetMembershipsParameters<ObjectCustom>, "channels" | "include"> = {}
+    params: Omit<SetMembershipsParameters<ObjectCustom>, "channels" | "include"> & {
+      custom?: ObjectCustom
+    } = {}
   ) {
+    const { custom, ...rest } = params
     const setMembershipResponse = await this.chat.sdk.objects.setMemberships({
-      ...params,
-      channels: [{ id: this.id, custom: { hello: "world" } }],
+      ...rest,
+      channels: [{ id: this.id, custom }],
       include: {
         totalCount: true,
         customFields: true,
