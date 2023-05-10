@@ -22,8 +22,8 @@
     <app-create-channel-modal-chat [chat]="chat" />
     <app-channel-list-chat [chat]="chat" />
     <button (click)="toggleCreateChannelModalChatSDK()">Open create channel modal</button>
-<!--    <div *ngIf="forwardChannel">-->
-<!--      <app-message-list-chat [channel]="forwardChannel" [chat]="chat" />-->
-<!--    </div>-->
+    <div *ngIf="forwardChannel">
+      <app-message-list-chat [channel]="forwardChannel" [chat]="chat" />
+    </div>
   </div>
 </div>
