@@ -74,9 +74,11 @@ export class User {
     })
 
     return {
-      next: membershipsResponse.next,
-      prev: membershipsResponse.prev,
-      totalCount: membershipsResponse.totalCount,
+      page: {
+        next: membershipsResponse.next,
+        prev: membershipsResponse.prev,
+      },
+      total: membershipsResponse.totalCount,
       status: membershipsResponse.status,
       memberships: membershipsResponse.data.map((m) =>
         Membership.fromMembershipDTO(this.chat, m, this)
