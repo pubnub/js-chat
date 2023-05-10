@@ -199,11 +199,6 @@ export class Channel {
     }
   }
 
-  deleteMessage(message: string | Message, params: DeleteParameters = {}) {
-    const timetoken = typeof message === "string" ? message : message.timetoken
-    this.chat.deleteMessage(this.id, timetoken, params)
-  }
-
   async forwardMessage(message: Message) {
     return this.chat.forwardMessage(message, this.id)
   }

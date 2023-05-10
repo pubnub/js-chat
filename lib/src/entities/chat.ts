@@ -256,34 +256,6 @@ export class Chat {
   /**
    * Messages
    */
-
-  async deleteMessage(channelId: string, timetoken: string, params: DeleteParameters = {}) {
-    if (!channelId.length) throw "Channel ID is required"
-    if (!timetoken.length) throw "Message timetoken is required"
-    const { soft } = params
-    try {
-      if (soft) {
-        await this.sdk.addMessageAction({
-          channel: channelId,
-          messageTimetoken: timetoken,
-          action: {
-            type: "deleted",
-            value: "deleted",
-          },
-        })
-      } else {
-        const previousTimetoken = String(BigInt(timetoken) - BigInt(1))
-        await this.sdk.deleteMessages({
-          channel: channelId,
-          start: previousTimetoken,
-          end: timetoken,
-        })
-      }
-    } catch (error) {
-      throw error
-    }
-  }
-
   /** @internal */
   async forwardMessage(message: Message, channelId: string) {
     if (!channelId) throw "Channel ID is required"

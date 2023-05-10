@@ -14,7 +14,7 @@ export const headers = {
 }
 
 export const getGrantParams = (id) => ({
-  ttl: 60,
+  ttl: 480,
   authorized_uuid: id,
   resources: {
     uuids: {

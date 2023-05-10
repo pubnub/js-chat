@@ -6,6 +6,12 @@ export type StatusTypeFields = {
   type?: string
 }
 
+export enum MessageActionType {
+  REACTIONS = "reactions",
+  DELETED = "deleted",
+  EDITED = "edited",
+}
+
 export type MessageActions = {
   [type: string]: {
     [value: string]: Array<{

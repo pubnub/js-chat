@@ -4,12 +4,6 @@ import { chatAtom } from "../store"
 import { extractErrorMessage } from "./helpers"
 import { Channel, Message } from "@pubnub/chat"
 
-type GetAllState = {
-  channels: Channel[]
-  total: number
-  page: { next?: string; prev?: string }
-}
-
 const defaultGetAllState = {
   channels: [],
   total: 0,
@@ -23,7 +17,8 @@ export default function () {
   const [presence, setPresence] = useState<string[]>([])
   const [channel, setChannel] = useState<Channel>()
   const [messages, setMessages] = useState<Message[]>([])
-  const [getAllState, setGetAllState] = useState<GetAllState>(defaultGetAllState)
+  const [editingMessage, setEditingMessage] = useState<Message>()
+  const [allChannels, setAllChannels] = useState<Channel[]>([])
   const getAllRef = useRef(defaultGetAllState)
   const [input, setInput] = useState("")
   const [textInput, setTextInput] = useState("")
@@ -82,7 +77,7 @@ export default function () {
           total,
         }
       } while (getAllRef.current.channels.length < getAllRef.current.total)
-      setGetAllState(getAllRef.current)
+      setAllChannels(getAllRef.current.channels)
     } catch (e: any) {
       setError(extractErrorMessage(e))
       console.error(e)
@@ -131,13 +126,32 @@ export default function () {
   }
 
   async function handleSend() {
-    await channel?.sendText(textInput)
+    if (editingMessage) {
+      const edited = await editingMessage.editText(textInput)
+      setMessages((ls) => ls.map((msg) => (msg.timetoken === edited.timetoken ? edited : msg)))
+      setEditingMessage(null)
+    } else {
+      await channel?.sendText(textInput)
+    }
     setTextInput("")
   }
 
   async function handleDeleteMessage(message: Message, soft) {
-    message.delete({ soft })
-    setMessages((messages) => messages.filter((msg) => message.timetoken !== msg.timetoken))
+    const deleted = await message.delete({ soft })
+    if (deleted === true)
+      setMessages((messages) => messages.filter((msg) => message.timetoken !== msg.timetoken))
+    else setMessages((ls) => ls.map((msg) => (msg.timetoken === deleted.timetoken ? deleted : msg)))
+  }
+
+  async function handleEditMessage(message: Message) {
+    setEditingMessage(message)
+    setTextInput(message.getText())
+  }
+
+  async function handleToggleReaction(message, reaction) {
+    const newMsg = await message.toggleReaction(reaction)
+    console.log("Message after reacting: ", newMsg)
+    setMessages((msgs) => msgs.map((msg) => (msg.timetoken === newMsg.timetoken ? newMsg : msg)))
   }
 
   return (
@@ -150,15 +164,15 @@ export default function () {
           <button className="mb-4" onClick={handleGetAll}>
             Get all channels
           </button>
-          {getAllState.channels.length ? (
+          {allChannels.length ? (
             <div>
               <p>
                 <b>Total count: </b>
-                {getAllState.total}
+                {allChannels.length}
               </p>
               <p>
                 <b>Existing Channels: </b>
-                {getAllState.channels.map((c) => c.id).join(", ")}
+                {allChannels.map((c) => c.id).join(", ")}
               </p>
             </div>
           ) : null}
@@ -285,31 +299,9 @@ export default function () {
             <section>
               <h3>Channel history</h3>
               <ul>
-                {messages?.map((msg) => (
-                  <li key={msg.timetoken}>
-                    <div className="flex items-center">
-                      <span className="flex-1">
-                        {msg.userId}: {msg.content.text}
-                        {msg.actions?.deleted ? "(soft deleted)" : ""}
-                      </span>
-                      <nav>
-                        <button
-                          className="py-0.5 px-2"
-                          onClick={() => handleDeleteMessage(msg, true)}
-                        >
-                          Soft Delete
-                        </button>
-                        <button
-                          className="py-0.5 px-2 ml-2"
-                          onClick={() => handleDeleteMessage(msg, false)}
-                        >
-                          Hard Delete
-                        </button>
-                      </nav>
-                    </div>
-                    <hr className="my-1" />
-                  </li>
-                ))}
+                {messages.map((msg) =>
+                  RenderMessage(msg, handleEditMessage, handleDeleteMessage, handleToggleReaction)
+                )}
               </ul>
             </section>
           </div>
@@ -318,5 +310,55 @@ export default function () {
         <p className="mt-6">Get a channel to unlock additional features</p>
       )}
     </>
+  )
+}
+
+function RenderMessage(
+  message: Message,
+  handleEditMessage,
+  handleDeleteMessage,
+  handleToggleReaction
+) {
+  return (
+    <li key={message.timetoken}>
+      <div className="flex items-center">
+        <span className="flex-1">
+          {message.userId}: {message.text}
+          {message.deleted ? "(soft deleted)" : ""}
+        </span>
+        <nav>
+          <button
+            className={`py-0.5 px-2 ${
+              message.hasUserReaction("👍")
+                ? "bg-accent focus:bg-accent"
+                : "bg-transparent focus:bg-transparent"
+            }`}
+            onClick={() => handleToggleReaction(message, "👍")}
+          >
+            👍
+          </button>
+          <button
+            className={`py-0.5 px-2 ml-2 ${
+              message.hasUserReaction("👎")
+                ? "bg-accent focus:bg-accent"
+                : "bg-transparent focus:bg-transparent"
+            }`}
+            onClick={() => handleToggleReaction(message, "👎")}
+          >
+            👎
+          </button>
+          <button className="py-0.5 px-2 ml-2" onClick={() => handleEditMessage(message)}>
+            Edit
+          </button>
+          <button className="py-0.5 px-2 ml-2" onClick={() => handleDeleteMessage(message, true)}>
+            Soft del
+          </button>
+          <button className="py-0.5 px-2 ml-2" onClick={() => handleDeleteMessage(message, false)}>
+            Hard del
+          </button>
+        </nav>
+      </div>
+      <hr className="my-1" />
+    </li>
   )
 }
