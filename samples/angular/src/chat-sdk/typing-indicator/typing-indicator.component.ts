@@ -1,6 +1,5 @@
-import { Component, Input } from "@angular/core"
+import { Component, Input, SimpleChanges } from "@angular/core"
 import { Channel } from "@pubnub/chat"
-import PubNub from "pubnub"
 
 @Component({
   selector: "app-typing-indicator-chat",
@@ -9,10 +8,14 @@ import PubNub from "pubnub"
 })
 export class TypingIndicatorComponentChat {
   @Input() channel!: Channel
-  @Input() pubnub!: PubNub
   typingData: string[] = []
 
-  ngOnInit() {
-    this.channel.getTyping((value) => (this.typingData = value))
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes["channel"].previousValue) {
+      changes["channel"].previousValue.disconnect()
+    }
+    if (changes["channel"].currentValue) {
+      this.channel.getTyping((value) => (this.typingData = value))
+    }
   }
 }

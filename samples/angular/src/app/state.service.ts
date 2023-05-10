@@ -34,14 +34,7 @@ export class StateService {
     this.JSSDKModalVisibilityChange.next(!this.createChannelModalJSSDKOpen)
   }
 
-  async toggleChannel(nextChannel: Channel, value = true) {
-    if (!value) {
-      await nextChannel.leave()
-      return
-    }
-    if (this.currentChannel) {
-      this.currentChannel.disconnect()
-    }
+  toggleChannel(nextChannel: Channel) {
     this.currentChannelChange.next(nextChannel)
   }
 

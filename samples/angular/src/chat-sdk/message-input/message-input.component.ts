@@ -1,6 +1,5 @@
 import { Component, Input } from "@angular/core"
 import { Channel } from "@pubnub/chat"
-import { StateService } from "../../app/state.service"
 
 @Component({
   selector: "app-message-input-chat",
@@ -9,18 +8,15 @@ import { StateService } from "../../app/state.service"
 })
 export class MessageInputComponentChat {
   pubnubInput = ""
+  @Input() channel!: Channel
   @Input() typingSent!: boolean
 
-  constructor(private stateService: StateService) {}
-
   handleInput() {
-    this.pubnubInput
-      ? this.stateService.currentChannel!.startTyping()
-      : this.stateService.currentChannel!.stopTyping()
+    this.pubnubInput ? this.channel.startTyping() : this.channel.stopTyping()
   }
 
   async handleSend() {
-    const response = await this.stateService.currentChannel!.sendText(this.pubnubInput, {
+    const response = await this.channel.sendText(this.pubnubInput, {
       meta: { foo: "bar" },
     })
     this.pubnubInput = ""

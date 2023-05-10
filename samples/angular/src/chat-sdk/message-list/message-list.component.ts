@@ -1,6 +1,5 @@
-import { Component, Input } from "@angular/core"
-import { Chat, Message } from "@pubnub/chat"
-import { StateService } from "../../app/state.service"
+import { Component, Input, SimpleChanges } from "@angular/core"
+import { Channel, Chat, Message } from "@pubnub/chat"
 
 @Component({
   selector: "app-message-list-chat",
@@ -8,28 +7,31 @@ import { StateService } from "../../app/state.service"
   styleUrls: ["./message-list.component.scss"],
 })
 export class MessageListComponentChat {
+  @Input() channel!: Channel
   @Input() chat!: Chat
 
   messages: Message[]
   isPaginationEnd: boolean
 
-  constructor(private stateService: StateService) {
+  constructor() {
     this.messages = []
     this.isPaginationEnd = false
   }
 
-  async ngOnInit() {
-    this.stateService.currentChannelChange.subscribe(async (channel) => {
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes["channel"].previousValue) {
+      changes["channel"].previousValue.disconnect()
+    }
+    if (changes["channel"].currentValue) {
       this.messages = []
-
-      await channel!.join((message) => (this.messages = [...this.messages, message]))
-    })
-
-    const channelMembers = await this.stateService.currentChannel!.getChannelMembers()
+      changes["channel"].currentValue.join(
+        (message: Message) => (this.messages = [...this.messages, message])
+      )
+    }
   }
 
   async loadMoreHistoricalMessages() {
-    const historicalMessagesObject = await this.stateService.currentChannel!.getHistory({
+    const historicalMessagesObject = await this.channel.getHistory({
       startTimetoken: this.messages?.[0]?.timetoken,
     })
 

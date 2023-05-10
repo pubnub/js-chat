@@ -19,7 +19,7 @@ export class AppComponent {
   channel: Channel | null = null
   forwardChannel: Channel | null = null
 
-  constructor(private stateService: StateService) {}
+  constructor(public stateService: StateService) {}
 
   pubnub = new PubNub({
     publishKey: "demo",

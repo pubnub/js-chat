@@ -22,7 +22,7 @@ export class ChannelListComponentChat {
   }
 
   async loadMemberships() {
-    const user = await this.chat.getUser("test-user")
+    const user = await this.chat.getChatUser()
     this.membershipResponse = await user!.getMemberships()
 
     this.channels.forEach((c) => {
@@ -56,8 +56,17 @@ export class ChannelListComponentChat {
 
   async toggleChannel(channelId: string) {
     const channel = await this.chat.getChannel(channelId)
+    const isAlreadyMember = !!this.membershipResponse!.data.find((m) => m.channel.id === channelId)
 
-    await this.stateService.toggleChannel(channel!, this.buttonTexts[channelId] === "Join")
-    await this.loadMemberships()
+    if (isAlreadyMember) {
+      await channel!.leave()
+    } else {
+      await this.stateService.toggleChannel(channel!)
+    }
+
+    // dummy waiting
+    setTimeout(() => {
+      this.loadMemberships()
+    }, 1000)
   }
 }

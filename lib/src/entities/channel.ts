@@ -226,9 +226,6 @@ export class Channel {
       },
     })
 
-    // make sure that we do not attach a second event listener to this channel
-    this.disconnect()
-
     this.connect(callback)
 
     return {
