@@ -21,7 +21,7 @@ export class MessageListComponentChat {
   async ngOnInit() {
     this.stateService.currentChannelChange.subscribe(async (channel) => {
       this.messages = []
-      await this.loadMoreHistoricalMessages()
+
       await channel!.join((message) => (this.messages = [...this.messages, message]))
     })
 
