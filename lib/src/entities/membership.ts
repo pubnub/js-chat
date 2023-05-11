@@ -82,11 +82,7 @@ export class Membership {
         filter: `channel.id == '${this.channel.id}'`,
       })
 
-      return Membership.fromMembershipDTO(
-        this.chat,
-        membershipsResponse.data[0],
-        this.chat.getChatUser() as User
-      )
+      return Membership.fromMembershipDTO(this.chat, membershipsResponse.data[0], this.user)
     } catch (error) {
       throw error
     }
