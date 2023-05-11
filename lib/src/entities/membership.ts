@@ -1,5 +1,10 @@
 import { Chat } from "./chat"
-import { ChannelMembershipObject, ObjectCustom, UUIDMembershipObject } from "pubnub"
+import {
+  ChannelMembershipObject,
+  ObjectCustom,
+  SetMembershipsParameters,
+  UUIDMembershipObject,
+} from "pubnub"
 import { Channel } from "./channel"
 import { User } from "./user"
 
@@ -44,5 +49,21 @@ export class Membership {
     }
 
     return new Membership(chat, data)
+  }
+
+  async update(
+    params: Omit<SetMembershipsParameters<ObjectCustom>, "channels"> & {
+      custom?: ObjectCustom
+    } = {}
+  ) {
+    // we can't efficiently check if the user is already a member
+    const { custom, ...rest } = params
+    await this.chat.sdk.objects.setMemberships({
+      ...rest,
+      channels: [{ id: this.channel.id, custom }],
+    })
+    // this method does not return the affected membership because objects.setMemberships
+    // returns the full list of user's memberships and the affected membership might not even be there
+    // so it returns Promise<undefined>
   }
 }
