@@ -18,13 +18,13 @@ export class MessageListComponentChat {
     this.isPaginationEnd = false
   }
 
-  ngOnChanges(changes: SimpleChanges) {
+  async ngOnChanges(changes: SimpleChanges) {
     if (changes["channel"].previousValue) {
       changes["channel"].previousValue.disconnect()
     }
     if (changes["channel"].currentValue) {
       this.messages = []
-      changes["channel"].currentValue.join(
+      await changes["channel"].currentValue.join(
         (message: Message) => (this.messages = [...this.messages, message])
       )
     }

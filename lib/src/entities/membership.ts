@@ -1,5 +1,10 @@
 import { Chat } from "./chat"
-import { ChannelMembershipObject, ObjectCustom, UUIDMembershipObject } from "pubnub"
+import {
+  ChannelMembershipObject,
+  ObjectCustom,
+  SetMembershipsParameters,
+  UUIDMembershipObject,
+} from "pubnub"
 import { Channel } from "./channel"
 import { User } from "./user"
 
@@ -44,5 +49,42 @@ export class Membership {
     }
 
     return new Membership(chat, data)
+  }
+  /** @internal */
+  private async exists() {
+    const membershipsResponse = await this.chat.sdk.objects.getMemberships({
+      filter: `channel.id == '${this.channel.id}'`,
+    })
+
+    return !!membershipsResponse.data.length
+  }
+
+  async update(
+    params: Omit<SetMembershipsParameters<ObjectCustom>, "channels" | "include" | "filter"> & {
+      custom?: ObjectCustom
+    } = {}
+  ) {
+    try {
+      // check if membership exists before updating it
+      if (!(await this.exists())) {
+        throw "No such membership exists"
+      }
+      const { custom, ...rest } = params
+      const membershipsResponse = await this.chat.sdk.objects.setMemberships({
+        ...rest,
+        channels: [{ id: this.channel.id, custom }],
+        include: {
+          totalCount: true,
+          customFields: true,
+          channelFields: true,
+          customChannelFields: true,
+        },
+        filter: `channel.id == '${this.channel.id}'`,
+      })
+
+      return Membership.fromMembershipDTO(this.chat, membershipsResponse.data[0], this.user)
+    } catch (error) {
+      throw error
+    }
   }
 }
