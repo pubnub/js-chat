@@ -11,7 +11,6 @@ import { Chat } from "./chat"
 import { Message } from "./message"
 import { SendTextOptionParams, StatusTypeFields, DeleteParameters, OptionalAllBut } from "../types"
 import { Membership } from "./membership"
-import { User } from "./user"
 
 export type ChannelFields = Pick<
   Channel,
@@ -207,26 +206,32 @@ export class Channel {
       custom?: ObjectCustom
     } = {}
   ) {
-    const { custom, ...rest } = params
-    const membershipsResponse = await this.chat.sdk.objects.setMemberships({
-      ...rest,
-      channels: [{ id: this.id, custom }],
-      include: {
-        totalCount: true,
-        customFields: true,
-        channelFields: true,
-        customChannelFields: true,
-      },
-      filter: `channel.id == '${this.id}'`,
-    })
+    try {
+      const currentUser = this.chat.getChatUser()
 
-    this.connect(callback)
+      if (!currentUser) {
+        throw "Chat user is not set. Set them by calling setChatUser on the Chat instance."
+      }
 
-    return Membership.fromMembershipDTO(
-      this.chat,
-      membershipsResponse.data[0],
-      this.chat.getChatUser() as User
-    )
+      const { custom, ...rest } = params
+      const membershipsResponse = await this.chat.sdk.objects.setMemberships({
+        ...rest,
+        channels: [{ id: this.id, custom }],
+        include: {
+          totalCount: true,
+          customFields: true,
+          channelFields: true,
+          customChannelFields: true,
+        },
+        filter: `channel.id == '${this.id}'`,
+      })
+
+      this.connect(callback)
+
+      return Membership.fromMembershipDTO(this.chat, membershipsResponse.data[0], currentUser)
+    } catch (error) {
+      throw error
+    }
   }
 
   async leave() {
