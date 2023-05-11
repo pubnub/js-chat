@@ -50,20 +50,45 @@ export class Membership {
 
     return new Membership(chat, data)
   }
+  /** @internal */
+  private async exists() {
+    const membershipsResponse = await this.chat.sdk.objects.getMemberships({
+      filter: `channel.id == '${this.channel.id}'`,
+    })
+
+    return !!membershipsResponse.data.length
+  }
 
   async update(
-    params: Omit<SetMembershipsParameters<ObjectCustom>, "channels"> & {
+    params: Omit<SetMembershipsParameters<ObjectCustom>, "channels" | "include" | "filter"> & {
       custom?: ObjectCustom
     } = {}
   ) {
-    // we can't efficiently check if the user is already a member
-    const { custom, ...rest } = params
-    await this.chat.sdk.objects.setMemberships({
-      ...rest,
-      channels: [{ id: this.channel.id, custom }],
-    })
-    // this method does not return the affected membership because objects.setMemberships
-    // returns the full list of user's memberships and the affected membership might not even be there
-    // so it returns Promise<undefined>
+    try {
+      // check if membership exists before updating it
+      if (!(await this.exists())) {
+        throw "No such membership exists"
+      }
+      const { custom, ...rest } = params
+      const membershipsResponse = await this.chat.sdk.objects.setMemberships({
+        ...rest,
+        channels: [{ id: this.channel.id, custom }],
+        include: {
+          totalCount: true,
+          customFields: true,
+          channelFields: true,
+          customChannelFields: true,
+        },
+        filter: `channel.id == '${this.channel.id}'`,
+      })
+
+      return Membership.fromMembershipDTO(
+        this.chat,
+        membershipsResponse.data[0],
+        this.chat.getChatUser() as User
+      )
+    } catch (error) {
+      throw error
+    }
   }
 }

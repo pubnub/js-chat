@@ -11,6 +11,7 @@ import { Chat } from "./chat"
 import { Message } from "./message"
 import { SendTextOptionParams, StatusTypeFields, DeleteParameters, OptionalAllBut } from "../types"
 import { Membership } from "./membership"
+import { User } from "./user"
 
 export type ChannelFields = Pick<
   Channel,
@@ -202,20 +203,30 @@ export class Channel {
 
   async join(
     callback: (message: Message) => void,
-    params: Omit<SetMembershipsParameters<ObjectCustom>, "channels"> & {
+    params: Omit<SetMembershipsParameters<ObjectCustom>, "channels" | "include" | "filter"> & {
       custom?: ObjectCustom
     } = {}
   ) {
     const { custom, ...rest } = params
-    await this.chat.sdk.objects.setMemberships({
+    const membershipsResponse = await this.chat.sdk.objects.setMemberships({
       ...rest,
       channels: [{ id: this.id, custom }],
+      include: {
+        totalCount: true,
+        customFields: true,
+        channelFields: true,
+        customChannelFields: true,
+      },
+      filter: `channel.id == '${this.id}'`,
     })
 
     this.connect(callback)
-    // this method does not return the affected membership because objects.setMemberships
-    // returns the full list of user's memberships and the affected membership might not even be there
-    // so it returns Promise<undefined>
+
+    return Membership.fromMembershipDTO(
+      this.chat,
+      membershipsResponse.data[0],
+      this.chat.getChatUser() as User
+    )
   }
 
   async leave() {
