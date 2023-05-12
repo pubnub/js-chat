@@ -19,6 +19,8 @@ export class User {
   readonly status?: string
   readonly type?: string
   readonly updated?: string
+  readonly lastActiveTimestamp?: number
+
   /** @internal */
   constructor(chat: Chat, params: UserFields) {
     this.chat = chat
@@ -40,6 +42,7 @@ export class User {
       updated: params.updated || undefined,
       status: params.status || undefined,
       type: params.type || undefined,
+      lastActiveTimestamp: params.custom?.lastActiveTimestamp || undefined,
     }
     return new User(chat, data)
   }
