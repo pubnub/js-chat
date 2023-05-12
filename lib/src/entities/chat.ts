@@ -34,11 +34,16 @@ export class Chat {
       storeUserActivityTimestamps,
       ...pubnubConfig
     } = params
+
+    if (storeUserActivityInterval && storeUserActivityInterval < 600000) {
+      throw "storeUserActivityInterval must be at least 600000ms"
+    }
+
     this.sdk = new PubNub(pubnubConfig)
     this.config = {
       saveDebugLog: saveDebugLog || false,
       typingTimeout: typingTimeout || 5000,
-      storeUserActivityInterval: storeUserActivityInterval || 10 * 1000 * 60,
+      storeUserActivityInterval: storeUserActivityInterval || 600000,
       storeUserActivityTimestamps: storeUserActivityTimestamps || false,
     }
   }
@@ -330,12 +335,8 @@ export class Chat {
 
   private async storeUserActivityTimestamp() {
     if (this.lastSavedActivityInterval) {
-      console.log("User is already being observed")
-      return
+      clearInterval(this.lastSavedActivityInterval)
     }
-    // if (!this.user) {
-    //   throw "User is not set"
-    // }
 
     try {
       const user = await this.getUser(this.sdk.getUUID())
@@ -347,7 +348,6 @@ export class Chat {
 
       const currentTime = new Date().getTime()
       const elapsedTimeSinceLastCheck = currentTime - user.lastActiveTimestamp
-      console.log("elapsedTimeSinceLastCheck", elapsedTimeSinceLastCheck)
 
       if (elapsedTimeSinceLastCheck >= this.config.storeUserActivityInterval) {
         this.runSaveTimestampInterval()
@@ -355,7 +355,6 @@ export class Chat {
       }
 
       const remainingTime = this.config.storeUserActivityInterval - elapsedTimeSinceLastCheck
-      console.log("remainingTime", remainingTime)
 
       setTimeout(() => {
         this.runSaveTimestampInterval()

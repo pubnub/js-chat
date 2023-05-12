@@ -32,8 +32,6 @@ export class AppComponent {
     subscribeKey: "demo",
     userId,
     typingTimeout: 2000,
-    storeUserActivityInterval: 20000,
-    storeUserActivityTimestamps: true,
   })
 
   async ngOnInit() {
