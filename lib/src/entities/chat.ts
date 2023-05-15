@@ -332,7 +332,7 @@ export class Chat {
       this.saveTimeStampFunc()
     }, this.config.storeUserActivityInterval)
   }
-
+  /** @internal */
   private async storeUserActivityTimestamp() {
     if (this.lastSavedActivityInterval) {
       clearInterval(this.lastSavedActivityInterval)
