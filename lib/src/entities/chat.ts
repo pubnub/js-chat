@@ -324,6 +324,7 @@ export class Chat {
 
     this.user = User.fromDTO(this, response.data)
   }
+
   /** @internal */
   private runSaveTimestampInterval() {
     this.saveTimeStampFunc()
@@ -332,6 +333,7 @@ export class Chat {
       this.saveTimeStampFunc()
     }, this.config.storeUserActivityInterval)
   }
+
   /** @internal */
   private async storeUserActivityTimestamp() {
     if (this.lastSavedActivityInterval) {
