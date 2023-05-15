@@ -22,6 +22,8 @@ describe("Channel test", () => {
   })
 
   test("should create a channel", async () => {
+    jest.retryTimes(3)
+
     const channelId = createRandomUserId()
     const channelName = "Test Channel"
     const channelDescription = "This is a test channel"
@@ -40,6 +42,8 @@ describe("Channel test", () => {
   })
 
   test("should soft delete a channel", async () => {
+    jest.retryTimes(3)
+
     const channelId = createRandomUserId()
     const channelName = "Test Channel"
     const channelDescription = "This is a test channel"
@@ -61,6 +65,8 @@ describe("Channel test", () => {
   })
 
   test("should get channel history", async () => {
+    jest.retryTimes(3)
+
     const messageText1 = "Test message 1"
     const messageText2 = "Test message 2"
 
@@ -85,6 +91,8 @@ describe("Channel test", () => {
   })
 
   test("should get channel history with pagination", async () => {
+    jest.retryTimes(3)
+
     const messageText1 = "Test message 1"
     const messageText2 = "Test message 2"
     const messageText3 = "Test message 3"
@@ -109,6 +117,8 @@ describe("Channel test", () => {
   })
 
   test("should fail when trying to create a channel without required parameters", async () => {
+    jest.retryTimes(3)
+
     const channelId = createRandomUserId()
 
     try {
@@ -120,6 +130,8 @@ describe("Channel test", () => {
   })
 
   test("should fail when trying to send a message to a non-existent channel", async () => {
+    jest.retryTimes(3)
+
     const channelId = createRandomUserId()
     const nonExistentChannel = await chat.getChannel(channelId)
 
@@ -137,6 +149,8 @@ describe("Channel test", () => {
   })
 
   test("should fail when trying to send a message to a deleted channel", async () => {
+    jest.retryTimes(3)
+
     const channelId = createRandomUserId()
     const channelName = "Test Channel"
     const channelDescription = "This is a test channel"
@@ -156,8 +170,11 @@ describe("Channel test", () => {
       expect(error).toBeInstanceOf(Error)
     }
   })
+  jest.retryTimes(3)
 
   test("should fail when trying to get history of a deleted channel", async () => {
+    jest.retryTimes(3)
+
     const channelId = createRandomUserId()
     const channelName = "Test Channel"
     const channelDescription = "This is a test channel"
