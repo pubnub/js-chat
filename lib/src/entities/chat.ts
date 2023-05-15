@@ -306,14 +306,8 @@ export class Chat {
 
   /** @internal */
   private async saveTimeStampFunc() {
-    const currentSubscriptions = this.sdk.getSubscribedChannels()
-
-    if (!currentSubscriptions.length) {
-      return
-    }
-
     const response = await this.sdk.objects.setUUIDMetadata({
-      uuid: this.user!.id,
+      uuid: this.sdk.getUUID(),
       data: {
         custom: {
           ...(this.user?.custom || {}),
