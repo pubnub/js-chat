@@ -49,4 +49,12 @@ export class MessageListComponentChat {
 
     console.log("Message forwarded to:", forwardChannel.id)
   }
+
+  async inviteSomeoneToThisChannel() {
+    const someExistingUser =
+      (await this.chat.getUser("Przemek")) ||
+      (await this.chat.createUser("Przemek", { name: "Lukasz" }))
+
+    const r = await this.channel.invite(someExistingUser)
+  }
 }
