@@ -13,6 +13,8 @@ import { Message } from "./message"
 type ChatConfig = {
   saveDebugLog: boolean
   typingTimeout: number
+  storeUserActivityInterval: number
+  storeUserActivityTimestamps: boolean
 }
 
 type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
@@ -21,18 +23,39 @@ export class Chat {
   readonly sdk: PubNub
   readonly config: ChatConfig
   private user?: User
+  /** @internal */
+  private lastSavedActivityInterval?: ReturnType<typeof setInterval>
 
   constructor(params: ChatConstructor) {
-    const { saveDebugLog, typingTimeout, ...pubnubConfig } = params
+    const {
+      saveDebugLog,
+      typingTimeout,
+      storeUserActivityInterval,
+      storeUserActivityTimestamps,
+      ...pubnubConfig
+    } = params
+
+    if (storeUserActivityInterval && storeUserActivityInterval < 600000) {
+      throw "storeUserActivityInterval must be at least 600000ms"
+    }
+
     this.sdk = new PubNub(pubnubConfig)
     this.config = {
       saveDebugLog: saveDebugLog || false,
       typingTimeout: typingTimeout || 5000,
+      storeUserActivityInterval: storeUserActivityInterval || 600000,
+      storeUserActivityTimestamps: storeUserActivityTimestamps || false,
     }
   }
 
   static init(params: ChatConstructor) {
-    return new Chat(params)
+    const chat = new Chat(params)
+
+    if (params.storeUserActivityTimestamps) {
+      chat.storeUserActivityTimestamp()
+    }
+
+    return chat
   }
 
   /**
@@ -272,6 +295,66 @@ export class Chat {
           originalPublisher: message.userId,
         },
       })
+    } catch (error) {
+      throw error
+    }
+  }
+
+  /**
+   * Save last activity timestamp
+   */
+
+  /** @internal */
+  private async saveTimeStampFunc() {
+    const response = await this.sdk.objects.setUUIDMetadata({
+      uuid: this.sdk.getUUID(),
+      data: {
+        custom: {
+          ...(this.user?.custom || {}),
+          lastActiveTimestamp: new Date().getTime(),
+        },
+      },
+    })
+
+    this.user = User.fromDTO(this, response.data)
+  }
+
+  /** @internal */
+  private runSaveTimestampInterval() {
+    this.saveTimeStampFunc()
+
+    this.lastSavedActivityInterval = setInterval(() => {
+      this.saveTimeStampFunc()
+    }, this.config.storeUserActivityInterval)
+  }
+
+  /** @internal */
+  private async storeUserActivityTimestamp() {
+    if (this.lastSavedActivityInterval) {
+      clearInterval(this.lastSavedActivityInterval)
+    }
+
+    try {
+      const user = await this.getUser(this.sdk.getUUID())
+
+      if (!user || !user.lastActiveTimestamp) {
+        this.runSaveTimestampInterval()
+        return
+      }
+
+      const currentTime = new Date().getTime()
+      const elapsedTimeSinceLastCheck = currentTime - user.lastActiveTimestamp
+
+      if (elapsedTimeSinceLastCheck >= this.config.storeUserActivityInterval) {
+        this.runSaveTimestampInterval()
+        return
+      }
+
+      const remainingTime = this.config.storeUserActivityInterval - elapsedTimeSinceLastCheck
+
+      setTimeout(() => {
+        this.runSaveTimestampInterval()
+      }, remainingTime)
     } catch (error) {
       throw error
     }

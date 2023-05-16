@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core"
+import { Component, Input, SimpleChanges } from "@angular/core"
 import { Channel, Chat, Message } from "@pubnub/chat"
 
 @Component({
@@ -18,10 +18,16 @@ export class MessageListComponentChat {
     this.isPaginationEnd = false
   }
 
-  async ngOnInit() {
-    await this.loadMoreHistoricalMessages()
-
-    this.channel.connect((message) => this.messages.push(message))
+  async ngOnChanges(changes: SimpleChanges) {
+    if (changes["channel"].previousValue) {
+      changes["channel"].previousValue.disconnect()
+    }
+    if (changes["channel"].currentValue) {
+      this.messages = []
+      await changes["channel"].currentValue.join(
+        (message: Message) => (this.messages = [...this.messages, message])
+      )
+    }
   }
 
   async loadMoreHistoricalMessages() {
@@ -42,5 +48,13 @@ export class MessageListComponentChat {
     await forwardChannel.forwardMessage(message)
 
     console.log("Message forwarded to:", forwardChannel.id)
+  }
+
+  async inviteSomeoneToThisChannel() {
+    const someExistingUser =
+      (await this.chat.getUser("Przemek")) ||
+      (await this.chat.createUser("Przemek", { name: "Lukasz" }))
+
+    const r = await this.channel.invite(someExistingUser)
   }
 }

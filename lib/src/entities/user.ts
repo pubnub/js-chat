@@ -1,6 +1,7 @@
-import { UUIDMetadataObject, ObjectCustom } from "pubnub"
+import { UUIDMetadataObject, ObjectCustom, GetMembershipsParametersv2 } from "pubnub"
 import { Chat } from "./chat"
-import { StatusTypeFields, DeleteParameters } from "../types"
+import { StatusTypeFields, DeleteParameters, OptionalAllBut } from "../types"
+import { Membership } from "./membership"
 
 export type UserFields = Pick<
   User,
@@ -18,14 +19,19 @@ export class User {
   readonly status?: string
   readonly type?: string
   readonly updated?: string
+  readonly lastActiveTimestamp?: number
 
+  /** @internal */
   constructor(chat: Chat, params: UserFields) {
     this.chat = chat
     this.id = params.id
     Object.assign(this, params)
   }
-
-  static fromDTO(chat: Chat, params: UUIDMetadataObject<ObjectCustom> & StatusTypeFields) {
+  /** @internal */
+  static fromDTO(
+    chat: Chat,
+    params: OptionalAllBut<UUIDMetadataObject<ObjectCustom>, "id"> & StatusTypeFields
+  ) {
     const data = {
       id: params.id,
       name: params.name || undefined,
@@ -36,6 +42,7 @@ export class User {
       updated: params.updated || undefined,
       status: params.status || undefined,
       type: params.type || undefined,
+      lastActiveTimestamp: params.custom?.lastActiveTimestamp || undefined,
     }
     return new User(chat, data)
   }
@@ -54,5 +61,29 @@ export class User {
 
   async isPresentOn(channelId: string) {
     return this.chat.isPresent(this.id, channelId)
+  }
+
+  async getMemberships(params: Omit<GetMembershipsParametersv2, "include"> = {}) {
+    const membershipsResponse = await this.chat.sdk.objects.getMemberships({
+      ...params,
+      include: {
+        totalCount: true,
+        customFields: true,
+        channelFields: true,
+        customChannelFields: true,
+      },
+    })
+
+    return {
+      page: {
+        next: membershipsResponse.next,
+        prev: membershipsResponse.prev,
+      },
+      total: membershipsResponse.totalCount,
+      status: membershipsResponse.status,
+      memberships: membershipsResponse.data.map((m) =>
+        Membership.fromMembershipDTO(this.chat, m, this)
+      ),
+    }
   }
 }

@@ -15,6 +15,7 @@
                 <span (click)="clickOnChannel(i)">{{ channel.name || "No channel name provided" }}</span>
             </div>
             <button (click)="deleteChannel(channel.id)">delete</button>
+            <button (click)="toggleChannel(channel.id)">{{ buttonTexts[channel.id] || "Join" }}</button>
         </li>
     </ul>
 </div>

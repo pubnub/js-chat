@@ -29,6 +29,9 @@ export class MessageListComponentSDK {
       }
 
       const response = await this.pubnub.fetchMessages(options)
+      if (!Object.keys(response.channels).length) {
+        return
+      }
 
       this.isPaginationEnd = response.channels[this.channel].length !== 25
       this.messages = [...response.channels[this.channel], ...this.messages]

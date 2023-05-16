@@ -1,5 +1,6 @@
 import { Component, Input } from "@angular/core"
-import { Channel, Chat } from "@pubnub/chat"
+import { Channel, Chat, MembershipResponse } from "@pubnub/chat"
+import { StateService } from "../../app/state.service"
 
 @Component({
   selector: "app-channel-list-chat",
@@ -11,13 +12,34 @@ export class ChannelListComponentChat {
   channels: Channel[] = []
   channelClickedNumber = -1
   nameInput = ""
+  membershipResponse: MembershipResponse | null = null
+  buttonTexts: { [key: string]: string } = {}
+
+  constructor(private stateService: StateService) {}
 
   async loadChannels() {
     this.channels = (await this.chat.getChannels({ limit: 5 })).channels
   }
 
+  async loadMemberships() {
+    const user = await this.chat.getChatUser()
+    this.membershipResponse = await user!.getMemberships()
+
+    await this.membershipResponse.memberships[0].update({ custom: { some: "property1" } })
+
+    this.channels.forEach((c) => {
+      this.buttonTexts[c.id] = this.membershipResponse?.memberships.find(
+        (m) => m.channel.id === c.id
+      )
+        ? "Leave"
+        : "Join"
+    })
+  }
+
   async ngOnInit() {
-    this.loadChannels()
+    await this.loadChannels()
+
+    this.loadMemberships()
   }
 
   clickOnChannel(index: number) {
@@ -34,5 +56,23 @@ export class ChannelListComponentChat {
   async deleteChannel(channelId: string) {
     await this.chat.deleteChannel(channelId)
     await this.loadChannels()
+  }
+
+  async toggleChannel(channelId: string) {
+    const channel = await this.chat.getChannel(channelId)
+    const isAlreadyMember = !!this.membershipResponse!.memberships.find(
+      (m) => m.channel.id === channelId
+    )
+
+    if (isAlreadyMember) {
+      await channel!.leave()
+    } else {
+      await this.stateService.toggleChannel(channel!)
+    }
+
+    // dummy waiting
+    setTimeout(() => {
+      this.loadMemberships()
+    }, 1000)
   }
 }
