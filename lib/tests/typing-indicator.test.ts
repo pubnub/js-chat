@@ -23,7 +23,6 @@ describe("Typing indicator test", () => {
   })
 
   test("should call the callback with the typing value when a typing signal is received", async () => {
-    jest.retryTimes(3)
     const callback = jest.fn()
     await channel?.getTyping(callback)
     await channel?.startTyping()
@@ -32,7 +31,6 @@ describe("Typing indicator test", () => {
   })
 
   test("should fail when trying to get typing indicator of a disconnected channel", async () => {
-    jest.retryTimes(3)
     const callback = jest.fn()
 
     await channel?.disconnect()
@@ -46,7 +44,6 @@ describe("Typing indicator test", () => {
   })
 
   test("should not call the callback when no typing signal is received", async () => {
-    jest.retryTimes(3)
     const callback = jest.fn()
 
     await channel?.getTyping(callback)
@@ -56,8 +53,6 @@ describe("Typing indicator test", () => {
   })
 
   test("should fail when trying to start typing on a disconnected channel", async () => {
-    jest.retryTimes(3)
-
     await channel?.disconnect()
 
     try {
@@ -67,4 +62,5 @@ describe("Typing indicator test", () => {
       expect(error).toBeInstanceOf(Error)
     }
   })
+  jest.retryTimes(3)
 })
