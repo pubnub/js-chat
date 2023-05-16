@@ -11,6 +11,7 @@ import { Chat } from "./chat"
 import { Message } from "./message"
 import { SendTextOptionParams, StatusTypeFields, DeleteParameters, OptionalAllBut } from "../types"
 import { Membership } from "./membership"
+import { User } from "./user"
 
 export type ChannelFields = Pick<
   Channel,
@@ -262,6 +263,33 @@ export class Channel {
       total: membersResponse.totalCount,
       status: membersResponse.status,
       members: membersResponse.data.map((m) => Membership.fromChannelMemberDTO(this.chat, m, this)),
+    }
+  }
+
+  async invite(user: User) {
+    try {
+      const channelMembers = await this.getMembers({ filter: `uuid.id == '${user.id}'` })
+
+      // already a member
+      if (channelMembers.members.length) {
+        return channelMembers.members[0]
+      }
+
+      const response = await this.chat.sdk.objects.setMemberships({
+        uuid: user.id,
+        channels: [this.id],
+        include: {
+          totalCount: true,
+          customFields: true,
+          channelFields: true,
+          customChannelFields: true,
+        },
+        filter: `channel.id == '${this.id}'`,
+      })
+
+      return Membership.fromMembershipDTO(this.chat, response.data[0], user)
+    } catch (error) {
+      throw error
     }
   }
 
