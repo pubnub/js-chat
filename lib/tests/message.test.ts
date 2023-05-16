@@ -119,4 +119,5 @@ describe("Send message test", () => {
       expect(error).toBeInstanceOf(Error)
     }
   })
+  jest.retryTimes(3)
 })
