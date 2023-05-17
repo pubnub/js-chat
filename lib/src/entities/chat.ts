@@ -359,4 +359,30 @@ export class Chat {
       throw error
     }
   }
+
+  async createDirectConversation({
+    user,
+    channelData,
+    callback,
+  }: {
+    user: User
+    channelData: ChannelMetadata<ObjectCustom>
+    callback: (message: Message) => void
+  }) {
+    try {
+      if (!this.user) {
+        throw "Chat user is not set. Set them by calling setChatUser on the Chat instance."
+      }
+      const channelName = `direct.${this.user.id}&${user.id}`
+
+      const channel =
+        (await this.getChannel(channelName)) || (await this.createChannel(channelName, channelData))
+
+      await Promise.all([channel.join(callback), channel.invite(user)])
+
+      return channel
+    } catch (error) {
+      throw error
+    }
+  }
 }
