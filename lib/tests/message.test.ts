@@ -1,6 +1,6 @@
 import { Chat, Channel } from "../src"
 import * as dotenv from "dotenv"
-import { initTestChannel, initTestChat } from "./testUtils"
+import { initTestChannel, initTestChat, waitForAllMessagesToBeDelivered } from "./testUtils"
 
 dotenv.config()
 
@@ -37,17 +37,7 @@ describe("Send message test", () => {
       await sleep(2000)
     }
 
-    for (let i = 0; i < 3; i++) {
-      const allMessagesReceived = unicodeMessages.every((unicodeMessage) =>
-        messages.includes(unicodeMessage)
-      )
-
-      if (allMessagesReceived) {
-        break
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-      }
-    }
+    await waitForAllMessagesToBeDelivered(messages, unicodeMessages)
 
     const elapsedTime = receiveTime - sendTime
     console.log(elapsedTime)
@@ -81,17 +71,7 @@ describe("Send message test", () => {
       await sleep(2000)
     }
 
-    for (let i = 0; i < 3; i++) {
-      const allMessagesReceived = textMessages.every((textMessage) =>
-        messages.includes(textMessage)
-      )
-
-      if (allMessagesReceived) {
-        break
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, 1000)) // wait for 1 second before retrying
-      }
-    }
+    await waitForAllMessagesToBeDelivered(messages, textMessages)
 
     const elapsedTime = receiveTime - sendTime
     console.log(elapsedTime)
