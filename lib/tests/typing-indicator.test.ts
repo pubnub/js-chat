@@ -29,5 +29,38 @@ describe("Typing indicator test", () => {
     await new Promise((resolve) => setTimeout(resolve, 5000))
     expect(callback).toHaveBeenCalledWith(["test-user"])
   })
+
+  test("should fail when trying to get typing indicator of a disconnected channel", async () => {
+    const callback = jest.fn()
+
+    await channel?.disconnect()
+
+    try {
+      await channel?.getTyping(callback)
+      fail("Should have thrown an error")
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error)
+    }
+  })
+
+  test("should not call the callback when no typing signal is received", async () => {
+    const callback = jest.fn()
+
+    await channel?.getTyping(callback)
+    await new Promise((resolve) => setTimeout(resolve, 5000))
+
+    expect(callback).not.toHaveBeenCalled()
+  })
+
+  test("should fail when trying to start typing on a disconnected channel", async () => {
+    await channel?.disconnect()
+
+    try {
+      await channel?.startTyping()
+      fail("Should have thrown an error")
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error)
+    }
+  })
   jest.retryTimes(3)
 })

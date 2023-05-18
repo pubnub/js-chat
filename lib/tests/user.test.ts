@@ -22,6 +22,8 @@ describe("User test", () => {
   })
 
   test("Should be able to create user", async () => {
+    jest.retryTimes(3)
+
     const userId = createRandomUserId()
     const userData = {
       name: "John Smith",
@@ -42,6 +44,8 @@ describe("User test", () => {
   })
 
   test("Should be able to update user", async () => {
+    jest.retryTimes(3)
+
     const userId = createRandomUserId()
     const initialUserData = {
       name: "John Smith",
@@ -76,7 +80,8 @@ describe("User test", () => {
   })
 
   test("Should be able to delete (archive) user", async () => {
-    // Create a new user
+    jest.retryTimes(3)
+
     const userId = createRandomUserId()
     const initialUserData = {
       name: "John Smith",

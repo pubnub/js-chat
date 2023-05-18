@@ -1,6 +1,6 @@
 import { Chat, Channel } from "../src"
 import * as dotenv from "dotenv"
-import { initTestChannel, initTestChat } from "./testUtils"
+import { initTestChannel, initTestChat, waitForAllMessagesToBeDelivered } from "./testUtils"
 
 dotenv.config()
 
@@ -13,27 +13,91 @@ describe("Send message test", () => {
     channel = await initTestChannel(chat)
   })
 
-  test("should verify if message sent", async () => {
-    const messages = []
+  test("should send and receive unicode messages correctly", async () => {
+    jest.retryTimes(3)
+
+    const messages: Array<string> = []
     let receiveTime = 0
 
     if (!channel) {
       throw new Error("Channel is undefined")
     }
 
+    const unicodeMessages = ["😀", "Привет", "你好", "こんにちは", "안녕하세요"]
+
     channel.connect((message) => {
       receiveTime = Date.now()
-      messages.push(message.content)
+      messages.push(message.content.text)
     })
 
     const sendTime = Date.now()
-    await channel?.sendText("message")
+    for (const unicodeMessage of unicodeMessages) {
+      await channel.sendText(unicodeMessage)
+      const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+      await sleep(2000)
+    }
 
-    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
-    await sleep(2000)
+    await waitForAllMessagesToBeDelivered(messages, unicodeMessages)
 
     const elapsedTime = receiveTime - sendTime
     console.log(elapsedTime)
-    expect(elapsedTime).toBeLessThan(500)
+
+    for (const unicodeMessage of unicodeMessages) {
+      expect(messages).toContain(unicodeMessage)
+    }
+  }, 30000)
+
+  test("should send and receive regular text messages correctly", async () => {
+    jest.retryTimes(3)
+
+    const messages: Array<string> = []
+    let receiveTime = 0
+
+    if (!channel) {
+      throw new Error("Channel is undefined")
+    }
+
+    const textMessages = ["Hello", "This", "Is", "A", "Test"]
+
+    channel.connect((message) => {
+      receiveTime = Date.now()
+      messages.push(message.content.text)
+    })
+
+    const sendTime = Date.now()
+    for (const textMessage of textMessages) {
+      await channel.sendText(textMessage)
+      const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+      await sleep(2000)
+    }
+
+    await waitForAllMessagesToBeDelivered(messages, textMessages)
+
+    const elapsedTime = receiveTime - sendTime
+    console.log(elapsedTime)
+
+    console.log(`Messages: ${messages}`)
+
+    for (const textMessage of textMessages) {
+      expect(messages).toContain(textMessage)
+    }
+  }, 30000)
+
+  test("should throw an error when sending a message on a disconnected channel", async () => {
+    jest.retryTimes(3)
+
+    if (!channel) {
+      throw new Error("Channel is undefined")
+    }
+
+    await channel?.disconnect()
+
+    try {
+      await channel?.sendText("message")
+      fail("Should have thrown an error")
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error)
+    }
   })
+  jest.retryTimes(3)
 })

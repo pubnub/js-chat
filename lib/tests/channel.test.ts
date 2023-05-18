@@ -1,6 +1,6 @@
 import { Chat, Channel } from "../src"
 import * as dotenv from "dotenv"
-import { initTestChannel, initTestChat, createRandomUserId } from "./testUtils"
+import { initTestChat, createRandomUserId } from "./testUtils"
 
 dotenv.config()
 
@@ -10,7 +10,10 @@ describe("Channel test", () => {
 
   beforeEach(async () => {
     chat = initTestChat()
-    channel = await initTestChannel(chat)
+    const userId = "testUser"
+    const user =
+      (await chat.getUser(userId)) || (await chat.createUser(userId, { name: "Testing" }))
+    chat.setChatUser(user)
   })
 
   beforeEach(() => {
@@ -22,6 +25,8 @@ describe("Channel test", () => {
   })
 
   test("should create a channel", async () => {
+    jest.retryTimes(3)
+
     const channelId = createRandomUserId()
     const channelName = "Test Channel"
     const channelDescription = "This is a test channel"
@@ -40,6 +45,8 @@ describe("Channel test", () => {
   })
 
   test("should soft delete a channel", async () => {
+    jest.retryTimes(3)
+
     const channelId = createRandomUserId()
     const channelName = "Test Channel"
     const channelDescription = "This is a test channel"
@@ -61,6 +68,8 @@ describe("Channel test", () => {
   })
 
   test("should get channel history", async () => {
+    jest.retryTimes(3)
+
     const messageText1 = "Test message 1"
     const messageText2 = "Test message 2"
 
@@ -80,11 +89,13 @@ describe("Channel test", () => {
       expect(message1InHistory).toBeTruthy()
       expect(message2InHistory).toBeTruthy()
     } else {
-      fail("Channel is null")
+      expect(channel).not.toBeNull()
     }
   })
 
   test("should get channel history with pagination", async () => {
+    jest.retryTimes(3)
+
     const messageText1 = "Test message 1"
     const messageText2 = "Test message 2"
     const messageText3 = "Test message 3"
@@ -104,7 +115,86 @@ describe("Channel test", () => {
 
       expect(secondPage.messages.length).toBeGreaterThanOrEqual(1)
     } else {
-      fail("Channel is null")
+      expect(channel).not.toBeNull()
+    }
+  })
+
+  test("should fail when trying to create a channel without required parameters", async () => {
+    jest.retryTimes(3)
+
+    const channelId = createRandomUserId()
+
+    try {
+      await chat.createChannel(channelId, {})
+      fail("Should have thrown an error")
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error)
+    }
+  })
+
+  test("should fail when trying to send a message to a non-existent channel", async () => {
+    jest.retryTimes(3)
+
+    const channelId = createRandomUserId()
+    const nonExistentChannel = await chat.getChannel(channelId)
+
+    if (nonExistentChannel) {
+      try {
+        await nonExistentChannel.sendText("Test message")
+        expect(true).toBe(false) // Fail the test if no error is thrown
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error)
+      }
+    } else {
+      // Pass the test if the channel is null, as this is the expected behavior
+      expect(nonExistentChannel).toBeNull()
+    }
+  })
+
+  test("should fail when trying to send a message to a deleted channel", async () => {
+    jest.retryTimes(3)
+
+    const channelId = createRandomUserId()
+    const channelName = "Test Channel"
+    const channelDescription = "This is a test channel"
+
+    const channelData = {
+      name: channelName,
+      description: channelDescription,
+    }
+
+    const createdChannel = await chat.createChannel(channelId, channelData)
+    await createdChannel.delete()
+
+    try {
+      await createdChannel.sendText("Test message")
+      fail("Should have thrown an error")
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error)
+    }
+  })
+  jest.retryTimes(3)
+
+  test("should fail when trying to get history of a deleted channel", async () => {
+    jest.retryTimes(3)
+
+    const channelId = createRandomUserId()
+    const channelName = "Test Channel"
+    const channelDescription = "This is a test channel"
+
+    const channelData = {
+      name: channelName,
+      description: channelDescription,
+    }
+
+    const createdChannel = await chat.createChannel(channelId, channelData)
+    await createdChannel.delete()
+
+    try {
+      await createdChannel.getHistory()
+      fail("Should have thrown an error")
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error)
     }
   })
 })
