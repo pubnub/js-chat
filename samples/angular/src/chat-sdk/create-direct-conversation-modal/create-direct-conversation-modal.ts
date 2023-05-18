@@ -20,19 +20,14 @@ export class CreateDirectConversationModalChat {
   }
 
   async submitCreateChannelForm() {
-    const someRandomUser = "some-random-user3"
+    const someRandomUser = "some-random-user4"
 
     const someUser =
       (await this.chat.getUser(someRandomUser)) ||
       (await this.chat.createUser(someRandomUser, { name: "some random user" }))
 
-    const callback = (event: unknown) => {
-      console.log("event", event)
-    }
-
-    await this.chat.createDirectConversation({
+    const response = await this.chat.createDirectConversation({
       user: someUser,
-      callback,
       channelData: { name: "Private conversation" },
     })
 

@@ -1,14 +1,9 @@
-import PubNub, {
-  SetUUIDMetadataParameters,
-  SetChannelMetadataParameters,
-  GetAllMetadataParameters,
-  ObjectCustom,
-  ChannelMetadata,
-} from "pubnub"
+import PubNub from "pubnub"
 import { Channel, ChannelFields } from "./channel"
 import { User, UserFields } from "./user"
 import { DeleteParameters } from "../types"
 import { Message } from "./message"
+import { Membership } from "./membership"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -117,7 +112,7 @@ export class Chat {
         const response = await this.sdk.objects.setUUIDMetadata({
           uuid: id,
           data: { status: "deleted" },
-        } as SetUUIDMetadataParameters<ObjectCustom>)
+        } as PubNub.SetUUIDMetadataParameters<PubNub.ObjectCustom>)
         return User.fromDTO(this, response.data)
       } else {
         await this.sdk.objects.removeUUIDMetadata({ uuid: id })
@@ -128,7 +123,7 @@ export class Chat {
     }
   }
 
-  async getUsers(params: Omit<GetAllMetadataParameters, "include">) {
+  async getUsers(params: Omit<PubNub.GetAllMetadataParameters, "include">) {
     const mandatoryOptions = {
       include: {
         totalCount: true,
@@ -184,7 +179,7 @@ export class Chat {
     }
   }
 
-  async createChannel(id: string, data: ChannelMetadata<ObjectCustom>) {
+  async createChannel(id: string, data: PubNub.ChannelMetadata<PubNub.ObjectCustom>) {
     if (!id.length) throw "ID is required"
     try {
       const existingChannel = await this.getChannel(id)
@@ -200,7 +195,7 @@ export class Chat {
     }
   }
 
-  async getChannels(params: Omit<GetAllMetadataParameters, "include">) {
+  async getChannels(params: Omit<PubNub.GetAllMetadataParameters, "include">) {
     const mandatoryOptions = {
       include: {
         totalCount: true,
@@ -231,7 +226,7 @@ export class Chat {
         const response = await this.sdk.objects.setChannelMetadata({
           channel: id,
           data: { status: "deleted" },
-        } as SetChannelMetadataParameters<ObjectCustom>)
+        } as PubNub.SetChannelMetadataParameters<PubNub.ObjectCustom>)
         return Channel.fromDTO(this, response.data)
       } else {
         await this.sdk.objects.removeChannelMetadata({ channel: id })
@@ -363,9 +358,16 @@ export class Chat {
   async createDirectConversation({
     user,
     channelData,
+    membershipData = {},
   }: {
     user: User
-    channelData: ChannelMetadata<ObjectCustom>
+    channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
+    membershipData?: Omit<
+      PubNub.SetMembershipsParameters<PubNub.ObjectCustom>,
+      "channels" | "include" | "filter"
+    > & {
+      custom?: PubNub.ObjectCustom
+    }
   }) {
     try {
       if (!this.user) {
@@ -379,8 +381,8 @@ export class Chat {
       const channel =
         (await this.getChannel(channelName)) || (await this.createChannel(channelName, channelData))
 
-      const { custom, ...rest } = channelData
-      const membershipsPromise = this.sdk.objects.setMemberships({
+      const { custom, ...rest } = membershipData
+      const hostMembershipPromise = this.sdk.objects.setMemberships({
         ...rest,
         channels: [{ id: channel.id, custom }],
         include: {
@@ -392,9 +394,20 @@ export class Chat {
         filter: `channel.id == '${channel.id}'`,
       })
 
-      await Promise.all([membershipsPromise, channel.invite(user)])
+      const [hostMembershipResponse, inviteeMembership] = await Promise.all([
+        hostMembershipPromise,
+        channel.invite(user),
+      ])
 
-      return channel
+      return {
+        channel,
+        hostMembership: Membership.fromMembershipDTO(
+          this,
+          hostMembershipResponse.data[0],
+          this.user
+        ),
+        inviteeMembership,
+      }
     } catch (error) {
       throw error
     }
