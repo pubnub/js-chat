@@ -1,6 +1,6 @@
 import { Chat, Channel } from "../src"
 import * as dotenv from "dotenv"
-import { initTestChannel, initTestChat, createRandomUserId } from "./testUtils"
+import { initTestChat, createRandomUserId } from "./testUtils"
 
 dotenv.config()
 
@@ -10,7 +10,10 @@ describe("Channel test", () => {
 
   beforeEach(async () => {
     chat = initTestChat()
-    channel = await initTestChannel(chat)
+    const userId = "testUser"
+    const user =
+      (await chat.getUser(userId)) || (await chat.createUser(userId, { name: "Testing" }))
+    chat.setChatUser(user)
   })
 
   beforeEach(() => {
@@ -86,7 +89,7 @@ describe("Channel test", () => {
       expect(message1InHistory).toBeTruthy()
       expect(message2InHistory).toBeTruthy()
     } else {
-      fail("Channel is null")
+      expect(channel).not.toBeNull()
     }
   })
 
@@ -112,7 +115,7 @@ describe("Channel test", () => {
 
       expect(secondPage.messages.length).toBeGreaterThanOrEqual(1)
     } else {
-      fail("Channel is null")
+      expect(channel).not.toBeNull()
     }
   })
 
