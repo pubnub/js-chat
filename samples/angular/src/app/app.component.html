@@ -25,5 +25,7 @@
     <div *ngIf="forwardChannel">
       <app-message-list-chat [channel]="forwardChannel" [chat]="chat" />
     </div>
+    <app-create-direct-conversation-modal-chat [chat]="chat" />
+    <button (click)="toggleCreateDirectConversationModalChatSDK()">Open create direct conversation modal</button>
   </div>
 </div>

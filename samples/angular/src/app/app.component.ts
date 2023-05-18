@@ -59,4 +59,8 @@ export class AppComponent {
   toggleCreateChannelModalJSSDK() {
     this.stateService.toggleCreateChannelModalJSSDK()
   }
+
+  toggleCreateDirectConversationModalChatSDK() {
+    this.stateService.toggleCreateDirectConversationModalChatSDK()
+  }
 }

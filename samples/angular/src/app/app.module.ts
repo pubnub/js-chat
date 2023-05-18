@@ -13,6 +13,7 @@ import { CreateChannelModalComponentChat } from "../chat-sdk/create-channel-moda
 import { ChannelListComponentChat } from "../chat-sdk/channel-list/channel-list.component"
 import { ChannelListComponentSDK } from "../js-sdk/channel-list/channel-list.component"
 import { CreateChannelModalComponentSDK } from "../js-sdk/create-channel-modal/create-channel-modal.component"
+import { CreateDirectConversationModalChat } from "../chat-sdk/create-direct-conversation-modal/create-direct-conversation-modal"
 
 @NgModule({
   declarations: [
@@ -27,6 +28,7 @@ import { CreateChannelModalComponentSDK } from "../js-sdk/create-channel-modal/c
     ChannelListComponentChat,
     ChannelListComponentSDK,
     CreateChannelModalComponentSDK,
+    CreateDirectConversationModalChat,
   ],
   imports: [BrowserModule, ReactiveFormsModule, FormsModule],
   providers: [],

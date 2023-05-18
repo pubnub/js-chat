@@ -8,10 +8,12 @@ import { Channel } from "@pubnub/chat"
 export class StateService {
   createChannelModalJSSDKOpen = false
   createChannelModalChatSDKOpen = false
+  createDirectConversationChatSDKOpen = false
   currentChannel: Channel | null = null
 
   JSSDKModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
   chatSDKModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
+  chatSDKCreateDirectConversationModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
   currentChannelChange: Subject<Channel | null> = new Subject<Channel | null>()
 
   constructor() {
@@ -21,6 +23,9 @@ export class StateService {
     this.chatSDKModalVisibilityChange.subscribe((value) => {
       this.createChannelModalChatSDKOpen = value
     })
+    this.chatSDKCreateDirectConversationModalVisibilityChange.subscribe((value) => {
+      this.createDirectConversationChatSDKOpen = value
+    })
     this.currentChannelChange.subscribe((value) => {
       this.currentChannel = value
     })
@@ -28,6 +33,12 @@ export class StateService {
 
   toggleCreateChannelModalChatSDK() {
     this.chatSDKModalVisibilityChange.next(!this.createChannelModalChatSDKOpen)
+  }
+
+  toggleCreateDirectConversationModalChatSDK() {
+    this.chatSDKCreateDirectConversationModalVisibilityChange.next(
+      !this.createDirectConversationChatSDKOpen
+    )
   }
 
   toggleCreateChannelModalJSSDK() {
