@@ -10,7 +10,7 @@
   $: (async () => {
     if (!$userIdAtom) window.location = "/"
     else {
-      const chat = Chat.init({
+      const chat = await Chat.init({
         subscribeKey: import.meta.env.PUBLIC_SUB_KEY || "",
         publishKey: import.meta.env.PUBLIC_PUB_KEY || "",
         userId: $userIdAtom,

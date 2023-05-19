@@ -22,7 +22,7 @@ export class User {
   readonly lastActiveTimestamp?: number
 
   /** @internal */
-  constructor(chat: Chat, params: UserFields) {
+  private constructor(chat: Chat, params: UserFields) {
     this.chat = chat
     this.id = params.id
     Object.assign(this, params)

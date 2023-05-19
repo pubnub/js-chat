@@ -27,13 +27,18 @@ export class Channel {
   readonly updated?: string
   readonly status?: string
   readonly type?: string
+  /** @internal */
   private listeners: ListenerParameters[] = []
+  /** @internal */
   private subscribed = false
+  /** @internal */
   private typingSent = false
+  /** @internal */
   private typingSentTimer?: ReturnType<typeof setTimeout>
+  /** @internal */
   private typingIndicators: Map<string, ReturnType<typeof setTimeout>> = new Map()
   /** @internal */
-  constructor(chat: Chat, params: ChannelFields) {
+  private constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
     this.id = params.id
     Object.assign(this, params)
@@ -208,12 +213,6 @@ export class Channel {
     } = {}
   ) {
     try {
-      const currentUser = this.chat.getChatUser()
-
-      if (!currentUser) {
-        throw "Chat user is not set. Set them by calling setChatUser on the Chat instance."
-      }
-
       const { custom, ...rest } = params
       const membershipsResponse = await this.chat.sdk.objects.setMemberships({
         ...rest,
@@ -229,7 +228,7 @@ export class Channel {
 
       this.connect(callback)
 
-      return Membership.fromMembershipDTO(this.chat, membershipsResponse.data[0], currentUser)
+      return Membership.fromMembershipDTO(this.chat, membershipsResponse.data[0], this.chat.user!)
     } catch (error) {
       throw error
     }

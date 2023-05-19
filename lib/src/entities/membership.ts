@@ -16,7 +16,7 @@ export class Membership {
   readonly user: User
   readonly custom: ObjectCustom | null | undefined
   /** @internal */
-  constructor(chat: Chat, params: MembershipFields) {
+  private constructor(chat: Chat, params: MembershipFields) {
     this.chat = chat
     this.channel = params.channel
     this.user = params.user

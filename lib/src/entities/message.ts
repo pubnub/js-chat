@@ -30,7 +30,7 @@ export class Message {
   }
 
   /** @internal */
-  constructor(chat: Chat, params: MessageFields) {
+  private constructor(chat: Chat, params: MessageFields) {
     this.chat = chat
     this.timetoken = params.timetoken
     this.content = params.content
