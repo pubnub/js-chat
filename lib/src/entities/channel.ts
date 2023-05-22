@@ -238,9 +238,14 @@ export class Channel {
   async leave() {
     this.disconnect()
 
-    return this.chat.sdk.objects.removeMemberships({
-      channels: [this.id],
-    })
+    try {
+      await this.chat.sdk.objects.removeMemberships({
+        channels: [this.id],
+      })
+      return true
+    } catch (error) {
+      throw error
+    }
   }
 
   async getMembers(params: Omit<GetChannelMembersParameters, "channel" | "include"> = {}) {
