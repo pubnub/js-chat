@@ -57,4 +57,8 @@ export class MessageListComponentChat {
 
     const r = await this.channel.invite(someExistingUser)
   }
+
+  async pinMessage(message: Message) {
+    await message.pin()
+  }
 }

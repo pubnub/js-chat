@@ -293,6 +293,16 @@ export class Channel {
     }
   }
 
+  async pinMessage(message: Message | null) {
+    const response = await this.chat.pinMessageToChannel(message, this)
+    return Channel.fromDTO(this.chat, response.data)
+  }
+
+  async unpinMessage() {
+    const response = await this.chat.pinMessageToChannel(null, this)
+    return Channel.fromDTO(this.chat, response.data)
+  }
+
   // togglePinMessage(messageTimeToken: string) {}
 
   // getUnreadMessagesCount() {}

@@ -192,4 +192,10 @@ export class Message {
   async forward(channelId: string) {
     return this.chat.forwardMessage(this, channelId)
   }
+
+  async pin() {
+    const channel = await this.chat.getChannel(this.channelId)
+
+    await this.chat.pinMessageToChannel(this, channel!)
+  }
 }
