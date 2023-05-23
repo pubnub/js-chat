@@ -32,3 +32,24 @@ export const initTestChannel = async (
 
   return channel
 }
+
+export const waitForAllMessagesToBeDelivered = async (
+  textMessages: string[],
+  messages: string[]
+): Promise<void> => {
+  await new Promise<void>(async (resolveMainFunction) => {
+    for (let i = 0; i < 3; i++) {
+      const allMessagesReceived = textMessages.every((textMessage) =>
+        messages.includes(textMessage)
+      )
+
+      if (allMessagesReceived) {
+        break
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      }
+    }
+
+    resolveMainFunction()
+  })
+}
