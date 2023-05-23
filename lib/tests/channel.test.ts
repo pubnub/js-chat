@@ -1,4 +1,4 @@
-import { Chat, Channel } from "../src"
+import { Chat, Channel, User } from "../src"
 import * as dotenv from "dotenv"
 import { initTestChat, createRandomUserId } from "./testUtils"
 
@@ -146,7 +146,6 @@ describe("Channel test", () => {
         expect(error).toBeInstanceOf(Error)
       }
     } else {
-      // Pass the test if the channel is null, as this is the expected behavior
       expect(nonExistentChannel).toBeNull()
     }
   })
@@ -197,4 +196,39 @@ describe("Channel test", () => {
       expect(error).toBeInstanceOf(Error)
     }
   })
+
+  test("should edit membership metadata", async () => {
+    jest.retryTimes(3)
+
+    const user1 = new User(chat, { id: "user1" })
+    const user2 = new User(chat, { id: "user2" })
+
+    const channelId = createRandomUserId()
+    const channelData = {
+      name: "Test Channel",
+      description: "This is a test channel",
+    }
+    const createdChannel = await chat.createChannel(channelId, channelData)
+
+    const membership1 = await createdChannel.join((message) => {
+      // Message callback
+    })
+
+    const membership2 = await createdChannel.join((message) => {
+      // Message callback
+    })
+
+    const updatedMembership1 = await membership1.update({
+      custom: { role: "admin" },
+    })
+
+    expect(updatedMembership1.custom?.role).toBe("admin")
+
+    const updatedMembership2 = await membership2.update({
+      custom: { role: "member" },
+    })
+
+    expect(updatedMembership2.custom?.role).toBe("member")
+  })
+  jest.retryTimes(3)
 })

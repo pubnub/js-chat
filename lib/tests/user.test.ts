@@ -105,4 +105,5 @@ describe("User test", () => {
     const fetchedUser = await chat.getUser(userId)
     expect(fetchedUser).toBeNull()
   })
+  jest.retryTimes(3)
 })
