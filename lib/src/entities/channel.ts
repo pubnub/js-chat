@@ -27,17 +27,22 @@ export class Channel {
   readonly updated?: string
   readonly status?: string
   readonly type?: string
-  private listeners: ListenerParameters[] = []
-  private subscribed = false
+  /** @internal */
+  private disconnect?: () => void
+  /** @internal */
   private typingSent = false
+  /** @internal */
   private typingSentTimer?: ReturnType<typeof setTimeout>
+  /** @internal */
   private typingIndicators: Map<string, ReturnType<typeof setTimeout>> = new Map()
+
   /** @internal */
   constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
     this.id = params.id
     Object.assign(this, params)
   }
+
   /** @internal */
   static fromDTO(
     chat: Chat,
@@ -95,7 +100,7 @@ export class Channel {
   }
 
   getTyping(callback: (typingUserIds: string[]) => unknown) {
-    const typingListener = {
+    const listener = {
       signal: (event: SignalEvent) => {
         const { channel, message, publisher } = event
         if (channel !== this.id) return
@@ -128,13 +133,17 @@ export class Channel {
       },
     }
 
-    this.listeners.push(typingListener)
-    this.chat.sdk.addListener(typingListener)
-    if (!this.subscribed) this.chat.sdk.subscribe({ channels: [this.id] })
+    const removeListener = this.chat.addListener(listener)
+    const unsubscribe = this.chat.subscribe(this.id)
+
+    return () => {
+      removeListener()
+      unsubscribe()
+    }
   }
 
   connect(callback: (message: Message) => void) {
-    const messageListener = {
+    const listener = {
       message: (event: MessageEvent) => {
         const { message, channel } = event
         if (channel !== this.id) return
@@ -143,15 +152,13 @@ export class Channel {
       },
     }
 
-    this.listeners.push(messageListener)
-    this.chat.sdk.addListener(messageListener)
-    if (!this.subscribed) this.chat.sdk.subscribe({ channels: [this.id] })
-  }
+    const removeListener = this.chat.addListener(listener)
+    const unsubscribe = this.chat.subscribe(this.id)
 
-  disconnect() {
-    this.listeners.forEach((listener) => this.chat.sdk.removeListener(listener))
-    this.listeners = []
-    if (this.subscribed) this.chat.sdk.unsubscribe({ channels: [this.id] })
+    return () => {
+      removeListener()
+      unsubscribe()
+    }
   }
 
   async update(data: Omit<ChannelFields, "id">) {
@@ -227,7 +234,7 @@ export class Channel {
         filter: `channel.id == '${this.id}'`,
       })
 
-      this.connect(callback)
+      this.disconnect = this.connect(callback)
 
       return Membership.fromMembershipDTO(this.chat, membershipsResponse.data[0], currentUser)
     } catch (error) {
@@ -236,7 +243,7 @@ export class Channel {
   }
 
   async leave() {
-    this.disconnect()
+    if (this.disconnect) this.disconnect()
 
     try {
       await this.chat.sdk.objects.removeMemberships({

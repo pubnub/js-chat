@@ -20,10 +20,6 @@ describe("Channel test", () => {
     jest.resetAllMocks()
   })
 
-  afterEach(async () => {
-    await channel?.disconnect()
-  })
-
   test("should create a channel", async () => {
     jest.retryTimes(3)
 

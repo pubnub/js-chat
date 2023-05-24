@@ -20,6 +20,8 @@ export class Chat {
   private user?: User
   /** @internal */
   private lastSavedActivityInterval?: ReturnType<typeof setInterval>
+  /* @internal */
+  private subscriptions: { [channel: string]: Set<string> }
 
   constructor(params: ChatConstructor) {
     const {
@@ -35,6 +37,7 @@ export class Chat {
     }
 
     this.sdk = new PubNub(pubnubConfig)
+    this.subscriptions = {}
     this.config = {
       saveDebugLog: saveDebugLog || false,
       typingTimeout: typingTimeout || 5000,
@@ -51,6 +54,29 @@ export class Chat {
     }
 
     return chat
+  }
+
+  /* @internal */
+  subscribe(channel: string) {
+    const subscriptionId = Math.floor(Math.random() * Date.now()).toString(36)
+    const channelSubIds = (this.subscriptions[channel] ||= new Set())
+    if (!channelSubIds.size) this.sdk.subscribe({ channels: [channel] })
+    channelSubIds.add(subscriptionId)
+
+    return () => {
+      if (!channelSubIds || !channelSubIds.has(subscriptionId)) return
+      channelSubIds.delete(subscriptionId)
+      if (!channelSubIds.size) this.sdk.unsubscribe({ channels: [channel] })
+    }
+  }
+
+  /* @internal */
+  addListener(listener: PubNub.ListenerParameters) {
+    this.sdk.addListener(listener)
+
+    return () => {
+      this.sdk.removeListener(listener)
+    }
   }
 
   /**

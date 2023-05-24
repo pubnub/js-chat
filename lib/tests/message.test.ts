@@ -25,7 +25,7 @@ describe("Send message test", () => {
 
     const unicodeMessages = ["😀", "Привет", "你好", "こんにちは", "안녕하세요"]
 
-    channel.connect((message) => {
+    const disconnect = channel.connect((message) => {
       receiveTime = Date.now()
       messages.push(message.content.text)
     })
@@ -45,6 +45,8 @@ describe("Send message test", () => {
     for (const unicodeMessage of unicodeMessages) {
       expect(messages).toContain(unicodeMessage)
     }
+
+    disconnect()
   }, 30000)
 
   test("should send and receive regular text messages correctly", async () => {
@@ -59,7 +61,7 @@ describe("Send message test", () => {
 
     const textMessages = ["Hello", "This", "Is", "A", "Test"]
 
-    channel.connect((message) => {
+    const disconnect = channel.connect((message) => {
       receiveTime = Date.now()
       messages.push(message.content.text)
     })
@@ -79,24 +81,9 @@ describe("Send message test", () => {
     for (const textMessage of textMessages) {
       expect(messages).toContain(textMessage)
     }
+
+    disconnect()
   }, 30000)
-
-  test("should throw an error when sending a message on a disconnected channel", async () => {
-    jest.retryTimes(3)
-
-    if (!channel) {
-      throw new Error("Channel is undefined")
-    }
-
-    await channel?.disconnect()
-
-    try {
-      await channel?.sendText("message")
-      fail("Should have thrown an error")
-    } catch (error) {
-      expect(error).toBeInstanceOf(Error)
-    }
-  })
 
   test("should delete the message", async () => {
     jest.retryTimes(3)
