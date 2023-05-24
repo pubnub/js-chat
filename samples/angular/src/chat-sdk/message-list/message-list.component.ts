@@ -35,6 +35,8 @@ export class MessageListComponentChat {
       startTimetoken: this.messages?.[0]?.timetoken,
     })
 
+    const pinnedMessage = await this.channel.getPinnedMessage()
+
     this.isPaginationEnd = !historicalMessagesObject.isMore
 
     this.messages = [...historicalMessagesObject.messages, ...this.messages]

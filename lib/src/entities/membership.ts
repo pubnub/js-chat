@@ -54,7 +54,7 @@ export class Membership {
     return !!membershipsResponse.data.length
   }
 
-  async update(custom: ObjectCustom) {
+  async update({ custom }: { custom: ObjectCustom }) {
     try {
       // check if membership exists before updating it
       if (!(await this.exists())) {

@@ -197,6 +197,16 @@ export class Channel {
     }
   }
 
+  async getMessage(timetoken: string) {
+    const previousTimetoken = String(BigInt(timetoken) + BigInt(1))
+    const response = await this.getHistory({
+      endTimetoken: timetoken,
+      startTimetoken: previousTimetoken,
+    })
+
+    return response.messages[0]
+  }
+
   async forwardMessage(message: Message) {
     return this.chat.forwardMessage(message, this.id)
   }
@@ -293,7 +303,7 @@ export class Channel {
     }
   }
 
-  async pinMessage(message: Message | null) {
+  async pinMessage(message: Message) {
     const response = await this.chat.pinMessageToChannel(message, this)
     return Channel.fromDTO(this.chat, response.data)
   }
@@ -301,6 +311,16 @@ export class Channel {
   async unpinMessage() {
     const response = await this.chat.pinMessageToChannel(null, this)
     return Channel.fromDTO(this.chat, response.data)
+  }
+
+  async getPinnedMessage() {
+    const pinnedMessageTimetoken = this.custom?.["pinnedMessageTimetoken"]
+
+    if (!pinnedMessageTimetoken) {
+      return null
+    }
+
+    return await this.getMessage(pinnedMessageTimetoken as string)
   }
 
   // togglePinMessage(messageTimeToken: string) {}

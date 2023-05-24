@@ -301,9 +301,9 @@ export class Chat {
       ...(channel.custom || {}),
     }
     if (!message) {
-      delete customMetadataToSet.pinnedMessage
+      delete customMetadataToSet.pinnedMessageTimetoken
     } else {
-      customMetadataToSet.pinnedMessage = message.timetoken
+      customMetadataToSet.pinnedMessageTimetoken = message.timetoken
     }
 
     return await this.sdk.objects.setChannelMetadata({
