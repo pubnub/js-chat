@@ -1,24 +1,18 @@
-import { Chat, Channel } from "../src"
+import { Chat } from "../src"
 import * as dotenv from "dotenv"
-import { initTestChannel, initTestChat, createRandomUserId } from "./testUtils"
+import { initTestChat, createRandomUserId } from "./testUtils"
 
 dotenv.config()
 
 describe("User test", () => {
   let chat: Chat
-  let channel: Channel | null
 
   beforeEach(async () => {
     chat = initTestChat()
-    channel = await initTestChannel(chat)
   })
 
   beforeEach(() => {
     jest.resetAllMocks()
-  })
-
-  afterEach(async () => {
-    await channel?.disconnect()
   })
 
   test("Should be able to create user", async () => {
