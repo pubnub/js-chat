@@ -3,13 +3,12 @@ import {
   SignalEvent,
   MessageEvent,
   ObjectCustom,
-  ChannelMetadataObject,
   GetChannelMembersParameters,
   SetMembershipsParameters,
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
-import { SendTextOptionParams, StatusTypeFields, DeleteParameters, OptionalAllBut } from "../types"
+import {SendTextOptionParams, DeleteParameters, ChannelDTOParams} from "../types"
 import { Membership } from "./membership"
 import { User } from "./user"
 
@@ -41,7 +40,7 @@ export class Channel {
   /** @internal */
   static fromDTO(
     chat: Chat,
-    params: OptionalAllBut<ChannelMetadataObject<ObjectCustom>, "id"> & StatusTypeFields
+    params: ChannelDTOParams
   ) {
     const data = {
       id: params.id,
@@ -57,14 +56,35 @@ export class Channel {
   }
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
-    return await this.chat.sdk.publish({
-      channel: this.id,
-      message: {
-        type: "text",
-        text,
-      },
-      ...options,
-    })
+    try {
+      let channelIdToSend = this.id
+
+      if (options.rootMessage) {
+        channelIdToSend = this.chat.getThreadId(this.id, options.rootMessage.timetoken)
+
+        if (!options.rootMessage.isThreadRoot) {
+          await this.chat.sdk.addMessageAction({
+            channel: this.id,
+            messageTimetoken: options.rootMessage.timetoken,
+            action: {
+              type: 'isThread',
+              value: '1',
+            }
+          })
+        }
+      }
+
+      return await this.chat.sdk.publish({
+        channel: channelIdToSend,
+        message: {
+          type: "text",
+          text,
+        },
+        ...options,
+      })
+    } catch (error) {
+      throw error
+    }
   }
 
   private async sendTypingSignal(value: boolean) {

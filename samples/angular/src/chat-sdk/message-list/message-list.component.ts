@@ -25,7 +25,9 @@ export class MessageListComponentChat {
     if (changes["channel"].currentValue) {
       this.messages = []
       await changes["channel"].currentValue.join(
-        (message: Message) => (this.messages = [...this.messages, message])
+        (message: Message) => {
+          return (this.messages = [...this.messages, message])
+        }
       )
     }
   }
@@ -34,6 +36,16 @@ export class MessageListComponentChat {
     const historicalMessagesObject = await this.channel.getHistory({
       startTimetoken: this.messages?.[0]?.timetoken,
     })
+    const msg = historicalMessagesObject.messages[0]
+    console.log(historicalMessagesObject)
+    // @ts-ignore
+    window.globalMessage = msg
+
+    if (msg.isThreadRoot) {
+      const thread = await msg.getThread() || await msg.createThread({ name: "Some test thread" })
+      const threadMessages = await thread.getHistory()
+      console.log("threadMessages", threadMessages)
+    }
 
     this.isPaginationEnd = !historicalMessagesObject.isMore
 
