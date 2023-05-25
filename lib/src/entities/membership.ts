@@ -1,10 +1,5 @@
 import { Chat } from "./chat"
-import {
-  ChannelMembershipObject,
-  ObjectCustom,
-  SetMembershipsParameters,
-  UUIDMembershipObject,
-} from "pubnub"
+import { ChannelMembershipObject, ObjectCustom, UUIDMembershipObject } from "pubnub"
 import { Channel } from "./channel"
 import { User } from "./user"
 

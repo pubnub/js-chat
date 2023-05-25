@@ -47,6 +47,8 @@ export class MessageListComponentChat {
     // await c!.sendText("whatever", { rootMessage: threadMessages.messages[0] })
     // }
 
+    const pinnedMessage = await this.channel.getPinnedMessage()
+
     this.isPaginationEnd = !historicalMessagesObject.isMore
 
     this.messages = [...historicalMessagesObject.messages, ...this.messages]
@@ -68,5 +70,9 @@ export class MessageListComponentChat {
       (await this.chat.createUser("Przemek", { name: "Lukasz" }))
 
     const r = await this.channel.invite(someExistingUser)
+  }
+
+  async pinMessage(message: Message) {
+    await message.pin()
   }
 }

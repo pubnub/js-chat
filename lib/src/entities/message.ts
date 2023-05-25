@@ -128,14 +128,6 @@ export class Message {
     return !!this.actions?.[type]
   }
 
-  /** @internal */
-  private async deleteThread(params: DeleteParameters = {}) {
-    if (this.threadRootId) {
-      const thread = await this.getThread()
-      await thread.delete(params)
-    }
-  }
-
   async delete(params: DeleteParameters = {}) {
     const { soft } = params
     const type = MessageActionType.DELETED
@@ -213,6 +205,12 @@ export class Message {
     return this.chat.forwardMessage(this, channelId)
   }
 
+  async pin() {
+    const channel = await this.chat.getChannel(this.channelId)
+
+    await this.chat.pinMessageToChannel(this, channel!)
+  }
+
   /**
    * Threads
    */
@@ -232,6 +230,14 @@ export class Message {
       if (e?.status?.errorData?.status === 404) {
         throw "This message is not a thread"
       } else throw error
+    }
+  }
+
+  /** @internal */
+  private async deleteThread(params: DeleteParameters = {}) {
+    if (this.threadRootId) {
+      const thread = await this.getThread()
+      await thread.delete(params)
     }
   }
 }
