@@ -61,7 +61,6 @@ export class Channel {
   private async createThread(timetoken: string) {
     try {
       const threadChannelId = this.chat.getThreadId(this.id, timetoken)
-      console.log("threadChannelId", threadChannelId)
 
       const response = await this.chat.sdk.objects.setChannelMetadata({
         channel: threadChannelId,
