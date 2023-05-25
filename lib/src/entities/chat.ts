@@ -4,6 +4,7 @@ import { User, UserFields } from "./user"
 import { DeleteParameters } from "../types"
 import { Message } from "./message"
 import { Membership } from "./membership"
+import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -178,7 +179,7 @@ export class Chat {
 
   /** @internal */
   getThreadId(channelId: string, messageId: string) {
-    return `thread_${channelId}_${messageId}`
+    return `${MESSAGE_THREAD_ID_PREFIX}_${channelId}_${messageId}`
   }
 
   /**

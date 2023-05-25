@@ -24,11 +24,9 @@ export class MessageListComponentChat {
     }
     if (changes["channel"].currentValue) {
       this.messages = []
-      await changes["channel"].currentValue.join(
-        (message: Message) => {
-          return (this.messages = [...this.messages, message])
-        }
-      )
+      await changes["channel"].currentValue.join((message: Message) => {
+        return (this.messages = [...this.messages, message])
+      })
     }
   }
 
@@ -37,15 +35,17 @@ export class MessageListComponentChat {
       startTimetoken: this.messages?.[0]?.timetoken,
     })
     const msg = historicalMessagesObject.messages[0]
-    console.log(historicalMessagesObject)
-    // @ts-ignore
-    window.globalMessage = msg
+    // const ch = await this.chat.getChannel("6VsqhDZIyFdQJzCbBpJz")
+    // await ch!.sendText("Text7", { rootMessage: msg })
+    // await this.channel.sendText("Text8", { rootMessage: msg })
 
-    if (msg.isThreadRoot) {
-      const thread = await msg.getThread() || await msg.createThread({ name: "Some test thread" })
-      const threadMessages = await thread.getHistory()
-      console.log("threadMessages", threadMessages)
-    }
+    // if (msg.threadRootId) {
+    // const thread = await msg.getThread()
+    // const threadMessages = await thread!.getHistory()
+    // console.log("threadMessages", threadMessages)
+    // const c = await this.chat.getChannel(threadMessages.messages[0].channelId)
+    // await c!.sendText("whatever", { rootMessage: threadMessages.messages[0] })
+    // }
 
     this.isPaginationEnd = !historicalMessagesObject.isMore
 

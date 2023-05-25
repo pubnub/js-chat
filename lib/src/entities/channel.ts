@@ -1,4 +1,4 @@
-import {
+import PubNub, {
   ListenerParameters,
   SignalEvent,
   MessageEvent,
@@ -8,9 +8,10 @@ import {
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
-import {SendTextOptionParams, DeleteParameters, ChannelDTOParams} from "../types"
+import { SendTextOptionParams, DeleteParameters, ChannelDTOParams } from "../types"
 import { Membership } from "./membership"
 import { User } from "./user"
+import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 
 export type ChannelFields = Pick<
   Channel,
@@ -43,10 +44,7 @@ export class Channel {
   }
 
   /** @internal */
-  static fromDTO(
-    chat: Chat,
-    params: ChannelDTOParams
-  ) {
+  static fromDTO(chat: Chat, params: ChannelDTOParams) {
     const data = {
       id: params.id,
       name: params.name || undefined,
@@ -60,22 +58,65 @@ export class Channel {
     return new Channel(chat, data)
   }
 
+  /** @internal */
+  private async createThread(timetoken: string) {
+    try {
+      const threadChannelId = this.chat.getThreadId(this.id, timetoken)
+      console.log("threadChannelId", threadChannelId)
+
+      const response = await this.chat.sdk.objects.setChannelMetadata({
+        channel: threadChannelId,
+        data: {
+          description: `Thread on channel ${this.id} with message timetoken ${timetoken}`,
+        },
+      })
+      return Channel.fromDTO(this.chat, {
+        ...response.data,
+      })
+    } catch (e) {
+      console.error(e)
+      throw e
+    }
+  }
+
+  /** @internal */
+  private isThreadRoot() {
+    return this.id.startsWith(MESSAGE_THREAD_ID_PREFIX)
+  }
+
+  /** @internal */
+  private markMessageAsThreadRoot(timetoken: string) {
+    const channelIdToSend = this.chat.getThreadId(this.id, timetoken)
+
+    return this.chat.sdk.addMessageAction({
+      channel: this.id,
+      messageTimetoken: timetoken,
+      action: {
+        type: "threadRootId",
+        value: channelIdToSend,
+      },
+    })
+  }
+
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
       let channelIdToSend = this.id
 
+      if (options.rootMessage && this.isThreadRoot()) {
+        throw "Only one level of thread nesting is allowed"
+      }
+      if (options.rootMessage && options.rootMessage.channelId !== this.id) {
+        throw "This 'rootMessage' you provided does not come from this channel"
+      }
+
       if (options.rootMessage) {
         channelIdToSend = this.chat.getThreadId(this.id, options.rootMessage.timetoken)
 
-        if (!options.rootMessage.isThreadRoot) {
-          await this.chat.sdk.addMessageAction({
-            channel: this.id,
-            messageTimetoken: options.rootMessage.timetoken,
-            action: {
-              type: 'isThread',
-              value: '1',
-            }
-          })
+        if (!options.rootMessage.threadRootId) {
+          await Promise.all([
+            this.markMessageAsThreadRoot(options.rootMessage.timetoken),
+            this.createThread(options.rootMessage.timetoken),
+          ])
         }
       }
 

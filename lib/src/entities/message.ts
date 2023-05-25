@@ -1,7 +1,7 @@
 import { Chat } from "./chat"
 import PubNub from "pubnub"
 import { MessageActionType, MessageActions, DeleteParameters } from "../types"
-import { Channel } from "./channel";
+import { Channel } from "./channel"
 
 export type MessageContent = {
   type: "text"
@@ -26,9 +26,15 @@ export class Message {
   readonly channelId: string
   readonly userId?: string
   readonly actions?: MessageActions
-  readonly isThreadRoot?: boolean
   readonly meta?: {
     [key: string]: any
+  }
+  get threadRootId() {
+    if (!this.actions?.["threadRootId"]) {
+      return false
+    }
+
+    return Object.keys(this.actions["threadRootId"])[0]
   }
 
   /** @internal */
@@ -37,7 +43,6 @@ export class Message {
     this.timetoken = params.timetoken
     this.content = params.content
     this.channelId = params.channelId
-    this.isThreadRoot = !!params.actions?.["isThread"]
     Object.assign(this, params)
   }
 
@@ -123,6 +128,14 @@ export class Message {
     return !!this.actions?.[type]
   }
 
+  /** @internal */
+  private async deleteThread(params: DeleteParameters = {}) {
+    if (this.threadRootId) {
+      const thread = await this.getThread()
+      await thread.delete(params)
+    }
+  }
+
   async delete(params: DeleteParameters = {}) {
     const { soft } = params
     const type = MessageActionType.DELETED
@@ -134,6 +147,8 @@ export class Message {
           action: { type, value: type },
         })
         const actions = this.assignAction(data)
+        await this.deleteThread(params)
+
         return this.clone({ actions })
       } else {
         const previousTimetoken = String(BigInt(this.timetoken) - BigInt(1))
@@ -142,6 +157,8 @@ export class Message {
           start: previousTimetoken,
           end: this.timetoken,
         })
+        await this.deleteThread(params)
+
         return true
       }
     } catch (error) {
@@ -212,28 +229,9 @@ export class Message {
       })
     } catch (error) {
       const e = error as { status: { errorData: { status: number } } }
-      if (e?.status?.errorData?.status === 404) return null
-      else throw error
-    }
-  }
-
-  async createThread(data: PubNub.ChannelMetadata<PubNub.ObjectCustom>) {
-    try {
-      const threadChannelId = this.chat.getThreadId(this.channelId, this.timetoken)
-      const existingThread = await this.getThread()
-      if (existingThread) throw "Thread for this message already exists"
-      const response = await this.chat.sdk.objects.setChannelMetadata({
-        channel: threadChannelId,
-        data: {
-          ...data,
-        },
-      })
-      return Channel.fromDTO(this.chat, {
-        ...response.data,
-      })
-    } catch (e) {
-      console.error(e)
-      throw e
+      if (e?.status?.errorData?.status === 404) {
+        throw "This message is not a thread"
+      } else throw error
     }
   }
 }
