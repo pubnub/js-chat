@@ -321,6 +321,25 @@ export class Chat {
     }
   }
 
+  /** @internal */
+  async pinMessageToChannel(message: Message | null, channel: Channel) {
+    const customMetadataToSet = {
+      ...(channel.custom || {}),
+    }
+    if (!message) {
+      delete customMetadataToSet.pinnedMessageTimetoken
+    } else {
+      customMetadataToSet.pinnedMessageTimetoken = message.timetoken
+    }
+
+    return await this.sdk.objects.setChannelMetadata({
+      channel: channel.id,
+      data: {
+        custom: customMetadataToSet,
+      },
+    })
+  }
+
   /**
    * Save last activity timestamp
    */
