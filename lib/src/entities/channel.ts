@@ -1,5 +1,4 @@
-import PubNub, {
-  ListenerParameters,
+import {
   SignalEvent,
   MessageEvent,
   ObjectCustom,
