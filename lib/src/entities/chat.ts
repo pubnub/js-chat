@@ -12,6 +12,10 @@ type ChatConfig = {
   storeUserActivityTimestamps: boolean
 }
 
+type RequireAtLeastOne<T> = {
+  [K in keyof T]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<keyof T, K>>>
+}[keyof T]
+
 type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
 
 export class Chat {
@@ -170,6 +174,11 @@ export class Chat {
     } catch (error) {
       throw error
     }
+  }
+
+  /** @internal */
+  getThreadId(channelId: string, messageId: string) {
+    return `thread_${channelId}_${messageId}`
   }
 
   /**

@@ -18,6 +18,8 @@ export class MessageInputComponentChat {
   async handleSend() {
     const response = await this.channel.sendText(this.pubnubInput, {
       meta: { foo: "bar" },
+      // @ts-ignore
+      rootMessage: window.globalMessage,
     })
     this.pubnubInput = ""
   }
