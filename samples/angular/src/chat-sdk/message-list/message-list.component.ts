@@ -12,10 +12,14 @@ export class MessageListComponentChat {
 
   messages: Message[]
   isPaginationEnd: boolean
+  threadMessages: {
+    [key: string]: Message[]
+  }
 
   constructor() {
     this.messages = []
     this.isPaginationEnd = false
+    this.threadMessages = {}
   }
 
   async ngOnChanges(changes: SimpleChanges) {
@@ -74,5 +78,15 @@ export class MessageListComponentChat {
 
   async pinMessage(message: Message) {
     await message.pin()
+  }
+
+  async loadThreadMessages(message: Message) {
+    if (!message.threadRootId) {
+      return
+    }
+
+    const thread = await message.getThread()
+    const threadMessages = await thread!.getHistory()
+    this.threadMessages[message.timetoken] = threadMessages.messages
   }
 }
