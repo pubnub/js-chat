@@ -89,6 +89,7 @@ export class Message {
    * Updates
    */
   static streamUpdatesOn(messages: Message[], callback: (messages: Message[]) => unknown) {
+    if (!messages.length) throw "Cannot stream message updates on an empty list"
     const listener = {
       messageAction: (event: PubNub.MessageActionEvent) => {
         const message = messages.find((msg) => msg.timetoken === event.data.messageTimetoken)
