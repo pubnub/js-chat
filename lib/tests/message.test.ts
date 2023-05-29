@@ -164,5 +164,44 @@ describe("Send message test", () => {
     expect(mockMessage.toggleReaction).toHaveBeenCalledWith("like")
     expect(toggledMessage).toBe(sentMessage)
   }, 30000)
+
+  test("should pin the message", async () => {
+    jest.retryTimes(3)
+
+    if (!channel) {
+      throw new Error("Channel is undefined")
+    }
+
+    await channel.sendText("Test message")
+
+    const historyBeforePin = await channel.getHistory({ count: 100 })
+    const messagesBeforePin: Message[] = historyBeforePin.messages
+    const messageToPin = messagesBeforePin[messagesBeforePin.length - 1]
+
+    const pinnedChannel = await channel.pinMessage(messageToPin)
+
+    expect(pinnedChannel.custom?.["pinnedMessageTimetoken"]).toBe(messageToPin.timetoken)
+  }, 30000)
+
+  test("should unpin the message", async () => {
+    jest.retryTimes(3)
+
+    if (!channel) {
+      throw new Error("Channel is undefined")
+    }
+
+    await channel.sendText("Test message to be pinned and then unpinned")
+
+    const historyBeforePin = await channel.getHistory({ count: 100 })
+    const messagesBeforePin: Message[] = historyBeforePin.messages
+    const messageToPin = messagesBeforePin[messagesBeforePin.length - 1]
+
+    const pinnedChannel = await channel.pinMessage(messageToPin)
+    expect(pinnedChannel.custom?.["pinnedMessageTimetoken"]).toBe(messageToPin.timetoken)
+
+    const unpinnedChannel = await channel.unpinMessage()
+    expect(unpinnedChannel.custom?.["pinnedMessageTimetoken"]).toBeUndefined()
+  }, 30000)
+
   jest.retryTimes(3)
 })

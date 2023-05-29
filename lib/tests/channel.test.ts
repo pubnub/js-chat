@@ -1,4 +1,4 @@
-import { Chat, Channel, User } from "../src"
+import { Chat, Channel, User, Message } from "../src"
 import * as dotenv from "dotenv"
 import { initTestChat, createRandomUserId } from "./testUtils"
 
@@ -225,6 +225,42 @@ describe("Channel test", () => {
     })
 
     expect(updatedMembership2.custom?.role).toBe("member")
+  })
+
+  test("should create direct conversation and send message", async () => {
+    jest.retryTimes(3)
+
+    const user1Id = "testUser1"
+    const user1 =
+      (await chat.getUser(user1Id)) || (await chat.createUser(user1Id, { name: "Test User 1" }))
+
+    const user2Id = "testUser2"
+    ;(await chat.getUser(user2Id)) || (await chat.createUser(user2Id, { name: "Test User 2" }))
+
+    const channelData = {
+      name: "Direct Conversation",
+      description: "Direct conversation between Test User 1 and Test User 2",
+    }
+
+    const directConversation = await chat.createDirectConversation({
+      user: user1,
+      channelData: channelData,
+    })
+
+    expect(directConversation).toBeDefined()
+
+    chat.setChatUser(user1)
+
+    const messageText = "Hello User2"
+
+    await directConversation.channel.sendText(messageText)
+
+    const history = await directConversation.channel.getHistory()
+
+    const messageInHistory = history.messages.some(
+      (message: Message) => message.content.text === messageText
+    )
+    expect(messageInHistory).toBeTruthy()
   })
   jest.retryTimes(3)
 })
