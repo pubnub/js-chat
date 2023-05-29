@@ -174,6 +174,10 @@ export class Chat {
     }
   }
 
+  /**
+   * Message threads
+   */
+
   /** @internal */
   getThreadId(channelId: string, messageId: string) {
     return `${MESSAGE_THREAD_ID_PREFIX}_${channelId}_${messageId}`
