@@ -10,7 +10,7 @@ describe("Typing indicator test", () => {
 
   jest.setTimeout(10000)
   beforeEach(async () => {
-    chat = initTestChat()
+    chat = await initTestChat()
     channel = await initTestChannel(chat)
   })
 
