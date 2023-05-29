@@ -155,6 +155,11 @@ export default function () {
   }
 
   useEffect(() => {
+    if (!allChannels.length) return
+    return Channel.streamUpdatesOn(allChannels, setAllChannels)
+  }, [allChannels])
+
+  useEffect(() => {
     if (!messages.length) return
     return Message.streamUpdatesOn(messages, setMessages)
   }, [messages])
@@ -177,7 +182,11 @@ export default function () {
               </p>
               <p>
                 <b>Existing Channels: </b>
-                {allChannels.map((c) => c.id).join(", ")}
+                {allChannels.map((c) => (
+                  <li key={c.id}>
+                    {c.id}: {c.name}
+                  </li>
+                ))}
               </p>
             </div>
           ) : null}
