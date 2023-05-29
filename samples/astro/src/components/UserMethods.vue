@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { reactive } from "vue"
+import { reactive, toRaw } from "vue"
 import { userIdAtom, chatAtom } from "../store"
 import { useStore } from "@nanostores/vue"
-import type { User } from "@pubnub/chat"
+import { User } from "@pubnub/chat"
 import { extractErrorMessage } from "./helpers"
 
 const $userId = useStore(userIdAtom)
-const $chat = useStore(chatAtom)
+const $chat = toRaw(useStore(chatAtom))
 
 interface State {
   error: string
@@ -82,6 +82,7 @@ async function handleGetAll() {
       state.page = page
       state.total = total || 0
     } while (state.users.length < state.total)
+    User.streamUpdatesOn(state.users, (newUsers) => (state.users = newUsers))
   } catch (e: any) {
     state.error = extractErrorMessage(e)
     console.error(e)
@@ -179,7 +180,10 @@ chatAtom.subscribe((value) => {
     <button class="mb-4" @click="handleGetAll">Get all users</button>
     <div v-if="state.users.length">
       <p><b>Total count: </b>{{ state.total }}</p>
-      <p><b>Existing IDs: </b>{{ state.users.map((u) => u.id).join(", ") }}</p>
+      <p>
+        <b>Existing IDs: </b>
+        <li v-for="user in state.users">{{ user.id + " - " + user.name }}</li>
+      </p>
     </div>
   </div>
   <div class="grid lg:grid-cols-2 gap-8 mt-6">
