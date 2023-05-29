@@ -1,4 +1,4 @@
-import {
+import PubNub, {
   SignalEvent,
   MessageEvent,
   ObjectCustom,
@@ -57,6 +57,51 @@ export class Channel {
     return new Channel(chat, data)
   }
 
+  /*
+   * CRUD
+   */
+  async update(data: Omit<ChannelFields, "id">) {
+    return this.chat.updateChannel(this.id, data)
+  }
+
+  async delete(options: DeleteParameters = {}) {
+    return this.chat.deleteChannel(this.id, options)
+  }
+
+  /*
+   * Updates
+   */
+  static streamUpdatesOn(channels: Channel[], callback: (channels: Channel[]) => unknown) {
+    if (!channels.length) throw "Cannot stream channel updates on an empty list"
+    const listener = {
+      objects: (event: PubNub.SetChannelMetadataEvent<PubNub.ObjectCustom>) => {
+        if (event.message.type !== "channel") return
+        const channel = channels.find((c) => c.id === event.channel)
+        if (!channel) return
+        const newChannel = Channel.fromDTO(channel.chat, event.message.data)
+        const newChannels = channels.map((channel) =>
+          channel.id === newChannel.id ? newChannel : channel
+        )
+        callback(newChannels)
+      },
+    }
+    const { chat } = channels[0]
+    const removeListener = chat.addListener(listener)
+    const subscriptions = channels.map((channel) => chat.subscribe(channel.id))
+
+    return () => {
+      removeListener()
+      subscriptions.map((unsub) => unsub())
+    }
+  }
+
+  streamUpdates(callback: (channel: Channel) => unknown) {
+    return Channel.streamUpdatesOn([this], (channels) => callback(channels[0]))
+  }
+
+  /*
+   * Publishing
+   */
   /** @internal */
   private isThreadRoot() {
     return this.id.startsWith(MESSAGE_THREAD_ID_PREFIX)
@@ -111,6 +156,14 @@ export class Channel {
     }
   }
 
+  async forwardMessage(message: Message) {
+    return this.chat.forwardMessage(message, this.id)
+  }
+
+  /*
+   * Typing indicator
+   */
+  /* @internal */
   private async sendTypingSignal(value: boolean) {
     return await this.chat.sdk.signal({
       channel: this.id,
@@ -181,6 +234,9 @@ export class Channel {
     }
   }
 
+  /*
+   * Streaming messages
+   */
   connect(callback: (message: Message) => void) {
     const listener = {
       message: (event: MessageEvent) => {
@@ -200,14 +256,9 @@ export class Channel {
     }
   }
 
-  async update(data: Omit<ChannelFields, "id">) {
-    return this.chat.updateChannel(this.id, data)
-  }
-
-  async delete(options: DeleteParameters = {}) {
-    return this.chat.deleteChannel(this.id, options)
-  }
-
+  /*
+   * Presence
+   */
   async whoIsPresent() {
     return this.chat.whoIsPresent(this.id)
   }
@@ -251,10 +302,6 @@ export class Channel {
     })
 
     return response.messages[0]
-  }
-
-  async forwardMessage(message: Message) {
-    return this.chat.forwardMessage(message, this.id)
   }
 
   async join(

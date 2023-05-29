@@ -84,6 +84,42 @@ export class Message {
   }
 
   /*
+   * Updates
+   */
+  static streamUpdatesOn(messages: Message[], callback: (messages: Message[]) => unknown) {
+    if (!messages.length) throw "Cannot stream message updates on an empty list"
+    const listener = {
+      messageAction: (event: PubNub.MessageActionEvent) => {
+        const message = messages.find((msg) => msg.timetoken === event.data.messageTimetoken)
+        if (!message) return
+        if (message.channelId !== event.channel) return
+        let actions
+        if (event.event === "added") actions = message.assignAction(event.data)
+        if (event.event === "removed") actions = message.filterAction(event.data)
+        const newMessage = message.clone({ actions })
+        const newMessages = messages.map((msg) =>
+          msg.timetoken === newMessage.timetoken ? newMessage : msg
+        )
+        callback(newMessages)
+      },
+    }
+    const { chat } = messages[0]
+    const removeListener = chat.addListener(listener)
+    const subscriptions = messages
+      .filter((m1, i) => messages.findIndex((m2) => m1.channelId === m2.channelId) === i)
+      .map((message) => chat.subscribe(message.channelId))
+
+    return () => {
+      removeListener()
+      subscriptions.map((unsub) => unsub())
+    }
+  }
+
+  streamUpdates(callback: (message: Message) => unknown) {
+    return Message.streamUpdatesOn([this], (messages) => callback(messages[0]))
+  }
+
+  /*
    * Message text
    */
   get text() {
