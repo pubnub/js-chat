@@ -209,7 +209,7 @@ export class Chat {
   /** @internal */
   async createThread(parentChannelId: string, timetoken: string) {
     try {
-      const threadChannelId = this.getThreadId(this.id, timetoken)
+      const threadChannelId = this.getThreadId(parentChannelId, timetoken)
 
       const response = await this.sdk.objects.setChannelMetadata({
         channel: threadChannelId,
