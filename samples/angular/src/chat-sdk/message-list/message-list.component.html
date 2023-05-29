@@ -1,6 +1,10 @@
 <div class="message-list">
     <h1>Message List</h1>
     <div>
+        <div>
+            <span>Channel pinned message: </span>
+            <span>{{ pinnedMessages[channel.id] }}</span>
+        </div>
         <div *ngFor="let message of messages">
             <div class="message-row">
                 <p>
@@ -11,6 +15,28 @@
                 </div>
                 <div class="message-row__forward-icon__container" (click)="pinMessage(message)">
                     <img src="assets/star.png" class="message-row__forward-icon" />
+                </div>
+                <div class="message-row__forward-icon__container" (click)="loadThreadMessages(message)" *ngIf="message.threadRootId">
+                    <img src="assets/icon-of-blank-message-dialogue-box-free-vector.webp" class="message-row__forward-icon" />
+                </div>
+            </div>
+            <div class="message-row__thread-messages-container" *ngIf="threadMessages[message.timetoken]">
+                <div *ngIf="message.threadRootId">
+                    <span>Thread pinned message: </span>
+                    <span>{{ pinnedMessages[message.threadRootId] }}</span>
+                </div>
+                <div *ngFor="let threadMessage of threadMessages[message.timetoken]">
+                    <div class="message-row">
+                        <p>
+                            {{ threadMessage.content.text }}
+                        </p>
+                        <div class="message-row__forward-icon__container" (click)="forwardMessage(threadMessage)">
+                            <img src="assets/forwardIcon.png" class="message-row__forward-icon" />
+                        </div>
+                        <div class="message-row__forward-icon__container" (click)="pinThreadMessage(threadMessage)">
+                            <img src="assets/star.png" class="message-row__forward-icon" />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

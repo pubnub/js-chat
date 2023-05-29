@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useStore } from "@nanostores/react"
 import { chatAtom } from "../store"
 import { extractErrorMessage } from "./helpers"
@@ -145,7 +145,7 @@ export default function () {
 
   async function handleEditMessage(message: Message) {
     setEditingMessage(message)
-    setTextInput(message.getText())
+    setTextInput(message.text)
   }
 
   async function handleToggleReaction(message, reaction) {
@@ -153,6 +153,16 @@ export default function () {
     console.log("Message after reacting: ", newMsg)
     setMessages((msgs) => msgs.map((msg) => (msg.timetoken === newMsg.timetoken ? newMsg : msg)))
   }
+
+  useEffect(() => {
+    if (!allChannels.length) return
+    return Channel.streamUpdatesOn(allChannels, setAllChannels)
+  }, [allChannels])
+
+  useEffect(() => {
+    if (!messages.length) return
+    return Message.streamUpdatesOn(messages, setMessages)
+  }, [messages])
 
   return (
     <>
@@ -172,7 +182,11 @@ export default function () {
               </p>
               <p>
                 <b>Existing Channels: </b>
-                {allChannels.map((c) => c.id).join(", ")}
+                {allChannels.map((c) => (
+                  <li key={c.id}>
+                    {c.id}: {c.name}
+                  </li>
+                ))}
               </p>
             </div>
           ) : null}

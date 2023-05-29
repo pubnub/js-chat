@@ -1,17 +1,16 @@
-import {
-  ListenerParameters,
+import PubNub, {
   SignalEvent,
   MessageEvent,
   ObjectCustom,
-  ChannelMetadataObject,
   GetChannelMembersParameters,
   SetMembershipsParameters,
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
-import { SendTextOptionParams, StatusTypeFields, DeleteParameters, OptionalAllBut } from "../types"
+import { SendTextOptionParams, DeleteParameters, ChannelDTOParams } from "../types"
 import { Membership } from "./membership"
 import { User } from "./user"
+import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 
 export type ChannelFields = Pick<
   Channel,
@@ -19,7 +18,7 @@ export type ChannelFields = Pick<
 >
 
 export class Channel {
-  private chat: Chat
+  protected chat: Chat
   readonly id: string
   readonly name?: string
   readonly custom?: ObjectCustom
@@ -44,10 +43,7 @@ export class Channel {
   }
 
   /** @internal */
-  static fromDTO(
-    chat: Chat,
-    params: OptionalAllBut<ChannelMetadataObject<ObjectCustom>, "id"> & StatusTypeFields
-  ) {
+  static fromDTO(chat: Chat, params: ChannelDTOParams) {
     const data = {
       id: params.id,
       name: params.name || undefined,
@@ -61,17 +57,113 @@ export class Channel {
     return new Channel(chat, data)
   }
 
-  async sendText(text: string, options: SendTextOptionParams = {}) {
-    return await this.chat.sdk.publish({
-      channel: this.id,
-      message: {
-        type: "text",
-        text,
+  /*
+   * CRUD
+   */
+  async update(data: Omit<ChannelFields, "id">) {
+    return this.chat.updateChannel(this.id, data)
+  }
+
+  async delete(options: DeleteParameters = {}) {
+    return this.chat.deleteChannel(this.id, options)
+  }
+
+  /*
+   * Updates
+   */
+  static streamUpdatesOn(channels: Channel[], callback: (channels: Channel[]) => unknown) {
+    if (!channels.length) throw "Cannot stream channel updates on an empty list"
+    const listener = {
+      objects: (event: PubNub.SetChannelMetadataEvent<PubNub.ObjectCustom>) => {
+        if (event.message.type !== "channel") return
+        const channel = channels.find((c) => c.id === event.channel)
+        if (!channel) return
+        const newChannel = Channel.fromDTO(channel.chat, event.message.data)
+        const newChannels = channels.map((channel) =>
+          channel.id === newChannel.id ? newChannel : channel
+        )
+        callback(newChannels)
       },
-      ...options,
+    }
+    const { chat } = channels[0]
+    const removeListener = chat.addListener(listener)
+    const subscriptions = channels.map((channel) => chat.subscribe(channel.id))
+
+    return () => {
+      removeListener()
+      subscriptions.map((unsub) => unsub())
+    }
+  }
+
+  streamUpdates(callback: (channel: Channel) => unknown) {
+    return Channel.streamUpdatesOn([this], (channels) => callback(channels[0]))
+  }
+
+  /*
+   * Publishing
+   */
+  /** @internal */
+  private isThreadRoot() {
+    return this.id.startsWith(MESSAGE_THREAD_ID_PREFIX)
+  }
+
+  /** @internal */
+  private markMessageAsThreadRoot(timetoken: string) {
+    const channelIdToSend = this.chat.getThreadId(this.id, timetoken)
+
+    return this.chat.sdk.addMessageAction({
+      channel: this.id,
+      messageTimetoken: timetoken,
+      action: {
+        type: "threadRootId",
+        value: channelIdToSend,
+      },
     })
   }
 
+  async sendText(text: string, options: SendTextOptionParams = {}) {
+    try {
+      let channelIdToSend = this.id
+
+      if (options.rootMessage && this.isThreadRoot()) {
+        throw "Only one level of thread nesting is allowed"
+      }
+      if (options.rootMessage && options.rootMessage.channelId !== this.id) {
+        throw "This 'rootMessage' you provided does not come from this channel"
+      }
+
+      if (options.rootMessage) {
+        channelIdToSend = this.chat.getThreadId(this.id, options.rootMessage.timetoken)
+
+        if (!options.rootMessage.threadRootId) {
+          await Promise.all([
+            this.markMessageAsThreadRoot(options.rootMessage.timetoken),
+            this.chat.createThread(this.id, options.rootMessage.timetoken),
+          ])
+        }
+      }
+
+      return await this.chat.sdk.publish({
+        channel: channelIdToSend,
+        message: {
+          type: "text",
+          text,
+        },
+        ...options,
+      })
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async forwardMessage(message: Message) {
+    return this.chat.forwardMessage(message, this.id)
+  }
+
+  /*
+   * Typing indicator
+   */
+  /* @internal */
   private async sendTypingSignal(value: boolean) {
     return await this.chat.sdk.signal({
       channel: this.id,
@@ -142,6 +234,9 @@ export class Channel {
     }
   }
 
+  /*
+   * Streaming messages
+   */
   connect(callback: (message: Message) => void) {
     const listener = {
       message: (event: MessageEvent) => {
@@ -161,14 +256,9 @@ export class Channel {
     }
   }
 
-  async update(data: Omit<ChannelFields, "id">) {
-    return this.chat.updateChannel(this.id, data)
-  }
-
-  async delete(options: DeleteParameters = {}) {
-    return this.chat.deleteChannel(this.id, options)
-  }
-
+  /*
+   * Presence
+   */
   async whoIsPresent() {
     return this.chat.whoIsPresent(this.id)
   }
@@ -212,10 +302,6 @@ export class Channel {
     })
 
     return response.messages[0]
-  }
-
-  async forwardMessage(message: Message) {
-    return this.chat.forwardMessage(message, this.id)
   }
 
   async join(
@@ -326,24 +412,28 @@ export class Channel {
   }
 
   async getPinnedMessage() {
-    const pinnedMessageTimetoken = this.custom?.["pinnedMessageTimetoken"]
+    try {
+      const pinnedMessageTimetoken = this.custom?.["pinnedMessageTimetoken"]
+      const pinnedMessageChannelID = this.custom?.["pinnedMessageChannelID"]
 
-    if (!pinnedMessageTimetoken) {
+      if (!pinnedMessageTimetoken || !pinnedMessageChannelID) {
+        return null
+      }
+
+      if (pinnedMessageChannelID === this.id) {
+        return this.getMessage(String(pinnedMessageTimetoken))
+      }
+
+      const threadChannel = await this.chat.getChannel(String(pinnedMessageChannelID))
+
+      if (!threadChannel) {
+        throw "The thread channel does not exist"
+      }
+
+      return threadChannel.getMessage(String(pinnedMessageTimetoken))
+    } catch (error) {
+      console.error(error)
       return null
     }
-
-    return await this.getMessage(pinnedMessageTimetoken as string)
   }
-
-  // togglePinMessage(messageTimeToken: string) {}
-
-  // getUnreadMessagesCount() {}
-
-  // star() {}
-
-  // getMembers() {}
-
-  // getOnlineMembers() {}
-
-  // search(phrase: string) {}
 }

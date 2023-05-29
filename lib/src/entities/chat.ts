@@ -4,6 +4,8 @@ import { User, UserFields } from "./user"
 import { DeleteParameters } from "../types"
 import { Message } from "./message"
 import { Membership } from "./membership"
+import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
+import { ThreadChannel } from "./thread-channel"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -173,6 +175,59 @@ export class Chat {
   }
 
   /**
+   * Message threads
+   */
+
+  /** @internal */
+  getThreadId(channelId: string, messageId: string) {
+    return `${MESSAGE_THREAD_ID_PREFIX}_${channelId}_${messageId}`
+  }
+
+  /** @internal */
+  async getThreadChannel(parentChannelId: string, timetoken: string) {
+    if (!parentChannelId.length) throw "parentChannelId is required"
+    if (!timetoken.length) throw "timetoken is required"
+
+    const threadChannelId = this.getThreadId(parentChannelId, timetoken)
+
+    try {
+      const response = await this.sdk.objects.getChannelMetadata({
+        channel: threadChannelId,
+      })
+      return ThreadChannel.fromDTO(this, {
+        ...response.data,
+        parentChannelId,
+      })
+    } catch (error) {
+      const e = error as { status: { errorData: { status: number } } }
+      if (e?.status?.errorData?.status === 404) {
+        throw "This message is not a thread"
+      } else throw error
+    }
+  }
+
+  /** @internal */
+  async createThread(parentChannelId: string, timetoken: string) {
+    try {
+      const threadChannelId = this.getThreadId(parentChannelId, timetoken)
+
+      const response = await this.sdk.objects.setChannelMetadata({
+        channel: threadChannelId,
+        data: {
+          description: `Thread on channel ${parentChannelId} with message timetoken ${timetoken}`,
+        },
+      })
+      return ThreadChannel.fromDTO(this, {
+        ...response.data,
+        parentChannelId,
+      })
+    } catch (e) {
+      console.error(e)
+      throw e
+    }
+  }
+
+  /**
    *  Channels
    */
   async getChannel(id: string) {
@@ -322,17 +377,20 @@ export class Chat {
   }
 
   /** @internal */
-  async pinMessageToChannel(message: Message | null, channel: Channel) {
+  pinMessageToChannel(message: Message | null, channel: Channel) {
     const customMetadataToSet = {
       ...(channel.custom || {}),
     }
+
     if (!message) {
       delete customMetadataToSet.pinnedMessageTimetoken
+      delete customMetadataToSet.pinnedMessageChannelID
     } else {
       customMetadataToSet.pinnedMessageTimetoken = message.timetoken
+      customMetadataToSet.pinnedMessageChannelID = message.channelId
     }
 
-    return await this.sdk.objects.setChannelMetadata({
+    return this.sdk.objects.setChannelMetadata({
       channel: channel.id,
       data: {
         custom: customMetadataToSet,
