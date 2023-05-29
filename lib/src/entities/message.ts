@@ -1,6 +1,6 @@
 import { Chat } from "./chat"
 import PubNub from "pubnub"
-import { MessageActionType, MessageActions, DeleteParameters } from "../types"
+import { MessageActionType, MessageActions, DeleteParameters, MessageDTOParams } from "../types"
 
 export type MessageContent = {
   type: "text"
@@ -12,14 +12,8 @@ export type MessageFields = Pick<
   "timetoken" | "content" | "channelId" | "userId" | "actions" | "meta"
 >
 
-type EnhancedMessageEvent = PubNub.MessageEvent & {
-  userMetadata?: {
-    [key: string]: any
-  }
-}
-
 export class Message {
-  private chat: Chat
+  protected chat: Chat
   readonly timetoken: string
   readonly content: MessageContent
   readonly channelId: string
@@ -27,6 +21,13 @@ export class Message {
   readonly actions?: MessageActions
   readonly meta?: {
     [key: string]: any
+  }
+  get threadRootId() {
+    if (!this.actions?.["threadRootId"]) {
+      return false
+    }
+
+    return Object.keys(this.actions["threadRootId"])[0]
   }
 
   /** @internal */
@@ -39,10 +40,7 @@ export class Message {
   }
 
   /** @internal */
-  static fromDTO(
-    chat: Chat,
-    params: PubNub.FetchMessagesResponse["channels"]["channel"][0] | EnhancedMessageEvent
-  ) {
+  static fromDTO(chat: Chat, params: MessageDTOParams) {
     const data = {
       timetoken: String(params.timetoken),
       content: params.message,
@@ -167,6 +165,8 @@ export class Message {
           action: { type, value: type },
         })
         const actions = this.assignAction(data)
+        await this.deleteThread(params)
+
         return this.clone({ actions })
       } else {
         const previousTimetoken = String(BigInt(this.timetoken) - BigInt(1))
@@ -175,6 +175,8 @@ export class Message {
           start: previousTimetoken,
           end: this.timetoken,
         })
+        await this.deleteThread(params)
+
         return true
       }
     } catch (error) {
@@ -233,5 +235,20 @@ export class Message {
     const channel = await this.chat.getChannel(this.channelId)
 
     await this.chat.pinMessageToChannel(this, channel!)
+  }
+
+  /**
+   * Threads
+   */
+  getThread() {
+    return this.chat.getThreadChannel(this.channelId, this.timetoken)
+  }
+
+  /** @internal */
+  private async deleteThread(params: DeleteParameters = {}) {
+    if (this.threadRootId) {
+      const thread = await this.getThread()
+      await thread.delete(params)
+    }
   }
 }
