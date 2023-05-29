@@ -366,29 +366,24 @@ export class Channel {
 
   async getPinnedMessage() {
     try {
-      const pinnedMessageString = this.custom?.["pinnedMessage"]
+      const pinnedMessageTimetoken = this.custom?.["pinnedMessageTimetoken"]
+      const pinnedMessageChannelID = this.custom?.["pinnedMessageChannelID"]
 
-      if (!pinnedMessageString) {
+      if (!pinnedMessageTimetoken || !pinnedMessageChannelID) {
         return null
       }
 
-      const pinnedMessageJson = JSON.parse(String(pinnedMessageString))
-
-      if (!pinnedMessageJson.channelId || !pinnedMessageJson.messageTimetoken) {
-        throw "The pinned message is corrupted"
+      if (pinnedMessageChannelID === this.id) {
+        return this.getMessage(String(pinnedMessageTimetoken))
       }
 
-      if (pinnedMessageJson.channelId === this.id) {
-        return this.getMessage(pinnedMessageJson.messageTimetoken)
-      }
-
-      const threadChannel = await this.chat.getChannel(pinnedMessageJson.channelId)
+      const threadChannel = await this.chat.getChannel(String(pinnedMessageChannelID))
 
       if (!threadChannel) {
         throw "The thread channel does not exist"
       }
 
-      return threadChannel.getMessage(pinnedMessageJson.messageTimetoken)
+      return threadChannel.getMessage(String(pinnedMessageTimetoken))
     } catch (error) {
       console.error(error)
       return null

@@ -383,12 +383,11 @@ export class Chat {
     }
 
     if (!message) {
-      delete customMetadataToSet.pinnedMessage
+      delete customMetadataToSet.pinnedMessageTimetoken
+      delete customMetadataToSet.pinnedMessageChannelID
     } else {
-      customMetadataToSet.pinnedMessage = JSON.stringify({
-        channelId: message.channelId,
-        messageTimetoken: message.timetoken,
-      })
+      customMetadataToSet.pinnedMessageTimetoken = message.timetoken
+      customMetadataToSet.pinnedMessageChannelID = message.channelId
     }
 
     return this.sdk.objects.setChannelMetadata({

@@ -97,7 +97,7 @@ export class MessageListComponentChat {
   }
 
   async pinThreadMessage(message: ThreadMessage) {
-    await message.pinToParentChannel()
+    await message.pin()
   }
 
   async loadThreadMessages(message: Message) {
