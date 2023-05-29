@@ -5,6 +5,7 @@ import { DeleteParameters } from "../types"
 import { Message } from "./message"
 import { Membership } from "./membership"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
+import { ThreadChannel } from "./thread-channel"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -178,6 +179,29 @@ export class Chat {
     return `${MESSAGE_THREAD_ID_PREFIX}_${channelId}_${messageId}`
   }
 
+  /** @internal */
+  async getThreadChannel(parentChannelId: string, timetoken: string) {
+    if (!parentChannelId.length) throw "parentChannelId is required"
+    if (!timetoken.length) throw "timetoken is required"
+
+    const threadChannelId = this.getThreadId(parentChannelId, timetoken)
+
+    try {
+      const response = await this.sdk.objects.getChannelMetadata({
+        channel: threadChannelId,
+      })
+      return ThreadChannel.fromDTO(this, {
+        ...response.data,
+        parentChannelId,
+      })
+    } catch (error) {
+      const e = error as { status: { errorData: { status: number } } }
+      if (e?.status?.errorData?.status === 404) {
+        throw "This message is not a thread"
+      } else throw error
+    }
+  }
+
   /**
    *  Channels
    */
@@ -328,17 +352,21 @@ export class Chat {
   }
 
   /** @internal */
-  async pinMessageToChannel(message: Message | null, channel: Channel) {
+  pinMessageToChannel(message: Message | null, channel: Channel) {
     const customMetadataToSet = {
       ...(channel.custom || {}),
     }
+
     if (!message) {
-      delete customMetadataToSet.pinnedMessageTimetoken
+      delete customMetadataToSet.pinnedMessage
     } else {
-      customMetadataToSet.pinnedMessageTimetoken = message.timetoken
+      customMetadataToSet.pinnedMessage = JSON.stringify({
+        channelId: message.channelId,
+        messageTimetoken: message.timetoken,
+      })
     }
 
-    return await this.sdk.objects.setChannelMetadata({
+    return this.sdk.objects.setChannelMetadata({
       channel: channel.id,
       data: {
         custom: customMetadataToSet,

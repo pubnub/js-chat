@@ -1,7 +1,6 @@
 import { Chat } from "./chat"
 import PubNub from "pubnub"
-import { MessageActionType, MessageActions, DeleteParameters } from "../types"
-import { Channel } from "./channel"
+import { MessageActionType, MessageActions, DeleteParameters, MessageDTOParams } from "../types"
 
 export type MessageContent = {
   type: "text"
@@ -13,14 +12,8 @@ export type MessageFields = Pick<
   "timetoken" | "content" | "channelId" | "userId" | "actions" | "meta"
 >
 
-type EnhancedMessageEvent = PubNub.MessageEvent & {
-  userMetadata?: {
-    [key: string]: any
-  }
-}
-
 export class Message {
-  private chat: Chat
+  protected chat: Chat
   readonly timetoken: string
   readonly content: MessageContent
   readonly channelId: string
@@ -47,10 +40,7 @@ export class Message {
   }
 
   /** @internal */
-  static fromDTO(
-    chat: Chat,
-    params: PubNub.FetchMessagesResponse["channels"]["channel"][0] | EnhancedMessageEvent
-  ) {
+  static fromDTO(chat: Chat, params: MessageDTOParams) {
     const data = {
       timetoken: String(params.timetoken),
       content: params.message,
@@ -214,23 +204,8 @@ export class Message {
   /**
    * Threads
    */
-  async getThread() {
-    try {
-      const threadChannelId = this.chat.getThreadId(this.channelId, this.timetoken)
-
-      const response = await this.chat.sdk.objects.getChannelMetadata({
-        channel: threadChannelId,
-      })
-
-      return Channel.fromDTO(this.chat, {
-        ...response.data,
-      })
-    } catch (error) {
-      const e = error as { status: { errorData: { status: number } } }
-      if (e?.status?.errorData?.status === 404) {
-        throw "This message is not a thread"
-      } else throw error
-    }
+  getThread() {
+    return this.chat.getThreadChannel(this.channelId, this.timetoken)
   }
 
   /** @internal */

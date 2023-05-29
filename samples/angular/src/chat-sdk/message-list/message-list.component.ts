@@ -1,5 +1,5 @@
 import { Component, Input, SimpleChanges } from "@angular/core"
-import { Channel, Chat, Message } from "@pubnub/chat"
+import { Channel, Chat, Message, ThreadMessage } from "@pubnub/chat"
 
 @Component({
   selector: "app-message-list-chat",
@@ -13,13 +13,28 @@ export class MessageListComponentChat {
   messages: Message[]
   isPaginationEnd: boolean
   threadMessages: {
-    [key: string]: Message[]
+    [key: string]: ThreadMessage[]
+  }
+  pinnedMessages: {
+    [key: string]: string
   }
 
   constructor() {
     this.messages = []
     this.isPaginationEnd = false
     this.threadMessages = {}
+    this.pinnedMessages = {}
+  }
+
+  async getPinnedMessage(channel: Channel) {
+    const pinnedMessage = await channel.getPinnedMessage()
+
+    if (!pinnedMessage) {
+      this.pinnedMessages[channel.id] = "No pinned message"
+      return
+    }
+
+    this.pinnedMessages[channel.id] = pinnedMessage.text
   }
 
   async ngOnChanges(changes: SimpleChanges) {
@@ -38,20 +53,21 @@ export class MessageListComponentChat {
     const historicalMessagesObject = await this.channel.getHistory({
       startTimetoken: this.messages?.[0]?.timetoken,
     })
+    await this.getPinnedMessage(this.channel)
     const msg = historicalMessagesObject.messages[0]
     // const ch = await this.chat.getChannel("6VsqhDZIyFdQJzCbBpJz")
     // await ch!.sendText("Text7", { rootMessage: msg })
-    // await this.channel.sendText("Text8", { rootMessage: msg })
+    // await this.channel.sendText("Text10", { rootMessage: msg })
 
-    // if (msg.threadRootId) {
-    // const thread = await msg.getThread()
-    // const threadMessages = await thread!.getHistory()
-    // console.log("threadMessages", threadMessages)
-    // const c = await this.chat.getChannel(threadMessages.messages[0].channelId)
-    // await c!.sendText("whatever", { rootMessage: threadMessages.messages[0] })
-    // }
+    if (msg.threadRootId) {
+      const thread = await msg.getThread()
+      const threadMessages = await thread!.getHistory()
+      // console.log("threadMessages", threadMessages)
+      // const c = await this.chat.getChannel(threadMessages.messages[0].channelId)
+      // await c!.sendText("whatever", { rootMessage: threadMessages.messages[0] })
+    }
 
-    const pinnedMessage = await this.channel.getPinnedMessage()
+    // const pinnedMessage = await this.channel.getPinnedMessage()
 
     this.isPaginationEnd = !historicalMessagesObject.isMore
 
@@ -80,6 +96,10 @@ export class MessageListComponentChat {
     await message.pin()
   }
 
+  async pinThreadMessage(message: ThreadMessage) {
+    await message.pinToParentChannel()
+  }
+
   async loadThreadMessages(message: Message) {
     if (!message.threadRootId) {
       return
@@ -87,6 +107,7 @@ export class MessageListComponentChat {
 
     const thread = await message.getThread()
     const threadMessages = await thread!.getHistory()
+    await this.getPinnedMessage(thread!)
     this.threadMessages[message.timetoken] = threadMessages.messages
   }
 }

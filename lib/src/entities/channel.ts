@@ -18,7 +18,7 @@ export type ChannelFields = Pick<
 >
 
 export class Channel {
-  private chat: Chat
+  protected chat: Chat
   readonly id: string
   readonly name?: string
   readonly custom?: ObjectCustom
@@ -385,24 +385,33 @@ export class Channel {
   }
 
   async getPinnedMessage() {
-    const pinnedMessageTimetoken = this.custom?.["pinnedMessageTimetoken"]
+    try {
+      const pinnedMessageString = this.custom?.["pinnedMessage"]
 
-    if (!pinnedMessageTimetoken) {
+      if (!pinnedMessageString) {
+        return null
+      }
+
+      const pinnedMessageJson = JSON.parse(String(pinnedMessageString))
+
+      if (!pinnedMessageJson.channelId || !pinnedMessageJson.messageTimetoken) {
+        throw "The pinned message is corrupted"
+      }
+
+      if (pinnedMessageJson.channelId === this.id) {
+        return this.getMessage(pinnedMessageJson.messageTimetoken)
+      }
+
+      const threadChannel = await this.chat.getChannel(pinnedMessageJson.channelId)
+
+      if (!threadChannel) {
+        throw "The thread channel does not exist"
+      }
+
+      return threadChannel.getMessage(pinnedMessageJson.messageTimetoken)
+    } catch (error) {
+      console.error(error)
       return null
     }
-
-    return await this.getMessage(pinnedMessageTimetoken as string)
   }
-
-  // togglePinMessage(messageTimeToken: string) {}
-
-  // getUnreadMessagesCount() {}
-
-  // star() {}
-
-  // getMembers() {}
-
-  // getOnlineMembers() {}
-
-  // search(phrase: string) {}
 }
