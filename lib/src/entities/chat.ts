@@ -53,7 +53,7 @@ export class Chat {
 
     chat.user =
       (await chat.getUser(chat.sdk.getUUID())) ||
-      (await chat.createUser(chat.sdk.getUUID(), { name: "" }))
+      (await chat.createUser(chat.sdk.getUUID(), { name: chat.sdk.getUUID() }))
 
     if (params.storeUserActivityTimestamps) {
       chat.storeUserActivityTimestamp()
