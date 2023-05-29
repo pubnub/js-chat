@@ -48,8 +48,12 @@ export class Chat {
     }
   }
 
-  static init(params: ChatConstructor) {
+  static async init(params: ChatConstructor) {
     const chat = new Chat(params)
+
+    chat.user =
+      (await chat.getUser(chat.sdk.getUUID())) ||
+      (await chat.createUser(chat.sdk.getUUID(), { name: "" }))
 
     if (params.storeUserActivityTimestamps) {
       chat.storeUserActivityTimestamp()
@@ -86,11 +90,6 @@ export class Chat {
    */
   getChatUser() {
     return this.user
-  }
-
-  setChatUser(user: User) {
-    // this.sdk.setUUID(user.id)
-    this.user = user
   }
 
   /**

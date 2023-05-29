@@ -22,7 +22,7 @@ export class ChannelListComponentChat {
   }
 
   async loadMemberships() {
-    const user = await this.chat.getChatUser()
+    const user = this.chat.getChatUser()
     this.membershipResponse = await user!.getMemberships()
 
     await this.membershipResponse.memberships[0].update({ custom: { some: "property1" } })

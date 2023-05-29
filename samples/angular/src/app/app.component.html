@@ -11,7 +11,7 @@
     <app-channel-list-sdk [pubnub]="pubnub" />
     <button (click)="toggleCreateChannelModalJSSDK()">Open create channel modal</button>
   </div>
-  <div class="column" *ngIf="stateService.currentChannel">
+  <div class="column" *ngIf="stateService.currentChannel && chat">
     <h1>Chat</h1>
     <div>
       <p>PubNub initialized with: {{ pubnub.getUUID() }}</p>

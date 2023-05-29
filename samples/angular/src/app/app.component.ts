@@ -22,24 +22,21 @@ export class AppComponent {
   constructor(public stateService: StateService) {}
 
   pubnub = new PubNub({
-    publishKey: "demo",
-    subscribeKey: "demo",
+    publishKey: "pub-c-0457cb83-0786-43df-bc70-723b16a6e816",
+    subscribeKey: "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de",
     userId,
   })
 
-  chat = Chat.init({
-    publishKey: "demo",
-    subscribeKey: "demo",
-    userId,
-    typingTimeout: 2000,
-  })
+  chat?: Chat
 
   async ngOnInit() {
-    const user =
-      (await this.chat.getUser(userId)) ||
-      (await this.chat.createUser(userId, { name: "Some name" }))
+    this.chat = await Chat.init({
+      publishKey: "pub-c-0457cb83-0786-43df-bc70-723b16a6e816",
+      subscribeKey: "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de",
+      userId,
+      typingTimeout: 2000,
+    })
 
-    this.chat.setChatUser(user)
     const channel =
       (await this.chat.getChannel("123")) ||
       (await this.chat.createChannel("123", { name: "Some channel" }))
