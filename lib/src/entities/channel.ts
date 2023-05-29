@@ -58,26 +58,6 @@ export class Channel {
   }
 
   /** @internal */
-  private async createThread(timetoken: string) {
-    try {
-      const threadChannelId = this.chat.getThreadId(this.id, timetoken)
-
-      const response = await this.chat.sdk.objects.setChannelMetadata({
-        channel: threadChannelId,
-        data: {
-          description: `Thread on channel ${this.id} with message timetoken ${timetoken}`,
-        },
-      })
-      return Channel.fromDTO(this.chat, {
-        ...response.data,
-      })
-    } catch (e) {
-      console.error(e)
-      throw e
-    }
-  }
-
-  /** @internal */
   private isThreadRoot() {
     return this.id.startsWith(MESSAGE_THREAD_ID_PREFIX)
   }
@@ -113,7 +93,7 @@ export class Channel {
         if (!options.rootMessage.threadRootId) {
           await Promise.all([
             this.markMessageAsThreadRoot(options.rootMessage.timetoken),
-            this.createThread(options.rootMessage.timetoken),
+            this.chat.createThread(this.id, options.rootMessage.timetoken),
           ])
         }
       }

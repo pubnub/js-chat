@@ -206,6 +206,27 @@ export class Chat {
     }
   }
 
+  /** @internal */
+  async createThread(parentChannelId: string, timetoken: string) {
+    try {
+      const threadChannelId = this.getThreadId(this.id, timetoken)
+
+      const response = await this.sdk.objects.setChannelMetadata({
+        channel: threadChannelId,
+        data: {
+          description: `Thread on channel ${parentChannelId} with message timetoken ${timetoken}`,
+        },
+      })
+      return ThreadChannel.fromDTO(this, {
+        ...response.data,
+        parentChannelId,
+      })
+    } catch (e) {
+      console.error(e)
+      throw e
+    }
+  }
+
   /**
    *  Channels
    */
