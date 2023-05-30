@@ -1,4 +1,4 @@
-import { Chat, Channel, Message } from "../src"
+import { Chat, Channel, Message, MessageFields, MessageContent } from "../src"
 import * as dotenv from "dotenv"
 import { initTestChannel, initTestChat, waitForAllMessagesToBeDelivered } from "./testUtils"
 

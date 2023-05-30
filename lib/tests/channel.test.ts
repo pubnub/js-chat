@@ -245,7 +245,7 @@ describe("Channel test", () => {
 
     expect(directConversation).toBeDefined()
 
-    chat.setChatUser(user1)
+    // chat.setChatUser(user1)
 
     const messageText = "Hello User2"
 
@@ -258,5 +258,60 @@ describe("Channel test", () => {
     )
     expect(messageInHistory).toBeTruthy()
   })
+
+  test("should create a thread", async () => {
+    jest.retryTimes(3)
+
+    const channelId = createRandomUserId()
+    const channelName = "Test Channel"
+    const channelDescription = "This is a test channel"
+
+    const channelData = {
+      name: channelName,
+      description: channelDescription,
+    }
+
+    const createdChannel = await chat.createChannel(channelId, channelData)
+
+    const messageText = "Test message"
+
+    const messageResult = await createdChannel.sendText(messageText)
+
+    const threadChannel = await chat.createThread(
+      createdChannel.id,
+      messageResult.timetoken.toString()
+    )
+
+    expect(threadChannel).toBeDefined()
+    expect(threadChannel.parentChannelId).toEqual(createdChannel.id)
+    expect(threadChannel.description).toContain(createdChannel.id)
+    expect(threadChannel.description).toContain(messageResult.timetoken)
+  })
+
+  test("should stream channel updates and invoke the callback", async () => {
+    const channel1Id = `channel1_${Date.now()}`
+    const channel2Id = `channel2_${Date.now()}`
+
+    const channel1 = await chat.createChannel(channel1Id, {})
+    const channel2 = await chat.createChannel(channel2Id, {})
+
+    const channels = [channel1, channel2]
+
+    const callback = jest.fn((updatedChannels) => {
+      expect(updatedChannels).toEqual(channels)
+
+      Promise.all(channels.map((channel) => channel.delete())).catch((error) => {
+        throw error
+      })
+    })
+
+    const unsubscribe = Channel.streamUpdatesOn(channels, callback)
+
+    await Promise.all(channels.map((channel) => channel.update({ name: "Updated Name" })))
+
+    await new Promise((resolve) => setTimeout(resolve, 5000))
+
+    unsubscribe()
+  }, 10000)
   jest.retryTimes(3)
 })

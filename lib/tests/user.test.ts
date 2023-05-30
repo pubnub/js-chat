@@ -1,4 +1,4 @@
-import { Chat } from "../src"
+import { Chat, User } from "../src"
 import * as dotenv from "dotenv"
 import { initTestChat, createRandomUserId } from "./testUtils"
 
@@ -99,5 +99,27 @@ describe("User test", () => {
     const fetchedUser = await chat.getUser(userId)
     expect(fetchedUser).toBeNull()
   })
+
+  test("Should stream user updates and invoke the callback", async () => {
+    const chat = await initTestChat()
+
+    const user1 = await chat.createUser("user1", {})
+    const user2 = await chat.createUser("user2", {})
+
+    const users = [user1, user2]
+
+    const callback = jest.fn((updatedUsers) => {
+      expect(updatedUsers).toEqual(users)
+    })
+
+    const unsubscribe = User.streamUpdatesOn(users, callback)
+
+    await new Promise<void>((resolve) => setTimeout(resolve, 1000))
+
+    await Promise.all(users.map(async (user) => await user.delete()))
+
+    unsubscribe()
+  })
+
   jest.retryTimes(3)
 })
