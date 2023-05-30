@@ -1,4 +1,4 @@
-import { UUIDMetadataObject, ObjectCustom, GetMembershipsParametersv2 } from "pubnub"
+import PubNub, { UUIDMetadataObject, ObjectCustom, GetMembershipsParametersv2 } from "pubnub"
 import { Chat } from "./chat"
 import { StatusTypeFields, DeleteParameters, OptionalAllBut } from "../types"
 import { Membership } from "./membership"
@@ -47,6 +47,9 @@ export class User {
     return new User(chat, data)
   }
 
+  /*
+   * CRUD
+   */
   async update(data: Omit<UserFields, "id">) {
     return this.chat.updateUser(this.id, data)
   }
@@ -55,6 +58,37 @@ export class User {
     return this.chat.deleteUser(this.id, options)
   }
 
+  /*
+   * Updates
+   */
+  static streamUpdatesOn(users: User[], callback: (users: User[]) => unknown) {
+    if (!users.length) throw "Cannot stream user updates on an empty list"
+    const listener = {
+      objects: (event: PubNub.SetUUIDMetadataEvent<PubNub.ObjectCustom>) => {
+        if (event.message.type !== "uuid") return
+        const user = users.find((c) => c.id === event.channel)
+        if (!user) return
+        const newUser = User.fromDTO(user.chat, event.message.data)
+        const newUsers = users.map((user) => (user.id === newUser.id ? newUser : user))
+        callback(newUsers)
+      },
+    }
+    const { chat } = users[0]
+    const removeListener = chat.addListener(listener)
+    const subscriptions = users.map((user) => chat.subscribe(user.id))
+    return () => {
+      removeListener()
+      subscriptions.map((unsub) => unsub())
+    }
+  }
+
+  streamUpdates(callback: (user: User) => unknown) {
+    return User.streamUpdatesOn([this], (users) => callback(users[0]))
+  }
+
+  /*
+   * Presence
+   */
   async wherePresent() {
     return this.chat.wherePresent(this.id)
   }
