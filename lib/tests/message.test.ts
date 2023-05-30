@@ -202,6 +202,5 @@ describe("Send message test", () => {
     const unpinnedChannel = await channel.unpinMessage()
     expect(unpinnedChannel.custom?.["pinnedMessageTimetoken"]).toBeUndefined()
   }, 30000)
-
   jest.retryTimes(3)
 })
