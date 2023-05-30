@@ -88,7 +88,7 @@ export class Chat {
   /**
    * Current user
    */
-  getChatUser() {
+  get currentUser() {
     return this.user
   }
 

@@ -329,7 +329,7 @@ export class Channel {
       return Membership.fromMembershipDTO(
         this.chat,
         membershipsResponse.data[0],
-        this.chat.getChatUser() as User
+        this.chat.currentUser as User
       )
     } catch (error) {
       throw error
