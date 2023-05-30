@@ -10,7 +10,7 @@ export const createRandomUserId = (prefix = "user"): string => {
   return `${prefix}_${nanoid(8)}`
 }
 
-export const initTestChat = (): Chat => {
+export const initTestChat = (): Promise<Chat> => {
   return Chat.init({
     publishKey: process.env.PUBLISH_KEY!,
     subscribeKey: process.env.SUBSCRIBE_KEY!,

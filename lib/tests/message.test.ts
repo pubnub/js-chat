@@ -9,7 +9,7 @@ describe("Send message test", () => {
   let chat: Chat
 
   beforeEach(async () => {
-    chat = initTestChat()
+    chat = await initTestChat()
     channel = await initTestChannel(chat)
   })
 

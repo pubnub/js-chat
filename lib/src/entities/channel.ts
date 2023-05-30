@@ -311,12 +311,6 @@ export class Channel {
     } = {}
   ) {
     try {
-      const currentUser = this.chat.getChatUser()
-
-      if (!currentUser) {
-        throw "Chat user is not set. Set them by calling setChatUser on the Chat instance."
-      }
-
       const { custom, ...rest } = params
       const membershipsResponse = await this.chat.sdk.objects.setMemberships({
         ...rest,
@@ -332,7 +326,11 @@ export class Channel {
 
       this.disconnect = this.connect(callback)
 
-      return Membership.fromMembershipDTO(this.chat, membershipsResponse.data[0], currentUser)
+      return Membership.fromMembershipDTO(
+        this.chat,
+        membershipsResponse.data[0],
+        this.chat.currentUser as User
+      )
     } catch (error) {
       throw error
     }

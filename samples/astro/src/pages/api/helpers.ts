@@ -2,7 +2,7 @@ import { Chat } from "@pubnub/chat"
 
 const serverId = "auth-server"
 
-export const chat = Chat.init({
+export const chat = await Chat.init({
   subscribeKey: import.meta.env.PUBLIC_SUB_KEY || "",
   publishKey: import.meta.env.PUBLIC_PUB_KEY || "",
   secretKey: import.meta.env.SECRET_KEY || "",

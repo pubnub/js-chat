@@ -9,11 +9,7 @@ describe("Channel test", () => {
   let channel: Channel | null
 
   beforeEach(async () => {
-    chat = initTestChat()
-    const userId = "testUser"
-    const user =
-      (await chat.getUser(userId)) || (await chat.createUser(userId, { name: "Testing" }))
-    chat.setChatUser(user)
+    chat = await initTestChat()
   })
 
   beforeEach(() => {

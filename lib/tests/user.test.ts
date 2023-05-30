@@ -8,7 +8,7 @@ describe("User test", () => {
   let chat: Chat
 
   beforeEach(async () => {
-    chat = initTestChat()
+    chat = await initTestChat()
   })
 
   beforeEach(() => {
