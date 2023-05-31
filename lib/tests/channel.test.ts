@@ -1,4 +1,4 @@
-import { Chat, Channel, User, Message } from "../src"
+import { Chat, Channel, User, Message, Membership } from "../src"
 import * as dotenv from "dotenv"
 import { initTestChat, createRandomUserId } from "./testUtils"
 
@@ -313,5 +313,44 @@ describe("Channel test", () => {
 
     unsubscribe()
   }, 10000)
+
+  test("should stream membership updates and invoke the callback", async () => {
+    const channel1Id = `channel1_${Date.now()}`
+    const channel2Id = `channel2_${Date.now()}`
+
+    const channel1 = await chat.createChannel(channel1Id, {})
+    const channel2 = await chat.createChannel(channel2Id, {})
+
+    const channels = [channel1, channel2]
+
+    const callback = jest.fn((updatedMemberships) => {
+      expect(updatedMemberships).toEqual(memberships)
+
+      Promise.all(channels.map((channel) => channel.delete())).catch((error) => {
+        throw error
+      })
+    })
+
+    const user1 = new User(chat, { id: "user1" })
+    const user2 = new User(chat, { id: "user2" })
+
+    const memberships = channels.map((channel) => {
+      const membershipData = {
+        channel,
+        user: channel === channel1 ? user1 : user2,
+        custom: null,
+      }
+      return new Membership(chat, membershipData)
+    })
+
+    const unsubscribe = Membership.streamUpdatesOn(memberships, callback)
+
+    await Promise.all(channels.map((channel) => channel.update({ name: "Updated Name" })))
+
+    await new Promise((resolve) => setTimeout(resolve, 5000))
+
+    unsubscribe()
+  }, 10000)
+
   jest.retryTimes(3)
 })
