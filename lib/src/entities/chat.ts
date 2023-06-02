@@ -6,6 +6,8 @@ import { Message } from "./message"
 import { Membership } from "./membership"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadChannel } from "./thread-channel"
+import { KeyValueCache } from "../key-value-cache"
+import { getPhraseToLookFor } from "../mentions-utils"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -22,6 +24,8 @@ export class Chat {
   private user?: User
   /** @internal */
   private lastSavedActivityInterval?: ReturnType<typeof setInterval>
+  /** @internal */
+  private suggestedNamesCache: KeyValueCache<User[]>
   /* @internal */
   private subscriptions: { [channel: string]: Set<string> }
 
@@ -40,6 +44,7 @@ export class Chat {
 
     this.sdk = new PubNub(pubnubConfig)
     this.subscriptions = {}
+    this.suggestedNamesCache = new KeyValueCache<User[]>()
     this.config = {
       saveDebugLog: saveDebugLog || false,
       typingTimeout: typingTimeout || 5000,
@@ -513,5 +518,36 @@ export class Chat {
     } catch (error) {
       throw error
     }
+  }
+
+  async getSuggestedGlobalUsers(phrase: string, options: { limit: number } = { limit: 10 }) {
+    if (phrase.length < 3) {
+      throw "The provided phrase must be at least 3 characters long"
+    }
+
+    const result = await this.sdk.objects.getAllUUIDMetadata({
+      filter: `name LIKE "${phrase}*"`,
+      limit: options.limit,
+    })
+
+    return result.data.map((u) => User.fromDTO(this, u))
+  }
+
+  async getSuggestedGlobalUsersOnChange(text: string, options: { limit: number } = { limit: 10 }) {
+    const cacheKey = getPhraseToLookFor(text)
+
+    if (!cacheKey) {
+      return []
+    }
+
+    if (this.suggestedNamesCache.getRecord(cacheKey)) {
+      return this.suggestedNamesCache.getRecord(cacheKey)
+    }
+
+    const response = await this.getSuggestedGlobalUsers(cacheKey, options)
+
+    this.suggestedNamesCache.setNewRecord(cacheKey, response)
+
+    return this.suggestedNamesCache.getRecord(cacheKey)
   }
 }

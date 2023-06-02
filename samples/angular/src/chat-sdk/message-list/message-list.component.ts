@@ -55,13 +55,17 @@ export class MessageListComponentChat {
     })
     await this.getPinnedMessage(this.channel)
     const msg = historicalMessagesObject.messages[0]
-    // const ch = await this.chat.getChannel("6VsqhDZIyFdQJzCbBpJz")
-    // await ch!.sendText("Text7", { rootMessage: msg })
-    // await this.channel.sendText("Text10", { rootMessage: msg })
+    // console.log("historicalMessagesObject", historicalMessagesObject)
+    // const ch = await this.chat.getChannel("123")
+    // await ch!.sendText("Tex20", { rootMessage: msg })
+    await this.channel.sendText("Text1303", { rootMessage: msg })
 
     if (msg.threadRootId) {
       const thread = await msg.getThread()
       const threadMessages = await thread!.getHistory()
+
+      console.log("threadMessages", threadMessages)
+      // await this.channel.sendText("Text1303", { rootMessage: threadMessages.messages[0] })
       // console.log("threadMessages", threadMessages)
       // const c = await this.chat.getChannel(threadMessages.messages[0].channelId)
       // await c!.sendText("whatever", { rootMessage: threadMessages.messages[0] })
@@ -97,7 +101,7 @@ export class MessageListComponentChat {
   }
 
   async pinThreadMessage(message: ThreadMessage) {
-    await message.pin()
+    await message.pinToParentChannel()
   }
 
   async loadThreadMessages(message: Message) {

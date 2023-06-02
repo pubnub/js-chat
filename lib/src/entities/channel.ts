@@ -11,6 +11,9 @@ import { SendTextOptionParams, DeleteParameters, ChannelDTOParams } from "../typ
 import { Membership } from "./membership"
 import { User } from "./user"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
+import { ThreadMessage } from "./thread-message"
+import { getPhraseToLookFor } from "../mentions-utils"
+import { KeyValueCache } from "../key-value-cache"
 
 export type ChannelFields = Pick<
   Channel,
@@ -27,6 +30,8 @@ export class Channel {
   readonly status?: string
   readonly type?: string
   /** @internal */
+  private suggestedNamesCache: KeyValueCache<Membership[]>
+  /** @internal */
   private disconnect?: () => void
   /** @internal */
   private typingSent = false
@@ -39,6 +44,7 @@ export class Channel {
   constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
     this.id = params.id
+    this.suggestedNamesCache = new KeyValueCache<Membership[]>()
     Object.assign(this, params)
   }
 
@@ -127,6 +133,9 @@ export class Channel {
 
       if (options.rootMessage && this.isThreadRoot()) {
         throw "Only one level of thread nesting is allowed"
+      }
+      if (options.rootMessage && options.rootMessage instanceof ThreadMessage) {
+        throw "rootMessage should be an instance of Message"
       }
       if (options.rootMessage && options.rootMessage.channelId !== this.id) {
         throw "This 'rootMessage' you provided does not come from this channel"
@@ -360,6 +369,7 @@ export class Channel {
         customUUIDFields: true,
       },
     })
+    console.log("membersResponse", membersResponse)
 
     return {
       page: {
@@ -433,5 +443,37 @@ export class Channel {
       console.error(error)
       return null
     }
+  }
+
+  async getSuggestedChannelMembers(phrase: string, options: { limit: number } = { limit: 10 }) {
+    if (phrase.length < 3) {
+      throw "The provided phrase must be at least 3 characters long"
+    }
+
+    return await this.getMembers({
+      filter: `uuid.name LIKE "${phrase}*"`,
+      limit: options.limit,
+    })
+  }
+
+  async getSuggestedChannelMembersOnChange(
+    text: string,
+    options: { limit: number } = { limit: 10 }
+  ) {
+    const cacheKey = getPhraseToLookFor(text)
+
+    if (!cacheKey) {
+      return []
+    }
+
+    if (this.suggestedNamesCache.getRecord(cacheKey)) {
+      return this.suggestedNamesCache.getRecord(cacheKey)
+    }
+
+    const response = await this.getSuggestedChannelMembers(cacheKey, options)
+
+    this.suggestedNamesCache.setNewRecord(cacheKey, response.members)
+
+    return this.suggestedNamesCache.getRecord(cacheKey)
   }
 }
