@@ -129,36 +129,49 @@ export class Channel {
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
+      const { meta, mentionedUsers, rootMessage, ...rest } = options
       let channelIdToSend = this.id
+      let combinedMeta: { [key: string]: any } = {}
 
-      if (options.rootMessage && this.isThreadRoot()) {
+      if (mentionedUsers && mentionedUsers.length) {
+        combinedMeta.mentionedUserIds = mentionedUsers.map((u) => u.id)
+      }
+      if (meta) {
+        combinedMeta = {
+          ...combinedMeta,
+          ...meta,
+        }
+      }
+
+      if (rootMessage && this.isThreadRoot()) {
         throw "Only one level of thread nesting is allowed"
       }
-      if (options.rootMessage && options.rootMessage instanceof ThreadMessage) {
+      if (rootMessage && rootMessage instanceof ThreadMessage) {
         throw "rootMessage should be an instance of Message"
       }
-      if (options.rootMessage && options.rootMessage.channelId !== this.id) {
+      if (rootMessage && rootMessage.channelId !== this.id) {
         throw "This 'rootMessage' you provided does not come from this channel"
       }
 
-      if (options.rootMessage) {
-        channelIdToSend = this.chat.getThreadId(this.id, options.rootMessage.timetoken)
+      if (rootMessage) {
+        channelIdToSend = this.chat.getThreadId(this.id, rootMessage.timetoken)
 
-        if (!options.rootMessage.threadRootId) {
+        if (!rootMessage.threadRootId) {
           await Promise.all([
-            this.markMessageAsThreadRoot(options.rootMessage.timetoken),
-            this.chat.createThread(this.id, options.rootMessage.timetoken),
+            this.markMessageAsThreadRoot(rootMessage.timetoken),
+            this.chat.createThread(this.id, rootMessage.timetoken),
           ])
         }
       }
 
       return await this.chat.sdk.publish({
+        ...rest,
         channel: channelIdToSend,
         message: {
           type: "text",
           text,
         },
-        ...options,
+        meta: Object.keys(combinedMeta).length ? combinedMeta : undefined,
       })
     } catch (error) {
       throw error
