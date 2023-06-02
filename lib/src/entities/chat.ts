@@ -520,7 +520,11 @@ export class Chat {
     }
   }
 
-  async getSuggestedGlobalUsers(phrase: string, options: { limit: number } = { limit: 10 }) {
+  /** @internal */
+  private async getSuggestedGlobalUsers(
+    phrase: string,
+    options: { limit: number } = { limit: 10 }
+  ) {
     if (phrase.length < 3) {
       throw "The provided phrase must be at least 3 characters long"
     }

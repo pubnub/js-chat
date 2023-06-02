@@ -369,7 +369,6 @@ export class Channel {
         customUUIDFields: true,
       },
     })
-    console.log("membersResponse", membersResponse)
 
     return {
       page: {
@@ -445,7 +444,11 @@ export class Channel {
     }
   }
 
-  async getSuggestedChannelMembers(phrase: string, options: { limit: number } = { limit: 10 }) {
+  /** @internal */
+  private async getSuggestedChannelMembers(
+    phrase: string,
+    options: { limit: number } = { limit: 10 }
+  ) {
     if (phrase.length < 3) {
       throw "The provided phrase must be at least 3 characters long"
     }
