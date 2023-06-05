@@ -230,12 +230,9 @@ describe("Channel test", () => {
     const user1 =
       (await chat.getUser(user1Id)) || (await chat.createUser(user1Id, { name: "Test User 1" }))
 
-    const user2Id = "testUser2"
-    ;(await chat.getUser(user2Id)) || (await chat.createUser(user2Id, { name: "Test User 2" }))
-
     const channelData = {
       name: "Direct Conversation",
-      description: "Direct conversation between Test User 1 and Test User 2",
+      description: "Direct conversation for Test User 1",
     }
 
     const directConversation = await chat.createDirectConversation({
@@ -245,9 +242,7 @@ describe("Channel test", () => {
 
     expect(directConversation).toBeDefined()
 
-    // chat.setChatUser(user1)
-
-    const messageText = "Hello User2"
+    const messageText = "Hello from User1"
 
     await directConversation.channel.sendText(messageText)
 
@@ -275,17 +270,23 @@ describe("Channel test", () => {
 
     const messageText = "Test message"
 
-    const messageResult = await createdChannel.sendText(messageText)
+    await createdChannel.sendText(messageText)
 
-    const threadChannel = await chat.createThread(
-      createdChannel.id,
-      messageResult.timetoken.toString()
-    )
+    let messageInTheCreatedChannel = await createdChannel.getHistory()
 
-    expect(threadChannel).toBeDefined()
-    expect(threadChannel.parentChannelId).toEqual(createdChannel.id)
-    expect(threadChannel.description).toContain(createdChannel.id)
-    expect(threadChannel.description).toContain(messageResult.timetoken)
+    await createdChannel.sendText("Whatever text", {
+      rootMessage: messageInTheCreatedChannel.messages[0],
+    })
+
+    messageInTheCreatedChannel = await createdChannel.getHistory()
+
+    expect(messageInTheCreatedChannel.messages[0].threadRootId).toBeDefined()
+
+    const thread = await messageInTheCreatedChannel.messages[0].getThread()
+
+    const threadMessages = await thread.getHistory()
+
+    expect(threadMessages.messages[0].text).toContain("Whatever text")
   })
 
   test("should stream channel updates and invoke the callback", async () => {
