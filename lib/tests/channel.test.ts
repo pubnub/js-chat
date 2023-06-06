@@ -1,4 +1,4 @@
-import { Chat, Channel, User, Message } from "../src"
+import { Chat, Channel, User, Message, Membership } from "../src"
 import * as dotenv from "dotenv"
 import { initTestChat, createRandomUserId } from "./testUtils"
 
@@ -230,12 +230,9 @@ describe("Channel test", () => {
     const user1 =
       (await chat.getUser(user1Id)) || (await chat.createUser(user1Id, { name: "Test User 1" }))
 
-    const user2Id = "testUser2"
-    ;(await chat.getUser(user2Id)) || (await chat.createUser(user2Id, { name: "Test User 2" }))
-
     const channelData = {
       name: "Direct Conversation",
-      description: "Direct conversation between Test User 1 and Test User 2",
+      description: "Direct conversation for Test User 1",
     }
 
     const directConversation = await chat.createDirectConversation({
@@ -245,9 +242,7 @@ describe("Channel test", () => {
 
     expect(directConversation).toBeDefined()
 
-    chat.setChatUser(user1)
-
-    const messageText = "Hello User2"
+    const messageText = "Hello from User1"
 
     await directConversation.channel.sendText(messageText)
 
@@ -258,5 +253,105 @@ describe("Channel test", () => {
     )
     expect(messageInHistory).toBeTruthy()
   })
+
+  test("should create a thread", async () => {
+    jest.retryTimes(3)
+
+    const channelId = createRandomUserId()
+    const channelName = "Test Channel"
+    const channelDescription = "This is a test channel"
+
+    const channelData = {
+      name: channelName,
+      description: channelDescription,
+    }
+
+    const createdChannel = await chat.createChannel(channelId, channelData)
+
+    const messageText = "Test message"
+
+    await createdChannel.sendText(messageText)
+
+    let messageInTheCreatedChannel = await createdChannel.getHistory()
+
+    await createdChannel.sendText("Whatever text", {
+      rootMessage: messageInTheCreatedChannel.messages[0],
+    })
+
+    messageInTheCreatedChannel = await createdChannel.getHistory()
+
+    expect(messageInTheCreatedChannel.messages[0].threadRootId).toBeDefined()
+
+    const thread = await messageInTheCreatedChannel.messages[0].getThread()
+
+    const threadMessages = await thread.getHistory()
+
+    expect(threadMessages.messages[0].text).toContain("Whatever text")
+  })
+
+  test("should stream channel updates and invoke the callback", async () => {
+    const channel1Id = `channel1_${Date.now()}`
+    const channel2Id = `channel2_${Date.now()}`
+
+    const channel1 = await chat.createChannel(channel1Id, {})
+    const channel2 = await chat.createChannel(channel2Id, {})
+
+    const channels = [channel1, channel2]
+
+    const callback = jest.fn((updatedChannels) => {
+      expect(updatedChannels).toEqual(channels)
+
+      Promise.all(channels.map((channel) => channel.delete())).catch((error) => {
+        throw error
+      })
+    })
+
+    const unsubscribe = Channel.streamUpdatesOn(channels, callback)
+
+    await Promise.all(channels.map((channel) => channel.update({ name: "Updated Name" })))
+
+    await new Promise((resolve) => setTimeout(resolve, 5000))
+
+    unsubscribe()
+  }, 10000)
+
+  test("should stream membership updates and invoke the callback", async () => {
+    const channel1Id = `channel1_${Date.now()}`
+    const channel2Id = `channel2_${Date.now()}`
+
+    const channel1 = await chat.createChannel(channel1Id, {})
+    const channel2 = await chat.createChannel(channel2Id, {})
+
+    const channels = [channel1, channel2]
+
+    const callback = jest.fn((updatedMemberships) => {
+      expect(updatedMemberships).toEqual(memberships)
+
+      Promise.all(channels.map((channel) => channel.delete())).catch((error) => {
+        throw error
+      })
+    })
+
+    const user1 = new User(chat, { id: "user1" })
+    const user2 = new User(chat, { id: "user2" })
+
+    const memberships = channels.map((channel) => {
+      const membershipData = {
+        channel,
+        user: channel === channel1 ? user1 : user2,
+        custom: null,
+      }
+      return new Membership(chat, membershipData)
+    })
+
+    const unsubscribe = Membership.streamUpdatesOn(memberships, callback)
+
+    await Promise.all(channels.map((channel) => channel.update({ name: "Updated Name" })))
+
+    await new Promise((resolve) => setTimeout(resolve, 5000))
+
+    unsubscribe()
+  }, 10000)
+
   jest.retryTimes(3)
 })
