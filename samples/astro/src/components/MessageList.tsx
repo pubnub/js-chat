@@ -8,9 +8,11 @@ export default function MessageList(props: {
   handleOpenThread?: (message: Message) => unknown
 }) {
   const [channel, setChannel] = useState<undefined | Channel>(props.channel)
+  const [membership, setMembership] = useState<undefined | Membership>()
   const [text, setText] = useState("")
   const [messages, setMessages] = useState<Message[]>([])
   const [editedMessage, setEditedMessage] = useState<Message>()
+  const [unreadCount, setUnreadCount] = useState(0)
 
   async function handleTextInput(e) {
     const newText = e.target.value
@@ -38,6 +40,11 @@ export default function MessageList(props: {
     setText("")
   }
 
+  async function handleMarkRead(message: Message) {
+    if (!membership) return
+    await membership.setLastReadMessage(message)
+  }
+
   async function handleEditMessage(message: Message) {
     setEditedMessage(message)
     setText(message.text)
@@ -55,11 +62,21 @@ export default function MessageList(props: {
     setMessages((msgs) => msgs.map((msg) => (msg.timetoken === newMsg.timetoken ? newMsg : msg)))
   }
 
+  async function getUnreadCount() {
+    if (!membership) return
+    const unreadCount = await membership.getUnreadMessagesCount()
+    setUnreadCount(unreadCount)
+  }
+
   async function setupMessages() {
     if (!channel) return
     const { messages } = await channel.getHistory()
     setMessages(messages)
-    channel.connect((msg) => setMessages((messages) => [...messages, msg]))
+    const membership = await channel.join((msg) => {
+      setMessages((messages) => [...messages, msg])
+      setUnreadCount((count) => count + 1)
+    })
+    setMembership(membership)
   }
 
   useEffect(() => {
@@ -77,17 +94,27 @@ export default function MessageList(props: {
     return ThreadMessage.streamUpdatesOn(messages, setMessages)
   }, [messages])
 
+  useEffect(() => {
+    if (!membership) return
+    getUnreadCount()
+    return membership.streamUpdates(async (membership) => {
+      setMembership(membership)
+      getUnreadCount()
+    })
+  })
+
   return (
     <>
       <label htmlFor="sendText">
         {props.rootMessage ? `Responding to:  ${props.rootMessage.text}` : "Type a message"}
       </label>
-      <div className="flex mb-6">
+      <div className="flex">
         <input type="text" name="sendText" value={text} onChange={handleTextInput} />
         <button className="ml-2 flex-none" onClick={handleSend}>
           {editedMessage ? "Update" : "Send"}
         </button>
       </div>
+      <p className="my-3">Unread count: {unreadCount}</p>
 
       <ul>
         {messages.map((message) => (
@@ -117,6 +144,16 @@ export default function MessageList(props: {
                   onClick={() => handleToggleReaction(message, "👎")}
                 >
                   👎
+                </button>
+                <button
+                  className={`py-0.5 px-2 ml-2 ${
+                    message.timetoken === membership?.lastReadMessageTimetoken
+                      ? "bg-accent focus:bg-accent text-white"
+                      : "bg-transparent focus:bg-transparent"
+                  }`}
+                  onClick={() => handleMarkRead(message)}
+                >
+                  R
                 </button>
                 {props.handleOpenThread ? (
                   <button
