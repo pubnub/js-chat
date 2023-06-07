@@ -134,7 +134,7 @@ export class Channel {
       let combinedMeta: { [key: string]: any } = {}
 
       if (mentionedUsers && mentionedUsers.length) {
-        combinedMeta.mentionedUserIds = mentionedUsers.map((u) => u.id)
+        combinedMeta.mentionedUserIds = [...new Set(mentionedUsers.map((u) => u.id))]
       }
       if (meta) {
         combinedMeta = {
