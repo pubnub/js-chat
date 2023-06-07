@@ -6,7 +6,7 @@ import { Message } from "./message"
 import { Membership } from "./membership"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadChannel } from "./thread-channel"
-import { KeyValueCache } from "../key-value-cache"
+import { KeyValueStore } from "../key-value-store"
 import { getPhraseToLookFor } from "../mentions-utils"
 
 type ChatConfig = {
@@ -25,7 +25,7 @@ export class Chat {
   /** @internal */
   private lastSavedActivityInterval?: ReturnType<typeof setInterval>
   /** @internal */
-  private suggestedNamesCache: KeyValueCache<User[]>
+  private suggestedNamesCache: KeyValueStore<User[]>
   /* @internal */
   private subscriptions: { [channel: string]: Set<string> }
 
@@ -44,7 +44,7 @@ export class Chat {
 
     this.sdk = new PubNub(pubnubConfig)
     this.subscriptions = {}
-    this.suggestedNamesCache = new KeyValueCache<User[]>()
+    this.suggestedNamesCache = new KeyValueStore<User[]>()
     this.config = {
       saveDebugLog: saveDebugLog || false,
       typingTimeout: typingTimeout || 5000,
@@ -520,24 +520,10 @@ export class Chat {
     }
   }
 
-  /** @internal */
-  private async getSuggestedGlobalUsers(
-    phrase: string,
+  async getSuggestedGlobalUsers(
+    text: string,
     options: { limit: number } = { limit: 10 }
-  ) {
-    if (phrase.length < 3) {
-      throw "The provided phrase must be at least 3 characters long"
-    }
-
-    const result = await this.sdk.objects.getAllUUIDMetadata({
-      filter: `name LIKE "${phrase}*"`,
-      limit: options.limit,
-    })
-
-    return result.data.map((u) => User.fromDTO(this, u))
-  }
-
-  async getSuggestedGlobalUsersOnChange(text: string, options: { limit: number } = { limit: 10 }) {
+  ): Promise<User[]> {
     const cacheKey = getPhraseToLookFor(text)
 
     if (!cacheKey) {
@@ -545,13 +531,16 @@ export class Chat {
     }
 
     if (this.suggestedNamesCache.getRecord(cacheKey)) {
-      return this.suggestedNamesCache.getRecord(cacheKey)
+      return this.suggestedNamesCache.getRecord(cacheKey) as User[]
     }
 
-    const response = await this.getSuggestedGlobalUsers(cacheKey, options)
+    const usersResponse = await this.getUsers({
+      filter: `name LIKE "${cacheKey}*"`,
+      limit: options.limit,
+    })
 
-    this.suggestedNamesCache.setNewRecord(cacheKey, response)
+    this.suggestedNamesCache.setNewRecord(cacheKey, usersResponse.users)
 
-    return this.suggestedNamesCache.getRecord(cacheKey)
+    return this.suggestedNamesCache.getRecord(cacheKey) as User[]
   }
 }

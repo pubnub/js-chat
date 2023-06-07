@@ -13,7 +13,7 @@ import { User } from "./user"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadMessage } from "./thread-message"
 import { getPhraseToLookFor } from "../mentions-utils"
-import { KeyValueCache } from "../key-value-cache"
+import { KeyValueStore } from "../key-value-store"
 
 export type ChannelFields = Pick<
   Channel,
@@ -30,7 +30,7 @@ export class Channel {
   readonly status?: string
   readonly type?: string
   /** @internal */
-  private suggestedNamesCache: KeyValueCache<Membership[]>
+  private suggestedNames: KeyValueStore<Membership[]>
   /** @internal */
   private disconnect?: () => void
   /** @internal */
@@ -44,7 +44,7 @@ export class Channel {
   constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
     this.id = params.id
-    this.suggestedNamesCache = new KeyValueCache<Membership[]>()
+    this.suggestedNames = new KeyValueStore<Membership[]>()
     Object.assign(this, params)
   }
 
@@ -457,39 +457,27 @@ export class Channel {
     }
   }
 
-  /** @internal */
-  private async getSuggestedChannelMembers(
-    phrase: string,
-    options: { limit: number } = { limit: 10 }
-  ) {
-    if (phrase.length < 3) {
-      throw "The provided phrase must be at least 3 characters long"
-    }
-
-    return await this.getMembers({
-      filter: `uuid.name LIKE "${phrase}*"`,
-      limit: options.limit,
-    })
-  }
-
-  async getSuggestedChannelMembersOnChange(
+  async getSuggestedChannelMembers(
     text: string,
     options: { limit: number } = { limit: 10 }
-  ) {
+  ): Promise<Membership[]> {
     const cacheKey = getPhraseToLookFor(text)
 
     if (!cacheKey) {
       return []
     }
 
-    if (this.suggestedNamesCache.getRecord(cacheKey)) {
-      return this.suggestedNamesCache.getRecord(cacheKey)
+    if (this.suggestedNames.getRecord(cacheKey)) {
+      return this.suggestedNames.getRecord(cacheKey) as Membership[]
     }
 
-    const response = await this.getSuggestedChannelMembers(cacheKey, options)
+    const membersResponse = await this.getMembers({
+      filter: `uuid.name LIKE "${cacheKey}*"`,
+      limit: options.limit,
+    })
 
-    this.suggestedNamesCache.setNewRecord(cacheKey, response.members)
+    this.suggestedNames.setNewRecord(cacheKey, membersResponse.members)
 
-    return this.suggestedNamesCache.getRecord(cacheKey)
+    return this.suggestedNames.getRecord(cacheKey) as Membership[]
   }
 }

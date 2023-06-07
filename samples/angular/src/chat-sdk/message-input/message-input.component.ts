@@ -15,10 +15,10 @@ export class MessageInputComponentChat {
   @Input() typingSent!: boolean
 
   async handleInput(text: string) {
-    const result = await this.chat.getSuggestedGlobalUsersOnChange(text)
+    const result = await this.chat.getSuggestedGlobalUsers(text)
     console.log("result", result)
     this.suggestedUsers = result
-    // const members = await this.channel.getSuggestedChannelMembersOnChange(text)
+    // const members = await this.channel.getSuggestedChannelMembers(text)
     // console.log("members", members)
     this.pubnubInput ? this.channel.startTyping() : this.channel.stopTyping()
   }
