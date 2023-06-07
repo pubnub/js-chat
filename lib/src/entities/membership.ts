@@ -1,6 +1,7 @@
 import { Chat } from "./chat"
 import PubNub, { ChannelMembershipObject, ObjectCustom, UUIDMembershipObject } from "pubnub"
 import { Channel } from "./channel"
+import { Message } from "./message"
 import { User } from "./user"
 
 export type MembershipFields = Pick<Membership, "channel" | "user" | "custom">
@@ -52,6 +53,7 @@ export class Membership {
   /** @internal */
   private async exists() {
     const membershipsResponse = await this.chat.sdk.objects.getMemberships({
+      uuid: this.user.id,
       filter: `channel.id == '${this.channel.id}'`,
     })
 
@@ -65,6 +67,7 @@ export class Membership {
         throw "No such membership exists"
       }
       const membershipsResponse = await this.chat.sdk.objects.setMemberships({
+        uuid: this.user.id,
         channels: [{ id: this.channel.id, custom }],
         include: {
           totalCount: true,
@@ -121,5 +124,39 @@ export class Membership {
 
   streamUpdates(callback: (membership: Membership) => unknown) {
     return Membership.streamUpdatesOn([this], (memberships) => callback(memberships[0]))
+  }
+
+  /*
+   * Undread message counts
+   */
+  get lastReadMessageTimetoken() {
+    return this.custom?.lastReadMessageTimetoken
+  }
+
+  async setLastReadMessage(message: Message) {
+    try {
+      return this.update({
+        custom: { ...this.custom, lastReadMessageTimetoken: message.timetoken },
+      })
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async getUnreadMessagesCount() {
+    try {
+      const timetoken = await this.lastReadMessageTimetoken
+      if (timetoken) {
+        const response = await this.chat.sdk.messageCounts({
+          channels: [this.channel.id],
+          channelTimetokens: [String(timetoken)],
+        })
+        return response.channels?.[this.channel.id]
+      } else {
+        return false
+      }
+    } catch (error) {
+      throw error
+    }
   }
 }
