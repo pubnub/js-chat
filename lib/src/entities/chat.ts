@@ -14,6 +14,7 @@ type ChatConfig = {
   typingTimeout: number
   storeUserActivityInterval: number
   storeUserActivityTimestamps: boolean
+  mentionedUserCallback: (userId: string, mentionedName: string) => any
 }
 
 type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
@@ -35,6 +36,7 @@ export class Chat {
       typingTimeout,
       storeUserActivityInterval,
       storeUserActivityTimestamps,
+      mentionedUserCallback,
       ...pubnubConfig
     } = params
 
@@ -50,6 +52,7 @@ export class Chat {
       typingTimeout: typingTimeout || 5000,
       storeUserActivityInterval: storeUserActivityInterval || 600000,
       storeUserActivityTimestamps: storeUserActivityTimestamps || false,
+      mentionedUserCallback: mentionedUserCallback || function(userId, mentionedName)  { return `<a href="https://pubnub.com/${userId}">${mentionedName}</a> ` },
     }
   }
 

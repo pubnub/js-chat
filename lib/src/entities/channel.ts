@@ -12,7 +12,7 @@ import { Membership } from "./membership"
 import { User } from "./user"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadMessage } from "./thread-message"
-import { getPhraseToLookFor } from "../mentions-utils"
+import { MentionsUtils } from "../mentions-utils"
 import { KeyValueStore } from "../key-value-store"
 
 export type ChannelFields = Pick<
@@ -129,19 +129,14 @@ export class Channel {
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
-      const { meta, mentionedUsers, rootMessage, ...rest } = options
+      const { mentionedUsers, rootMessage, ...rest } = options
+      let textToSend = text
       let channelIdToSend = this.id
-      let combinedMeta: { [key: string]: any } = {}
 
-      if (mentionedUsers && mentionedUsers.length) {
-        combinedMeta.mentionedUserIds = [...new Set(mentionedUsers.map((u) => u.id))]
+      if (mentionedUsers && MentionsUtils.areMentionedUsersInTextValid(text, mentionedUsers)) {
+        throw "mentioned users do not seem to match the ones from text"
       }
-      if (meta) {
-        combinedMeta = {
-          ...combinedMeta,
-          ...meta,
-        }
-      }
+      mentionedUsers && (textToSend = MentionsUtils.parseTextToAddUsers(text, mentionedUsers))
 
       if (rootMessage && this.isThreadRoot()) {
         throw "Only one level of thread nesting is allowed"
@@ -169,9 +164,8 @@ export class Channel {
         channel: channelIdToSend,
         message: {
           type: "text",
-          text,
+          text: textToSend,
         },
-        meta: Object.keys(combinedMeta).length ? combinedMeta : undefined,
       })
     } catch (error) {
       throw error
@@ -461,7 +455,7 @@ export class Channel {
     text: string,
     options: { limit: number } = { limit: 10 }
   ): Promise<Membership[]> {
-    const cacheKey = getPhraseToLookFor(text)
+    const cacheKey = MentionsUtils.getPhraseToLookFor(text)
 
     if (!cacheKey) {
       return []

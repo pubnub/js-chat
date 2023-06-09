@@ -58,7 +58,11 @@ export class MessageListComponentChat {
     // console.log("historicalMessagesObject", historicalMessagesObject)
     // const ch = await this.chat.getChannel("123")
     // await ch!.sendText("Tex20", { rootMessage: msg })
-    await this.channel.sendText("Text1303", { rootMessage: msg })
+
+
+
+    // await this.channel.sendText("Text1303", { rootMessage: msg })
+
 
     if (msg.threadRootId) {
       const thread = await msg.getThread()
