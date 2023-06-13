@@ -19,7 +19,7 @@ export class ThreadMessage extends Message {
       parentChannelId: params.parentChannelId,
       content: params.message,
       channelId: params.channel,
-      userId: "publisher" in params ? params.publisher : params.uuid,
+      userId: "publisher" in params ? params.publisher : params.uuid || "unknown-user",
       actions: "actions" in params ? params.actions : undefined,
       meta:
         "meta" in params ? params.meta : "userMetadata" in params ? params.userMetadata : undefined,
