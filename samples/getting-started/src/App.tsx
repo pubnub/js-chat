@@ -25,8 +25,7 @@ export default function App() {
   async function handleMessage(message: Message) {
     if (chat && !users.find((user) => user.id === message.userId)) {
       const user = await chat.getUser(message.userId)
-      if (!user) return
-      setUsers((users) => [...users, user])
+      if (user) setUsers((users) => [...users, user])
     }
     setMessages((messages) => [...messages, message])
   }
@@ -62,7 +61,7 @@ export default function App() {
     initalizeChat()
   }, [])
 
-  if (!chat || !channel) return "Loading..."
+  if (!chat || !channel) return <p>Loading...</p>
 
   return (
     <main>
