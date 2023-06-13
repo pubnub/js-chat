@@ -353,5 +353,27 @@ describe("Channel test", () => {
     unsubscribe()
   }, 10000)
 
+  test("should get unread messages count", async () => {
+    jest.retryTimes(3)
+
+    const messageText1 = "Test message 1"
+    const messageText2 = "Test message 2"
+
+    if (channel) {
+      await channel.sendText(messageText1)
+      await channel.sendText(messageText2)
+
+      const membership = await channel.join((message) => {
+        // Handle received messages
+      })
+
+      const unreadCount = await membership.getUnreadMessagesCount()
+
+      expect(unreadCount).toBe(2)
+    } else {
+      expect(channel).not.toBeNull()
+    }
+  })
+
   jest.retryTimes(3)
 })

@@ -3,6 +3,7 @@ import { Chat } from "../src"
 import { Channel } from "../src"
 import * as dotenv from "dotenv"
 import { nanoid } from "nanoid"
+import { User } from "../src"
 
 dotenv.config()
 
@@ -31,6 +32,18 @@ export const initTestChannel = async (
   }
 
   return channel
+}
+
+export const initTestUser = async (chat: Chat, userId = createRandomUserId()): Promise<User> => {
+  let user = await chat.getUser(userId)
+
+  if (!user) {
+    user = await chat.createUser(userId, {
+      name: "Test User",
+    })
+  }
+
+  return user
 }
 
 export const waitForAllMessagesToBeDelivered = async (
