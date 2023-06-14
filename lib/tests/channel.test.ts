@@ -1,6 +1,6 @@
 import { Chat, Channel, User, Message, Membership } from "../src"
 import * as dotenv from "dotenv"
-import { initTestChat, createRandomUserId } from "./testUtils"
+import { initTestChat, createRandomUserId, extractMentionedUserIds } from "./testUtils"
 
 dotenv.config()
 
@@ -57,6 +57,41 @@ describe("Channel test", () => {
     const isDeleted = await createdChannel.delete(deleteOptions)
 
     expect(isDeleted).toBeTruthy()
+  })
+
+  test("should create a thread", async () => {
+    jest.retryTimes(3)
+
+    const channelId = createRandomUserId()
+    const channelName = "Test Channel"
+    const channelDescription = "This is a test channel"
+
+    const channelData = {
+      name: channelName,
+      description: channelDescription,
+    }
+
+    const createdChannel = await chat.createChannel(channelId, channelData)
+
+    const messageText = "Test message"
+
+    await createdChannel.sendText(messageText)
+
+    let messageInTheCreatedChannel = await createdChannel.getHistory()
+
+    await createdChannel.sendText("Whatever text", {
+      rootMessage: messageInTheCreatedChannel.messages[0],
+    })
+
+    messageInTheCreatedChannel = await createdChannel.getHistory()
+
+    expect(messageInTheCreatedChannel.messages[0].threadRootId).toBeDefined()
+
+    const thread = await messageInTheCreatedChannel.messages[0].getThread()
+
+    const threadMessages = await thread.getHistory()
+
+    expect(threadMessages.messages[0].text).toContain("Whatever text")
   })
 
   test("should get channel history", async () => {
@@ -254,41 +289,6 @@ describe("Channel test", () => {
     expect(messageInHistory).toBeTruthy()
   })
 
-  test("should create a thread", async () => {
-    jest.retryTimes(3)
-
-    const channelId = createRandomUserId()
-    const channelName = "Test Channel"
-    const channelDescription = "This is a test channel"
-
-    const channelData = {
-      name: channelName,
-      description: channelDescription,
-    }
-
-    const createdChannel = await chat.createChannel(channelId, channelData)
-
-    const messageText = "Test message"
-
-    await createdChannel.sendText(messageText)
-
-    let messageInTheCreatedChannel = await createdChannel.getHistory()
-
-    await createdChannel.sendText("Whatever text", {
-      rootMessage: messageInTheCreatedChannel.messages[0],
-    })
-
-    messageInTheCreatedChannel = await createdChannel.getHistory()
-
-    expect(messageInTheCreatedChannel.messages[0].threadRootId).toBeDefined()
-
-    const thread = await messageInTheCreatedChannel.messages[0].getThread()
-
-    const threadMessages = await thread.getHistory()
-
-    expect(threadMessages.messages[0].text).toContain("Whatever text")
-  })
-
   test("should stream channel updates and invoke the callback", async () => {
     const channel1Id = `channel1_${Date.now()}`
     const channel2Id = `channel2_${Date.now()}`
@@ -352,6 +352,67 @@ describe("Channel test", () => {
 
     unsubscribe()
   }, 10000)
+
+  test("should get unread messages count", async () => {
+    jest.retryTimes(3)
+
+    const messageText1 = "Test message 1"
+    const messageText2 = "Test message 2"
+
+    if (channel) {
+      await channel.sendText(messageText1)
+      await channel.sendText(messageText2)
+
+      const membership = await channel.join((message) => {
+        // Handle received messages
+      })
+
+      const unreadCount = await membership.getUnreadMessagesCount()
+
+      expect(unreadCount).toBe(2)
+    } else {
+      expect(channel).not.toBeNull()
+    }
+  })
+
+  test("should mention users in a message and validate mentioned users", async () => {
+    jest.retryTimes(3)
+
+    const channelId = createRandomUserId()
+    const channelData = {
+      name: "Test Channel",
+      description: "This is a test channel",
+    }
+    const createdChannel = await chat.createChannel(channelId, channelData)
+
+    const user1Id = `user1_${Date.now()}`
+    const user1 = await chat.createUser(user1Id, { name: "User 1" })
+
+    const user2Id = `user2_${Date.now()}`
+    const user2 = await chat.createUser(user2Id, { name: "User 2" })
+
+    const messageText = `Hello, @${user1.id} and @${user2.id} here is my mail test@pubnub.com`
+
+    await createdChannel.sendText(messageText)
+
+    const history = await createdChannel.getHistory()
+
+    const messageInHistory = history.messages.find(
+      (message: any) => message.content.text === messageText
+    )
+
+    expect(messageInHistory).toBeDefined()
+
+    const mentionedUserIds = extractMentionedUserIds(messageText)
+    const mentionedUsers = [user1, user2].filter((user) => mentionedUserIds.includes(user.id))
+
+    expect(mentionedUsers.length).toBe(2)
+    expect(mentionedUsers[0].id).toBe(user1.id)
+    expect(mentionedUsers[1].id).toBe(user2.id)
+
+    await chat.deleteUser(user1.id)
+    await chat.deleteUser(user2.id)
+  })
 
   jest.retryTimes(3)
 })
