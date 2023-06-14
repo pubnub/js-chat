@@ -1,13 +1,11 @@
 import { Chat } from "./chat"
 import PubNub from "pubnub"
 import { MessageActionType, MessageActions, DeleteParameters, MessageDTOParams } from "../types"
-import { MentionsUtils } from "../mentions-utils";
+import { MentionsUtils } from "../mentions-utils"
 
 export type MessageContent = {
   type: "text"
   text: string
-  linkedText: string
-  rawText: string
 }
 
 export type MessageFields = Pick<
@@ -128,31 +126,11 @@ export class Message {
   get text() {
     const type = MessageActionType.EDITED
     const edits = this.actions?.[type]
-    if (!edits) return MentionsUtils.getLinkedText({ text: this.content.text, userCallback: (_, mentionedName) => mentionedName })
-    const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
-    const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
-
-    return MentionsUtils.getLinkedText({ text: lastEdit.value, userCallback: (_, mentionedName) => mentionedName })
-  }
-
-  get rawText() {
-    const type = MessageActionType.EDITED
-    const edits = this.actions?.[type]
     if (!edits) return this.content.text
     const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
     const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
 
     return lastEdit.value
-  }
-
-  get linkedText() {
-    const type = MessageActionType.EDITED
-    const edits = this.actions?.[type]
-    if (!edits) return MentionsUtils.getLinkedText({ text: this.content.text, userCallback: this.chat.config.mentionedUserCallback })
-    const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
-    const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
-
-    return MentionsUtils.getLinkedText({ text: lastEdit.value, userCallback: this.chat.config.mentionedUserCallback })
   }
 
   async editText(newText: string) {

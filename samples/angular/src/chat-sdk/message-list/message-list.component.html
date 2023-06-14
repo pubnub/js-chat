@@ -7,7 +7,8 @@
         </div>
         <div *ngFor="let message of messages">
             <div class="message-row">
-                <p [innerHtml]="message.linkedText">
+                <p>
+                    {{ message.text }}
                 </p>
                 <div class="message-row__forward-icon__container" (click)="forwardMessage(message)">
                     <img src="assets/forwardIcon.png" class="message-row__forward-icon" />

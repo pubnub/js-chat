@@ -13,7 +13,6 @@ import { User } from "./user"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadMessage } from "./thread-message"
 import { MentionsUtils } from "../mentions-utils"
-import { KeyValueStore } from "../key-value-store"
 
 export type ChannelFields = Pick<
   Channel,
@@ -30,7 +29,7 @@ export class Channel {
   readonly status?: string
   readonly type?: string
   /** @internal */
-  private suggestedNames: KeyValueStore<Membership[]>
+  private suggestedNames: Map<string, Membership[]>
   /** @internal */
   private disconnect?: () => void
   /** @internal */
@@ -44,7 +43,7 @@ export class Channel {
   constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
     this.id = params.id
-    this.suggestedNames = new KeyValueStore<Membership[]>()
+    this.suggestedNames = new Map()
     Object.assign(this, params)
   }
 
@@ -129,14 +128,8 @@ export class Channel {
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
-      const { mentionedUsers, rootMessage, ...rest } = options
-      let textToSend = text
+      const { rootMessage, ...rest } = options
       let channelIdToSend = this.id
-
-      if (mentionedUsers && MentionsUtils.areMentionedUsersInTextValid(text, mentionedUsers)) {
-        throw "mentioned users do not seem to match the ones from text"
-      }
-      mentionedUsers && (textToSend = MentionsUtils.parseTextToAddUsers(text, mentionedUsers))
 
       if (rootMessage && this.isThreadRoot()) {
         throw "Only one level of thread nesting is allowed"
@@ -164,7 +157,7 @@ export class Channel {
         channel: channelIdToSend,
         message: {
           type: "text",
-          text: textToSend,
+          text,
         },
       })
     } catch (error) {
@@ -461,8 +454,8 @@ export class Channel {
       return []
     }
 
-    if (this.suggestedNames.getRecord(cacheKey)) {
-      return this.suggestedNames.getRecord(cacheKey) as Membership[]
+    if (this.suggestedNames.get(cacheKey)) {
+      return this.suggestedNames.get(cacheKey) as Membership[]
     }
 
     const membersResponse = await this.getMembers({
@@ -470,8 +463,8 @@ export class Channel {
       limit: options.limit,
     })
 
-    this.suggestedNames.setNewRecord(cacheKey, membersResponse.members)
+    this.suggestedNames.set(cacheKey, membersResponse.members)
 
-    return this.suggestedNames.getRecord(cacheKey) as Membership[]
+    return this.suggestedNames.get(cacheKey) as Membership[]
   }
 }
