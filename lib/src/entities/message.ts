@@ -1,7 +1,6 @@
 import { Chat } from "./chat"
 import PubNub from "pubnub"
 import { MessageActionType, MessageActions, DeleteParameters, MessageDTOParams } from "../types"
-import { MentionsUtils } from "../mentions-utils"
 
 export type MessageContent = {
   type: "text"
