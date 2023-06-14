@@ -7,7 +7,7 @@ import { Membership } from "./membership"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadChannel } from "./thread-channel"
 import { KeyValueStore } from "../key-value-store"
-import { getPhraseToLookFor } from "../mentions-utils"
+import { MentionsUtils } from "../mentions-utils"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -52,7 +52,11 @@ export class Chat {
       typingTimeout: typingTimeout || 5000,
       storeUserActivityInterval: storeUserActivityInterval || 600000,
       storeUserActivityTimestamps: storeUserActivityTimestamps || false,
-      mentionedUserCallback: mentionedUserCallback || function(userId, mentionedName)  { return `<a href="https://pubnub.com/${userId}">${mentionedName}</a> ` },
+      mentionedUserCallback:
+        mentionedUserCallback ||
+        function (userId, mentionedName) {
+          return `<a href="https://pubnub.com/${userId}">${mentionedName}</a> `
+        },
     }
   }
 
@@ -527,7 +531,7 @@ export class Chat {
     text: string,
     options: { limit: number } = { limit: 10 }
   ): Promise<User[]> {
-    const cacheKey = getPhraseToLookFor(text)
+    const cacheKey = MentionsUtils.getPhraseToLookFor(text)
 
     if (!cacheKey) {
       return []
