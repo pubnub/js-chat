@@ -1,7 +1,31 @@
 <div class="message-input">
     <h1>Message Input</h1>
-    <input type="text" [(ngModel)]="pubnubInput" (ngModelChange)="handleInput()" />
+    <ul *ngIf="suggestedUsers.length">
+        <li *ngFor="let user of suggestedUsers">
+            <div>
+                <span>{{ user.id }}</span>
+                <span>---</span>
+                <span>{{ user.name }}</span>
+                <button (click)="toggleUserToNotify(user)">Add this user to users to be notified</button>
+            </div>
+        </li>
+    </ul>
+    <div *ngIf="!suggestedUsers.length">
+        <span>No user suggestions using this phrase</span>
+    </div>
+    <input type="text" [(ngModel)]="pubnubInput" (ngModelChange)="handleInput($event)" />
     <button (click)="handleSend()">
         Send
     </button>
+    <h4>Users to notify:</h4>
+    <ul *ngIf="usersToNotify.length">
+        <li *ngFor="let user of usersToNotify">
+            <div>
+                <span>{{ user.id }}</span>
+                <span>---</span>
+                <span>{{ user.name }}</span>
+                <button (click)="toggleUserToNotify(user)">Remove this user from users to notify</button>
+            </div>
+        </li>
+    </ul>
 </div>

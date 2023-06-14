@@ -11,6 +11,8 @@ import { SendTextOptionParams, DeleteParameters, ChannelDTOParams } from "../typ
 import { Membership } from "./membership"
 import { User } from "./user"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
+import { ThreadMessage } from "./thread-message"
+import { MentionsUtils } from "../mentions-utils"
 
 export type ChannelFields = Pick<
   Channel,
@@ -27,6 +29,8 @@ export class Channel {
   readonly status?: string
   readonly type?: string
   /** @internal */
+  private suggestedNames: Map<string, Membership[]>
+  /** @internal */
   private disconnect?: () => void
   /** @internal */
   private typingSent = false
@@ -39,6 +43,7 @@ export class Channel {
   constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
     this.id = params.id
+    this.suggestedNames = new Map()
     Object.assign(this, params)
   }
 
@@ -123,33 +128,37 @@ export class Channel {
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
+      const { rootMessage, ...rest } = options
       let channelIdToSend = this.id
 
-      if (options.rootMessage && this.isThreadRoot()) {
+      if (rootMessage && this.isThreadRoot()) {
         throw "Only one level of thread nesting is allowed"
       }
-      if (options.rootMessage && options.rootMessage.channelId !== this.id) {
+      if (rootMessage && rootMessage instanceof ThreadMessage) {
+        throw "rootMessage should be an instance of Message"
+      }
+      if (rootMessage && rootMessage.channelId !== this.id) {
         throw "This 'rootMessage' you provided does not come from this channel"
       }
 
-      if (options.rootMessage) {
-        channelIdToSend = this.chat.getThreadId(this.id, options.rootMessage.timetoken)
+      if (rootMessage) {
+        channelIdToSend = this.chat.getThreadId(this.id, rootMessage.timetoken)
 
-        if (!options.rootMessage.threadRootId) {
+        if (!rootMessage.threadRootId) {
           await Promise.all([
-            this.markMessageAsThreadRoot(options.rootMessage.timetoken),
-            this.chat.createThread(this.id, options.rootMessage.timetoken),
+            this.markMessageAsThreadRoot(rootMessage.timetoken),
+            this.chat.createThread(this.id, rootMessage.timetoken),
           ])
         }
       }
 
       return await this.chat.sdk.publish({
+        ...rest,
         channel: channelIdToSend,
         message: {
           type: "text",
           text,
         },
-        ...options,
       })
     } catch (error) {
       throw error
@@ -433,5 +442,29 @@ export class Channel {
       console.error(error)
       return null
     }
+  }
+
+  async getSuggestedChannelMembers(
+    text: string,
+    options: { limit: number } = { limit: 10 }
+  ): Promise<Membership[]> {
+    const cacheKey = MentionsUtils.getPhraseToLookFor(text)
+
+    if (!cacheKey) {
+      return []
+    }
+
+    if (this.suggestedNames.get(cacheKey)) {
+      return this.suggestedNames.get(cacheKey) as Membership[]
+    }
+
+    const membersResponse = await this.getMembers({
+      filter: `uuid.name LIKE "${cacheKey}*"`,
+      limit: options.limit,
+    })
+
+    this.suggestedNames.set(cacheKey, membersResponse.members)
+
+    return this.suggestedNames.get(cacheKey) as Membership[]
   }
 }

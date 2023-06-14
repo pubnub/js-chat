@@ -16,7 +16,7 @@
     <div>
       <p>PubNub initialized with: {{ pubnub.getUUID() }}</p>
     </div>
-    <app-message-input-chat [typingSent]="typingSent" [channel]="stateService.currentChannel" />
+    <app-message-input-chat [typingSent]="typingSent" [channel]="stateService.currentChannel" [chat]="chat" />
     <app-typing-indicator-chat [channel]="stateService.currentChannel" />
     <app-message-list-chat [channel]="stateService.currentChannel" [chat]="chat" />
     <app-create-channel-modal-chat [chat]="chat" />
