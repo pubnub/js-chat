@@ -391,7 +391,7 @@ describe("Channel test", () => {
     const user2Id = `user2_${Date.now()}`
     const user2 = await chat.createUser(user2Id, { name: "User 2" })
 
-    const messageText = `Hello, @${user1.id} and @${user2.id}`
+    const messageText = `Hello, @${user1.id} and @${user2.id} here is my mail test@pubnub.com`
 
     await createdChannel.sendText(messageText)
 
