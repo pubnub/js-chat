@@ -1,6 +1,6 @@
 import { Chat, Channel, User, Message, Membership } from "../src"
 import * as dotenv from "dotenv"
-import { initTestChat, createRandomUserId } from "./testUtils"
+import { initTestChat, createRandomUserId, extractMentionedUserIds } from "./testUtils"
 
 dotenv.config()
 
@@ -374,5 +374,45 @@ describe("Channel test", () => {
       expect(channel).not.toBeNull()
     }
   })
+
+  test("should mention users in a message and validate mentioned users", async () => {
+    jest.retryTimes(3)
+
+    const channelId = createRandomUserId()
+    const channelData = {
+      name: "Test Channel",
+      description: "This is a test channel",
+    }
+    const createdChannel = await chat.createChannel(channelId, channelData)
+
+    const user1Id = `user1_${Date.now()}`
+    const user1 = await chat.createUser(user1Id, { name: "User 1" })
+
+    const user2Id = `user2_${Date.now()}`
+    const user2 = await chat.createUser(user2Id, { name: "User 2" })
+
+    const messageText = `Hello, @${user1.id} and @${user2.id}`
+
+    await createdChannel.sendText(messageText)
+
+    const history = await createdChannel.getHistory()
+
+    const messageInHistory = history.messages.find(
+      (message: any) => message.content.text === messageText
+    )
+
+    expect(messageInHistory).toBeDefined()
+
+    const mentionedUserIds = extractMentionedUserIds(messageText)
+    const mentionedUsers = [user1, user2].filter((user) => mentionedUserIds.includes(user.id))
+
+    expect(mentionedUsers.length).toBe(2)
+    expect(mentionedUsers[0].id).toBe(user1.id)
+    expect(mentionedUsers[1].id).toBe(user2.id)
+
+    await chat.deleteUser(user1.id)
+    await chat.deleteUser(user2.id)
+  })
+
   jest.retryTimes(3)
 })
