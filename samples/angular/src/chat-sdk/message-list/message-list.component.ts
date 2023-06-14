@@ -54,13 +54,14 @@ export class MessageListComponentChat {
       startTimetoken: this.messages?.[0]?.timetoken,
     })
     await this.getPinnedMessage(this.channel)
-    const msg = historicalMessagesObject.messages[0]
+    const msg = historicalMessagesObject.messages[1]
 
     const things = ["Rock", "Paper", "Scissor"]
     const thing = things[Math.floor(Math.random() * things.length)]
 
-    if (msg.threadRootId) {
+    if (msg.hasThread) {
       const thread = await msg.getThread()
+      this.getPinnedMessage(thread)
       thread.sendText(thing)
     } else {
       const thread = await msg.createThread()
@@ -99,7 +100,7 @@ export class MessageListComponentChat {
   }
 
   async loadThreadMessages(message: Message) {
-    if (!message.threadRootId) {
+    if (!message.hasThread) {
       return
     }
 

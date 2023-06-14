@@ -22,12 +22,12 @@ export class Message {
   readonly meta?: {
     [key: string]: any
   }
-  get threadRootId() {
+  get hasThread() {
     if (!this.actions?.["threadRootId"]) {
       return false
     }
 
-    return Object.keys(this.actions["threadRootId"])[0]
+    return !!Object.keys(this.actions["threadRootId"])[0]
   }
 
   /** @internal */
@@ -251,7 +251,7 @@ export class Message {
 
   /** @internal */
   private async deleteThread(params: DeleteParameters = {}) {
-    if (this.threadRootId) {
+    if (this.hasThread) {
       const thread = await this.getThread()
       await thread.delete(params)
     }
