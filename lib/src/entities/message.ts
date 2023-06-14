@@ -242,7 +242,11 @@ export class Message {
    * Threads
    */
   getThread() {
-    return this.chat.getThreadChannel(this.channelId, this.timetoken)
+    return this.chat.getThreadChannel(this)
+  }
+
+  createThread() {
+    return this.chat.createThreadChannel(this)
   }
 
   /** @internal */

@@ -26,9 +26,7 @@ export type DeleteParameters = {
   soft?: boolean
 }
 
-export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel"> & {
-  rootMessage?: Message
-}
+export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel">
 
 export type EnhancedMessageEvent = PubNub.MessageEvent & {
   userMetadata?: {

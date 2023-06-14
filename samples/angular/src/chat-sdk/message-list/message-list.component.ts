@@ -55,27 +55,17 @@ export class MessageListComponentChat {
     })
     await this.getPinnedMessage(this.channel)
     const msg = historicalMessagesObject.messages[0]
-    // console.log("historicalMessagesObject", historicalMessagesObject)
-    // const ch = await this.chat.getChannel("123")
-    // await ch!.sendText("Tex20", { rootMessage: msg })
 
-
-
-    // await this.channel.sendText("Text1303", { rootMessage: msg })
-
+    const things = ["Rock", "Paper", "Scissor"]
+    const thing = things[Math.floor(Math.random() * things.length)]
 
     if (msg.threadRootId) {
       const thread = await msg.getThread()
-      const threadMessages = await thread!.getHistory()
-
-      console.log("threadMessages", threadMessages)
-      // await this.channel.sendText("Text1303", { rootMessage: threadMessages.messages[0] })
-      // console.log("threadMessages", threadMessages)
-      // const c = await this.chat.getChannel(threadMessages.messages[0].channelId)
-      // await c!.sendText("whatever", { rootMessage: threadMessages.messages[0] })
+      thread.sendText(thing)
+    } else {
+      const thread = await msg.createThread()
+      thread.sendText(thing)
     }
-
-    // const pinnedMessage = await this.channel.getPinnedMessage()
 
     this.isPaginationEnd = !historicalMessagesObject.isMore
 
