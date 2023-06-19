@@ -269,24 +269,31 @@ describe("Channel test", () => {
     const createdChannel = await chat.createChannel(channelId, channelData)
 
     const messageText = "Test message"
-
     await createdChannel.sendText(messageText)
 
-    let messageInTheCreatedChannel = await createdChannel.getHistory()
+    let history = await createdChannel.getHistory()
+    let sentMessage = history.messages[0]
 
-    await createdChannel.sendText("Whatever text", {
-      rootMessage: messageInTheCreatedChannel.messages[0],
-    })
+    expect(sentMessage.hasThread).toBe(false)
 
-    messageInTheCreatedChannel = await createdChannel.getHistory()
+    if (!sentMessage.hasThread) {
+      await sentMessage.createThread()
+    }
 
-    expect(messageInTheCreatedChannel.messages[0].threadRootId).toBeDefined()
+    history = await createdChannel.getHistory()
+    sentMessage = history.messages[0]
 
-    const thread = await messageInTheCreatedChannel.messages[0].getThread()
+    expect(sentMessage.hasThread).toBe(true)
+
+    const thread = await sentMessage.getThread()
+    const threadText = "Whatever text"
+
+    // Use sendText in thread
+    await thread.sendText(threadText)
 
     const threadMessages = await thread.getHistory()
 
-    expect(threadMessages.messages[0].text).toContain("Whatever text")
+    expect(threadMessages.messages.some((message) => message.text === threadText)).toBe(true)
   })
 
   test("should stream channel updates and invoke the callback", async () => {
