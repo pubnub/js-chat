@@ -45,6 +45,11 @@ export default function MessageList(props: {
     await membership.setLastReadMessage(message)
   }
 
+  async function handleReportMessage(message: Message) {
+    await message.report("Some app hard-coded reason")
+    alert("Message was reported")
+  }
+
   async function handleEditMessage(message: Message) {
     setEditedMessage(message)
     setText(message.text)
@@ -153,18 +158,21 @@ export default function MessageList(props: {
                   }`}
                   onClick={() => handleMarkRead(message)}
                 >
-                  R
+                  MR
+                </button>
+                <button className="py-0.5 px-2 ml-2" onClick={() => handleReportMessage(message)}>
+                  RP
                 </button>
                 {props.handleOpenThread ? (
                   <button
                     className="py-0.5 px-2 ml-2"
                     onClick={() => props.handleOpenThread(message)}
                   >
-                    T
+                    OT
                   </button>
                 ) : null}
                 <button className="py-0.5 px-2 ml-2" onClick={() => handleEditMessage(message)}>
-                  E
+                  ED
                 </button>
                 <button
                   className="py-0.5 px-2 ml-2"

@@ -7,7 +7,13 @@ import PubNub, {
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
-import { SendTextOptionParams, DeleteParameters, ChannelDTOParams } from "../types"
+import {
+  SendTextOptionParams,
+  DeleteParameters,
+  ChannelDTOParams,
+  MessageType,
+  TextMessageContent,
+} from "../types"
 import { Membership } from "./membership"
 import { User } from "./user"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
@@ -152,14 +158,11 @@ export class Channel {
         }
       }
 
-      return await this.chat.sdk.publish({
-        ...rest,
-        channel: channelIdToSend,
-        message: {
-          type: "text",
-          text,
-        },
-      })
+      const message: TextMessageContent = {
+        type: MessageType.TEXT,
+        text,
+      }
+      return await this.chat.publish({ ...rest, channel: channelIdToSend, message })
     } catch (error) {
       throw error
     }
@@ -177,7 +180,7 @@ export class Channel {
     return await this.chat.sdk.signal({
       channel: this.id,
       message: {
-        type: "typing",
+        type: MessageType.TYPING,
         value,
       },
     })
@@ -205,7 +208,7 @@ export class Channel {
       signal: (event: SignalEvent) => {
         const { channel, message, publisher } = event
         if (channel !== this.id) return
-        if (message.type !== "typing") return
+        if (message.type !== MessageType.TYPING) return
         const timer = this.typingIndicators.get(publisher)
 
         if (!message.value && timer) {
@@ -249,9 +252,7 @@ export class Channel {
   connect(callback: (message: Message) => void) {
     const listener = {
       message: (event: MessageEvent) => {
-        const { message, channel } = event
-        if (channel !== this.id) return
-        if (!["text"].includes(message.type)) return
+        if (event.channel !== this.id) return
         callback(Message.fromDTO(this.chat, event))
       },
     }

@@ -1,11 +1,15 @@
 import { Chat } from "./chat"
 import PubNub from "pubnub"
-import { MessageActionType, MessageActions, DeleteParameters, MessageDTOParams } from "../types"
-
-export type MessageContent = {
-  type: "text"
-  text: string
-}
+import {
+  MessageActionType,
+  MessageActions,
+  DeleteParameters,
+  MessageDTOParams,
+  MessageType,
+  TextMessageContent,
+  ReportMessageContent,
+} from "../types"
+import { INTERNAL_ADMIN_CHANNEL } from "../constants"
 
 export type MessageFields = Pick<
   Message,
@@ -15,7 +19,7 @@ export type MessageFields = Pick<
 export class Message {
   protected chat: Chat
   readonly timetoken: string
-  readonly content: MessageContent
+  readonly content: TextMessageContent | ReportMessageContent
   readonly channelId: string
   readonly userId?: string
   readonly actions?: MessageActions
@@ -28,6 +32,9 @@ export class Message {
     }
 
     return Object.keys(this.actions["threadRootId"])[0]
+  }
+  get type() {
+    return this.content.type
   }
 
   /** @internal */
@@ -236,6 +243,23 @@ export class Message {
     const channel = await this.chat.getChannel(this.channelId)
 
     await this.chat.pinMessageToChannel(this, channel!)
+  }
+
+  async report(reason: string) {
+    try {
+      const channel = INTERNAL_ADMIN_CHANNEL
+      const message: ReportMessageContent = {
+        type: MessageType.REPORT,
+        text: this.text,
+        reason,
+        reportedMessageChannelId: this.channelId,
+        reportedMessageTimetoken: this.timetoken,
+        reportedUserId: this.userId,
+      }
+      return await this.chat.publish({ message, channel })
+    } catch (error) {
+      throw error
+    }
   }
 
   /**
