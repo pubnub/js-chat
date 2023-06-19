@@ -371,6 +371,10 @@ export class Chat {
    */
   /** @internal */
   async forwardMessage(message: Message, channel: string) {
+    if (!channel) throw "Channel ID is required"
+    if (!message) throw "Message is required"
+    if (message.channelId === channel) throw "You cannot forward the message to the same channel"
+
     const meta = {
       ...(message.meta || {}),
       originalPublisher: message.userId,

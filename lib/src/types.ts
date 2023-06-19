@@ -30,7 +30,7 @@ export type ReportMessageContent = {
   reason: string
   reportedMessageTimetoken?: string
   reportedMessageChannelId?: string
-  reportedUserId: string
+  reportedUserId?: string
 }
 
 export type MessageActions = {
