@@ -223,37 +223,6 @@ describe("Channel test", () => {
     expect(updatedMembership2.custom?.role).toBe("member")
   })
 
-  test("should create direct conversation and send message", async () => {
-    jest.retryTimes(3)
-
-    const user1Id = "testUser1"
-    const user1 =
-      (await chat.getUser(user1Id)) || (await chat.createUser(user1Id, { name: "Test User 1" }))
-
-    const channelData = {
-      name: "Direct Conversation",
-      description: "Direct conversation for Test User 1",
-    }
-
-    const directConversation = await chat.createDirectConversation({
-      user: user1,
-      channelData: channelData,
-    })
-
-    expect(directConversation).toBeDefined()
-
-    const messageText = "Hello from User1"
-
-    await directConversation.channel.sendText(messageText)
-
-    const history = await directConversation.channel.getHistory()
-
-    const messageInHistory = history.messages.some(
-      (message: Message) => message.content.text === messageText
-    )
-    expect(messageInHistory).toBeTruthy()
-  })
-
   test("should create a thread", async () => {
     jest.retryTimes(3)
 
@@ -287,6 +256,37 @@ describe("Channel test", () => {
     const threadMessages = await thread.getHistory()
 
     expect(threadMessages.messages[0].text).toContain("Whatever text")
+  })
+
+  test("should create direct conversation and send message", async () => {
+    jest.retryTimes(3)
+
+    const user1Id = "testUser1"
+    const user1 =
+      (await chat.getUser(user1Id)) || (await chat.createUser(user1Id, { name: "Test User 1" }))
+
+    const channelData = {
+      name: "Direct Conversation",
+      description: "Direct conversation for Test User 1",
+    }
+
+    const directConversation = await chat.createDirectConversation({
+      user: user1,
+      channelData: channelData,
+    })
+
+    expect(directConversation).toBeDefined()
+
+    const messageText = "Hello from User1"
+
+    await directConversation.channel.sendText(messageText)
+
+    const history = await directConversation.channel.getHistory()
+
+    const messageInHistory = history.messages.some(
+      (message: Message) => message.content.text === messageText
+    )
+    expect(messageInHistory).toBeTruthy()
   })
 
   test("should stream channel updates and invoke the callback", async () => {
