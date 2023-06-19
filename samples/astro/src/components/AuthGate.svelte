@@ -14,8 +14,8 @@
         subscribeKey: import.meta.env.PUBLIC_SUB_KEY || "",
         publishKey: import.meta.env.PUBLIC_PUB_KEY || "",
         userId: $userIdAtom,
+        authKey: $authTokenAtom,
       })
-      chat.sdk.setToken($authTokenAtom)
       chatAtom.set(chat)
     }
   })()

@@ -1,4 +1,5 @@
 import { User } from "./entities/user";
+import { XmlParser } from "./xml-parser";
 
 export class MentionsUtils {
   static getPhraseToLookFor(text: string) {
@@ -18,37 +19,26 @@ export class MentionsUtils {
     return splitWords[0] + (splitWords[1] ? ` ${splitWords[1]}` : "")
   }
 
-  static areMentionedUsersInTextValid(text: string, mentionedUsers: User[]) {
-    const mentionedUsersFromTheText = text.split(" ").filter(word => word.startsWith("@"))
-
-    if (mentionedUsers.length !== mentionedUsersFromTheText.length) {
-      return false
-    }
-  }
-
   static getLinkedText({ text, userCallback }: { text: string, userCallback: (userId: string, mentionedName: string) => any }) {
-    const splitText = text.split(" ")
-    let concatenatedText = ""
-    let nextClosingTagIndex = 0
+    const pattern = /(<mentioned-user[^>]+>[^<]+<\/mentioned-user>)|(\b\w+\b)/g;
+    const matches = text.matchAll(pattern);
 
-    for (let i = 0; i < splitText.length; i++) {
-      const currentWord = splitText[i]
+    const result = [...matches].map(match => match[0]);
 
-      if (currentWord.startsWith("<mentioned-user")) {
-        nextClosingTagIndex = splitText.slice(i, splitText.length).findIndex(word => word.includes("</mentioned-user>"))
+    let finalResult = ""
 
-        const fullTag = splitText.slice(i, nextClosingTagIndex + i + 1).reduce((curr, acc) => curr + " " + acc, '').trim()
+    result.forEach(element => {
+      if (element.startsWith("<")) {
+        const xmlParser = new XmlParser()
+        const data = xmlParser.parseFromString(element)
 
-        const id = fullTag.replace("<mentioned-user", "").replace("</mentioned-user>", "").split('>@')[0].replace("id=", "").replaceAll('"', "").trim()
-
-        concatenatedText += userCallback(id, fullTag.replace(/(<([^>]+)>)/gi, ""))
-        i = nextClosingTagIndex + i
+        finalResult += `${userCallback(data.attributes.id, data.value)}`
       } else {
-        concatenatedText += `${currentWord} `
+        finalResult += `${element} `
       }
-    }
+    })
 
-    return concatenatedText.trim()
+    return finalResult
   }
 
   static parseTextToAddUsers(text: string, mentionedUsers: User[]) {

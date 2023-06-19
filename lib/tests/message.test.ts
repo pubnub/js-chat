@@ -164,5 +164,77 @@ describe("Send message test", () => {
     expect(mockMessage.toggleReaction).toHaveBeenCalledWith("like")
     expect(toggledMessage).toBe(sentMessage)
   }, 30000)
+
+  test("should pin the message", async () => {
+    jest.retryTimes(3)
+
+    if (!channel) {
+      throw new Error("Channel is undefined")
+    }
+
+    await channel.sendText("Test message")
+
+    const historyBeforePin = await channel.getHistory({ count: 100 })
+    const messagesBeforePin: Message[] = historyBeforePin.messages
+    const messageToPin = messagesBeforePin[messagesBeforePin.length - 1]
+
+    const pinnedChannel = await channel.pinMessage(messageToPin)
+
+    expect(pinnedChannel.custom?.["pinnedMessageTimetoken"]).toBe(messageToPin.timetoken)
+  }, 30000)
+
+  test("should unpin the message", async () => {
+    jest.retryTimes(3)
+
+    if (!channel) {
+      throw new Error("Channel is undefined")
+    }
+
+    await channel.sendText("Test message to be pinned and then unpinned")
+
+    const historyBeforePin = await channel.getHistory({ count: 100 })
+    const messagesBeforePin: Message[] = historyBeforePin.messages
+    const messageToPin = messagesBeforePin[messagesBeforePin.length - 1]
+
+    const pinnedChannel = await channel.pinMessage(messageToPin)
+    expect(pinnedChannel.custom?.["pinnedMessageTimetoken"]).toBe(messageToPin.timetoken)
+
+    const unpinnedChannel = await channel.unpinMessage()
+    expect(unpinnedChannel.custom?.["pinnedMessageTimetoken"]).toBeUndefined()
+  }, 30000)
+
+  test("should stream message updates and invoke the callback", async () => {
+    jest.retryTimes(3)
+
+    if (!channel) {
+      throw new Error("Channel is undefined")
+    }
+
+    await channel.sendText("Test message")
+
+    const historyBeforeEdit = await channel.getHistory({ count: 100 })
+    const messagesBeforeEdit: Message[] = historyBeforeEdit.messages
+    const sentMessage = messagesBeforeEdit[messagesBeforeEdit.length - 1]
+
+    const mockMessage: Partial<Message> = {
+      ...sentMessage,
+      editText: jest.fn().mockResolvedValue(sentMessage),
+    }
+
+    const editedMessage = await (mockMessage as Message).editText("Edited message")
+
+    expect(mockMessage.editText).toHaveBeenCalledWith("Edited message")
+
+    expect(editedMessage).toBe(sentMessage)
+
+    const unsubscribe = Message.streamUpdatesOn(messagesBeforeEdit, (updatedMessages) => {
+      const receivedMessage = updatedMessages.find((msg) => msg.timetoken === sentMessage.timetoken)
+      expect(receivedMessage).toEqual(editedMessage)
+      unsubscribe()
+    })
+
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+  }, 30000)
+
   jest.retryTimes(3)
 })

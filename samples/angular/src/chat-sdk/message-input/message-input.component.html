@@ -13,7 +13,7 @@
     <div *ngIf="!suggestedUsers.length">
         <span>No user suggestions using this phrase</span>
     </div>
-    <input type="text" [(ngModel)]="pubnubInput" (ngModelChange)="handleInput($event)" />
+    <input type="text" [(ngModel)]="pubnubInput" [value]="newMessage.value" (ngModelChange)="handleInput($event)" class="input" />
     <button (click)="handleSend()">
         Send
     </button>

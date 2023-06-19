@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from "react"
 import { useStore } from "@nanostores/react"
 import { chatAtom } from "../store"
 import { extractErrorMessage } from "./helpers"
-import { Channel, Message } from "@pubnub/chat"
+import { Channel, Message, ThreadChannel } from "@pubnub/chat"
+import MessageList from "./MessageList"
 
 const defaultGetAllState = {
   channels: [],
@@ -16,12 +17,11 @@ export default function () {
   const [updateForm, setUpdateForm] = useState({ id: "", name: "", description: "", status: "" })
   const [presence, setPresence] = useState<string[]>([])
   const [channel, setChannel] = useState<Channel>()
-  const [messages, setMessages] = useState<Message[]>([])
-  const [editingMessage, setEditingMessage] = useState<Message>()
+  const [respondingToMessage, setRespondingToMessage] = useState<Message>()
+  const [threadChannel, setThreadChannel] = useState<ThreadChannel>()
   const [allChannels, setAllChannels] = useState<Channel[]>([])
   const getAllRef = useRef(defaultGetAllState)
   const [input, setInput] = useState("")
-  const [textInput, setTextInput] = useState("")
   const [typingUserIds, setTypingUserIds] = useState<string[]>([])
   const [error, setError] = useState("")
 
@@ -52,11 +52,7 @@ export default function () {
     try {
       const channel = await chat.getChannel(input)
       setUpdateForm({ ...channel })
-      const { messages } = await channel?.getHistory()
-      setMessages(messages)
-      console.log("Channel history: ", messages)
       channel?.getTyping((userIds) => setTypingUserIds(userIds))
-      channel?.connect((msg) => setMessages((messages) => [...messages, msg]))
       setChannel(channel)
     } catch (e: any) {
       setError(extractErrorMessage(e))
@@ -118,51 +114,20 @@ export default function () {
     }
   }
 
-  async function handleTextInput(e) {
-    const newText = e.target.value
-    setTextInput(newText)
-    if (newText) await channel?.startTyping()
-    else await channel?.stopTyping()
-  }
-
-  async function handleSend() {
-    if (editingMessage) {
-      const edited = await editingMessage.editText(textInput)
-      setMessages((ls) => ls.map((msg) => (msg.timetoken === edited.timetoken ? edited : msg)))
-      setEditingMessage(null)
+  async function handleOpenThread(message: Message) {
+    setRespondingToMessage(message)
+    if (message.threadRootId) {
+      const channel = await message.getThread()
+      setThreadChannel(channel)
     } else {
-      await channel?.sendText(textInput)
+      setThreadChannel(null)
     }
-    setTextInput("")
-  }
-
-  async function handleDeleteMessage(message: Message, soft) {
-    const deleted = await message.delete({ soft })
-    if (deleted === true)
-      setMessages((messages) => messages.filter((msg) => message.timetoken !== msg.timetoken))
-    else setMessages((ls) => ls.map((msg) => (msg.timetoken === deleted.timetoken ? deleted : msg)))
-  }
-
-  async function handleEditMessage(message: Message) {
-    setEditingMessage(message)
-    setTextInput(message.text)
-  }
-
-  async function handleToggleReaction(message, reaction) {
-    const newMsg = await message.toggleReaction(reaction)
-    console.log("Message after reacting: ", newMsg)
-    setMessages((msgs) => msgs.map((msg) => (msg.timetoken === newMsg.timetoken ? newMsg : msg)))
   }
 
   useEffect(() => {
     if (!allChannels.length) return
     return Channel.streamUpdatesOn(allChannels, setAllChannels)
   }, [allChannels])
-
-  useEffect(() => {
-    if (!messages.length) return
-    return Message.streamUpdatesOn(messages, setMessages)
-  }, [messages])
 
   return (
     <>
@@ -275,7 +240,15 @@ export default function () {
 
       {channel ? (
         <>
-          <div className="grid lg:grid-cols-2 gap-8 mt-6">
+          <div className="grid lg:grid-cols-2 gap-8 mt-10">
+            <section>
+              <h3>Typing indicators</h3>
+              <p>
+                <b>Currently typing user ids: </b>
+                {typingUserIds.join(", ")}
+              </p>
+            </section>
+
             <section>
               <h3>Channel presence</h3>
               <button className="mb-3" onClick={handleGetPresence}>
@@ -288,91 +261,29 @@ export default function () {
             </section>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-8 mt-6">
+          <h3 className="mt-10">Text messages</h3>
+          <p className="mb-3">
+            R- Mark as read | T - Open thread | E - Edit | DS - Soft delete | DH - hard delete
+          </p>
+          <div className="grid lg:grid-cols-2 gap-8">
             <section>
-              <h3>Sending text messages</h3>
-              <label htmlFor="sendText">Type a message</label>
-              <div className="flex">
-                <input type="text" name="sendText" value={textInput} onChange={handleTextInput} />
-                <button className="ml-2 flex-none" onClick={handleSend}>
-                  Send
-                </button>
-              </div>
+              <MessageList channel={channel} handleOpenThread={handleOpenThread} />
             </section>
 
-            <section>
-              <h3>Typing indicators</h3>
-              <p>
-                <b>Currently typing user ids: </b>
-                {typingUserIds.join(", ")}
-              </p>
-            </section>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-8 mt-6">
-            <section>
-              <h3>Channel history</h3>
-              <ul>
-                {messages.map((msg) =>
-                  RenderMessage(msg, handleEditMessage, handleDeleteMessage, handleToggleReaction)
-                )}
-              </ul>
-            </section>
+            {respondingToMessage ? (
+              <section>
+                <MessageList
+                  channel={threadChannel}
+                  rootMessage={respondingToMessage}
+                  rootChannel={channel}
+                />
+              </section>
+            ) : null}
           </div>
         </>
       ) : (
         <p className="mt-6">Get a channel to unlock additional features</p>
       )}
     </>
-  )
-}
-
-function RenderMessage(
-  message: Message,
-  handleEditMessage,
-  handleDeleteMessage,
-  handleToggleReaction
-) {
-  return (
-    <li key={message.timetoken}>
-      <div className="flex items-center">
-        <span className="flex-1">
-          {message.userId}: {message.text}
-          {message.deleted ? "(soft deleted)" : ""}
-        </span>
-        <nav>
-          <button
-            className={`py-0.5 px-2 ${
-              message.hasUserReaction("👍")
-                ? "bg-accent focus:bg-accent"
-                : "bg-transparent focus:bg-transparent"
-            }`}
-            onClick={() => handleToggleReaction(message, "👍")}
-          >
-            👍
-          </button>
-          <button
-            className={`py-0.5 px-2 ml-2 ${
-              message.hasUserReaction("👎")
-                ? "bg-accent focus:bg-accent"
-                : "bg-transparent focus:bg-transparent"
-            }`}
-            onClick={() => handleToggleReaction(message, "👎")}
-          >
-            👎
-          </button>
-          <button className="py-0.5 px-2 ml-2" onClick={() => handleEditMessage(message)}>
-            Edit
-          </button>
-          <button className="py-0.5 px-2 ml-2" onClick={() => handleDeleteMessage(message, true)}>
-            Soft del
-          </button>
-          <button className="py-0.5 px-2 ml-2" onClick={() => handleDeleteMessage(message, false)}>
-            Hard del
-          </button>
-        </nav>
-      </div>
-      <hr className="my-1" />
-    </li>
   )
 }

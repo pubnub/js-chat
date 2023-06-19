@@ -6,7 +6,6 @@ import { Message } from "./message"
 import { Membership } from "./membership"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadChannel } from "./thread-channel"
-import { KeyValueStore } from "../key-value-store"
 import { MentionsUtils } from "../mentions-utils"
 
 type ChatConfig = {
@@ -26,7 +25,7 @@ export class Chat {
   /** @internal */
   private lastSavedActivityInterval?: ReturnType<typeof setInterval>
   /** @internal */
-  private suggestedNamesCache: KeyValueStore<User[]>
+  private suggestedNamesCache: Map<string, User[]>
   /* @internal */
   private subscriptions: { [channel: string]: Set<string> }
 
@@ -46,7 +45,7 @@ export class Chat {
 
     this.sdk = new PubNub(pubnubConfig)
     this.subscriptions = {}
-    this.suggestedNamesCache = new KeyValueStore<User[]>()
+    this.suggestedNamesCache = new Map<string, User[]>()
     this.config = {
       saveDebugLog: saveDebugLog || false,
       typingTimeout: typingTimeout || 5000,
@@ -537,8 +536,8 @@ export class Chat {
       return []
     }
 
-    if (this.suggestedNamesCache.getRecord(cacheKey)) {
-      return this.suggestedNamesCache.getRecord(cacheKey) as User[]
+    if (this.suggestedNamesCache.get(cacheKey)) {
+      return this.suggestedNamesCache.get(cacheKey) as User[]
     }
 
     const usersResponse = await this.getUsers({
@@ -546,8 +545,8 @@ export class Chat {
       limit: options.limit,
     })
 
-    this.suggestedNamesCache.setNewRecord(cacheKey, usersResponse.users)
+    this.suggestedNamesCache.set(cacheKey, usersResponse.users)
 
-    return this.suggestedNamesCache.getRecord(cacheKey) as User[]
+    return this.suggestedNamesCache.get(cacheKey) as User[]
   }
 }

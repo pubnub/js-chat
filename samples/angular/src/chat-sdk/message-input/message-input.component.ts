@@ -1,5 +1,5 @@
 import { Component, Input } from "@angular/core"
-import { Channel, Chat, User } from "@pubnub/chat"
+import { Channel, Chat, MessageToSend, User } from "@pubnub/chat"
 
 @Component({
   selector: "app-message-input-chat",
@@ -13,13 +13,28 @@ export class MessageInputComponentChat {
   @Input() channel!: Channel
   @Input() chat!: Chat
   @Input() typingSent!: boolean
+  newMessage: MessageToSend
+  newMention: { name: string, nameOccurrenceIndex: number } = { name: "", nameOccurrenceIndex: -1 }
+
+  constructor() {
+    this.newMessage = new MessageToSend(this.chat)
+  }
+
+  ngOnInit() {
+    this.newMessage = new MessageToSend(this.chat)
+  }
 
   async handleInput(text: string) {
-    const result = await this.chat.getSuggestedGlobalUsers(text)
-    console.log("result", result)
-    this.suggestedUsers = result
-    // const members = await this.channel.getSuggestedChannelMembers(text)
-    // console.log("members", members)
+    const resp = this.newMessage.onChange(text)
+
+    if (resp.differentMention) {
+      this.newMention = resp.differentMention
+      this.suggestedUsers = await this.chat.getSuggestedGlobalUsers(resp.differentMention.name)
+      // this.suggestedUsers = await this.chat.getSuggestedGlobalUsers(this.newMessage.value)
+    } else {
+      this.suggestedUsers = []
+    }
+
     this.pubnubInput ? this.channel.startTyping() : this.channel.stopTyping()
   }
 
@@ -29,6 +44,7 @@ export class MessageInputComponentChat {
     if (!!userAlreadyAdded) {
       this.usersToNotify = this.usersToNotify.filter((u) => u.id !== user.id)
     } else {
+      this.newMessage.addMentionedUser(user, this.newMention)
       this.usersToNotify.push(user)
     }
   }
@@ -38,10 +54,15 @@ export class MessageInputComponentChat {
   }
 
   async handleSend() {
-    const response = await this.channel.sendText(this.pubnubInput, {
+    const payload = this.newMessage.getPayloadToSend()
+    console.log("payload", payload)
+    // return
+
+    const response = await this.channel.sendText(payload, {
       meta: { foo: "bar" },
-      mentionedUsers: this.usersToNotify,
     })
+    this.usersToNotify = []
+    this.suggestedUsers = []
     this.pubnubInput = ""
   }
 }
