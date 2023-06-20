@@ -20,7 +20,7 @@ type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
 export class Chat {
   readonly sdk: PubNub
   readonly config: ChatConfig
-  private user?: User
+  private user: User
   /** @internal */
   private lastSavedActivityInterval?: ReturnType<typeof setInterval>
   /** @internal */
@@ -28,7 +28,8 @@ export class Chat {
   /* @internal */
   private subscriptions: { [channel: string]: Set<string> }
 
-  constructor(params: ChatConstructor) {
+  /** @internal */
+  private constructor(params: ChatConstructor) {
     const {
       saveDebugLog,
       typingTimeout,
@@ -42,6 +43,9 @@ export class Chat {
     }
 
     this.sdk = new PubNub(pubnubConfig)
+    this.user = new User(this, {
+      id: "userId" in pubnubConfig ? pubnubConfig.userId : pubnubConfig.uuid,
+    })
     this.subscriptions = {}
     this.suggestedNamesCache = new Map<string, User[]>()
     this.config = {

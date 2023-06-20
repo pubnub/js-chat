@@ -17,7 +17,7 @@ export class Message {
   readonly timetoken: string
   readonly content: MessageContent
   readonly channelId: string
-  readonly userId?: string
+  readonly userId: string
   readonly actions?: MessageActions
   readonly meta?: {
     [key: string]: any
@@ -36,6 +36,7 @@ export class Message {
     this.timetoken = params.timetoken
     this.content = params.content
     this.channelId = params.channelId
+    this.userId = params.userId
     Object.assign(this, params)
   }
 
@@ -45,7 +46,7 @@ export class Message {
       timetoken: String(params.timetoken),
       content: params.message,
       channelId: params.channel,
-      userId: "publisher" in params ? params.publisher : params.uuid,
+      userId: "publisher" in params ? params.publisher : params.uuid || "unknown-user",
       actions: "actions" in params ? params.actions : undefined,
       meta:
         "meta" in params ? params.meta : "userMetadata" in params ? params.userMetadata : undefined,
