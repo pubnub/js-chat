@@ -18,7 +18,7 @@
         <p>id: {{ currentlyHighlightedMention.id }}</p>
         <p>name: {{ currentlyHighlightedMention.name }}</p>
     </div>
-    <textarea type="text" [(ngModel)]="pubnubInput" [value]="newMessage.value" (ngModelChange)="handleInput($event)" class="input" (keydown)="handleCaret($event)" #textAreaElement></textarea>
+    <textarea type="text" [(ngModel)]="pubnubInput" [value]="newMessageDraft.value" (ngModelChange)="handleInput($event)" class="input" (keydown)="handleCaret($event)" #textAreaElement></textarea>
     <button (click)="handleSend()">
         Send
     </button>

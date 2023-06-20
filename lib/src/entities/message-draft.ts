@@ -1,5 +1,6 @@
 import { Chat } from "./chat"
 import { User } from "./user"
+import { Channel } from "./channel"
 
 declare global {
   interface Array<T> {
@@ -7,16 +8,18 @@ declare global {
   }
 }
 
-export class MessageToSend {
+export class MessageDraft {
   private chat: Chat
+  private channel: Channel
   public value = ""
   private previousValue = ""
   private mentionedUsers: {
     [nameOccurrenceIndex: number]: User
   } = {}
 
-  constructor(chat: Chat) {
+  constructor(chat: Chat, channel: Channel) {
     this.chat = chat
+    this.channel = channel
   }
 
   onChange(text: string) {

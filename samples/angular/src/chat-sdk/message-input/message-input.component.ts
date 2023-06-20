@@ -1,5 +1,5 @@
 import { Component, Input, ViewChild, ElementRef } from "@angular/core"
-import { Channel, Chat, MessageToSend, User } from "@pubnub/chat"
+import { Channel, Chat, MessageDraft, User } from "@pubnub/chat"
 
 @Component({
   selector: "app-message-input-chat",
@@ -13,22 +13,23 @@ export class MessageInputComponentChat {
   @Input() channel!: Channel
   @Input() chat!: Chat
   @Input() typingSent!: boolean
-  newMessage: MessageToSend
-  newMention: { name: string, nameOccurrenceIndex: number } = { name: "", nameOccurrenceIndex: -1 }
+  newMessageDraft: MessageDraft
+  newMention: { name: string; nameOccurrenceIndex: number } = { name: "", nameOccurrenceIndex: -1 }
   currentlyHighlightedMention: User | undefined | null
 
-  @ViewChild('textAreaElement') userInput: ElementRef | undefined;
+  @ViewChild("textAreaElement") userInput: ElementRef | undefined
 
   constructor() {
-    this.newMessage = new MessageToSend(this.chat)
+    this.newMessageDraft = this.channel?.createMessageDraft()
   }
 
   ngOnInit() {
-    this.newMessage = new MessageToSend(this.chat)
+    this.newMessageDraft = this.channel.createMessageDraft()
   }
 
   async handleInput(text: string) {
-    const resp = this.newMessage.onChange(text)
+    const resp = this.newMessageDraft.onChange(text)
+    console.log("resp", resp)
 
     if (resp.differentMention) {
       this.newMention = resp.differentMention
@@ -41,7 +42,7 @@ export class MessageInputComponentChat {
   }
 
   toggleUserToNotify(user: User) {
-    this.newMessage.addMentionedUser(user, this.newMention)
+    this.newMessageDraft.addMentionedUser(user, this.newMention)
   }
 
   isUserToBeNotified(user: User) {
@@ -49,7 +50,7 @@ export class MessageInputComponentChat {
   }
 
   async handleSend() {
-    const payload = this.newMessage.getPayloadToSend()
+    const payload = this.newMessageDraft.getPayloadToSend()
     console.log("payload", payload)
 
     const response = await this.channel.sendText(payload.text, {
@@ -62,6 +63,8 @@ export class MessageInputComponentChat {
   }
 
   handleCaret(event: any) {
-    this.currentlyHighlightedMention = this.newMessage.getHighlightedMention(this.userInput?.nativeElement.selectionStart)
+    this.currentlyHighlightedMention = this.newMessageDraft.getHighlightedMention(
+      this.userInput?.nativeElement.selectionStart
+    )
   }
 }

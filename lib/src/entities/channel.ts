@@ -13,6 +13,7 @@ import { User } from "./user"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadMessage } from "./thread-message"
 import { MentionsUtils } from "../mentions-utils"
+import { MessageDraft } from "./message-draft"
 
 export type ChannelFields = Pick<
   Channel,
@@ -470,5 +471,9 @@ export class Channel {
     this.suggestedNames.set(cacheKey, membersResponse.members)
 
     return this.suggestedNames.get(cacheKey) as Membership[]
+  }
+
+  createMessageDraft() {
+    return new MessageDraft(this.chat, this)
   }
 }
