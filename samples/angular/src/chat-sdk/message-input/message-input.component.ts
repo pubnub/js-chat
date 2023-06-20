@@ -64,8 +64,8 @@ export class MessageInputComponentChat {
     // return
 
     const response = await this.channel.sendText(payload.text, {
-      mentionedUserIds: payload.mentionedUserIds,
-      meta: { foo: "bar", someValues: { 1: { mentionedName: "Hello world", id: 123 } } },
+      mentionedUsers: payload.mentionedUsers,
+      meta: { foo: "bar" },
     })
     // this.usersToNotify = []
     this.suggestedUsers = []

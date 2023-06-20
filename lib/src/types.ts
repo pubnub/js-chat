@@ -28,8 +28,11 @@ export type DeleteParameters = {
 
 export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel"> & {
   rootMessage?: Message
-  mentionedUserIds?: {
-    [nameOccurrenceIndex: number]: string
+  mentionedUsers?: {
+    [nameOccurrenceIndex: number]: {
+      id: string
+      name: string
+    }
   }
 }
 

@@ -54,7 +54,7 @@ export class Chat {
       mentionedUserCallback:
         mentionedUserCallback ||
         function (userId, mentionedName) {
-          return `<a href="https://pubnub.com/${userId}">${mentionedName}</a> `
+          return `<a href="https://pubnub.com/${userId}">@${mentionedName}</a> `
         },
     }
   }

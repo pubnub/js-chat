@@ -2,7 +2,6 @@ import { Chat } from "./chat"
 import PubNub from "pubnub"
 import { MessageActionType, MessageActions, DeleteParameters, MessageDTOParams } from "../types"
 import { MentionsUtils } from "../mentions-utils";
-import {User} from "./user";
 
 export type MessageContent = {
   type: "text"
@@ -34,9 +33,9 @@ export class Message {
 
     return Object.keys(this.actions["threadRootId"])[0]
   }
-  get mentionedUserIds() {
-    if (this.meta?.mentionedUserIds) {
-      return this.meta.mentionedUserIds
+  get mentionedUsers() {
+    if (this.meta?.mentionedUsers) {
+      return this.meta.mentionedUsers
     }
 
     return {}
@@ -137,11 +136,11 @@ export class Message {
   get text() {
     const type = MessageActionType.EDITED
     const edits = this.actions?.[type]
-    if (!edits) return MentionsUtils.getLinkedText2({ text: this.content.text, userCallback: (_, mentionedName) => mentionedName, mentionedUserIds: this.mentionedUserIds })
+    if (!edits) return MentionsUtils.getLinkedText2({ text: this.content.text, userCallback: (_, mentionedName) => mentionedName, mentionedUsers: this.mentionedUsers })
     const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
     const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
 
-    return MentionsUtils.getLinkedText2({ text: lastEdit.value, userCallback: (_, mentionedName) => mentionedName, mentionedUserIds: this.mentionedUserIds })
+    return MentionsUtils.getLinkedText2({ text: lastEdit.value, userCallback: (_, mentionedName) => mentionedName, mentionedUsers: this.mentionedUsers })
   }
 
   get rawText() {
@@ -157,11 +156,11 @@ export class Message {
   get linkedText() {
     const type = MessageActionType.EDITED
     const edits = this.actions?.[type]
-    if (!edits) return MentionsUtils.getLinkedText2({ text: this.content.text, userCallback: this.chat.config.mentionedUserCallback, mentionedUserIds: this.mentionedUserIds })
+    if (!edits) return MentionsUtils.getLinkedText2({ text: this.content.text, userCallback: this.chat.config.mentionedUserCallback, mentionedUsers: this.mentionedUsers })
     const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
     const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
 
-    return MentionsUtils.getLinkedText2({ text: lastEdit.value, userCallback: this.chat.config.mentionedUserCallback, mentionedUserIds: this.mentionedUserIds })
+    return MentionsUtils.getLinkedText2({ text: lastEdit.value, userCallback: this.chat.config.mentionedUserCallback, mentionedUsers: this.mentionedUsers })
   }
 
   async editText(newText: string) {

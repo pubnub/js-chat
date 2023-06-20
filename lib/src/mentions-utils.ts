@@ -41,25 +41,45 @@ export class MentionsUtils {
     return finalResult
   }
 
-  static getLinkedText2({ text, userCallback, mentionedUserIds }: { text: string, userCallback: (userId: string, mentionedName: string) => any, mentionedUserIds: {
-      [nameOccurrenceIndex: number]: string
+  static getLinkedText2({ text, userCallback, mentionedUsers }: { text: string, userCallback: (userId: string, mentionedName: string) => any, mentionedUsers: {
+      [nameOccurrenceIndex: number]: {
+        id: string
+        name: string
+      }
     } }) {
+    if (!mentionedUsers || !Object.keys(mentionedUsers).length) {
+      return text
+    }
+
     let counter = 0;
     let result = ""
+    // multi word names
+    let indicesToSkip: number[] = []
 
-    text.split(" ").forEach((word) => {
+    text.split(" ").forEach((word, index) => {
       if (!word.startsWith("@")) {
+        if (indicesToSkip.includes(index)) {
+          return
+        }
+
         result += `${word} `
       } else {
-        const mentionFound = Object.keys(mentionedUserIds).indexOf(String(counter)) >= 0
+        const mentionFound = Object.keys(mentionedUsers).indexOf(String(counter)) >= 0
 
         if (!mentionFound) {
           counter++
           result += `${word} `
         } else {
-          const userId = mentionedUserIds[counter]
+          const userId = mentionedUsers[counter].id
+          const userName = mentionedUsers[counter].name
+          const userNameWords = userName.split(" ")
+
+          if (userNameWords.length > 1) {
+            indicesToSkip = userNameWords.map((_, i) => index + i)
+          }
+
           counter++
-          result += `${userCallback(userId, word)} `
+          result += `${userCallback(userId, userName)} `
         }
       }
     })

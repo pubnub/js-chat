@@ -131,7 +131,7 @@ export class MessageToSend {
 
     return {
       text: this.value,
-      mentionedUserIds: Object.keys(this.mentionedUsers).reduce((acc, key) => ({ ...acc, [key]: this.mentionedUsers[Number(key)].id }), {}),
+      mentionedUsers: Object.keys(this.mentionedUsers).reduce((acc, key) => ({ ...acc, [key]: { id: this.mentionedUsers[Number(key)].id, name: this.mentionedUsers[Number(key)].name } }), {}),
     }
   }
 
