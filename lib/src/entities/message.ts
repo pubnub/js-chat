@@ -7,7 +7,6 @@ export type MessageContent = {
   type: "text"
   text: string
   linkedText: string
-  rawText: string
 }
 
 export type MessageFields = Pick<
@@ -136,16 +135,6 @@ export class Message {
   get text() {
     const type = MessageActionType.EDITED
     const edits = this.actions?.[type]
-    if (!edits) return MentionsUtils.getLinkedText2({ text: this.content.text, userCallback: (_, mentionedName) => mentionedName, mentionedUsers: this.mentionedUsers })
-    const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
-    const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
-
-    return MentionsUtils.getLinkedText2({ text: lastEdit.value, userCallback: (_, mentionedName) => mentionedName, mentionedUsers: this.mentionedUsers })
-  }
-
-  get rawText() {
-    const type = MessageActionType.EDITED
-    const edits = this.actions?.[type]
     if (!edits) return this.content.text
     const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
     const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
@@ -156,11 +145,11 @@ export class Message {
   get linkedText() {
     const type = MessageActionType.EDITED
     const edits = this.actions?.[type]
-    if (!edits) return MentionsUtils.getLinkedText2({ text: this.content.text, userCallback: this.chat.config.mentionedUserCallback, mentionedUsers: this.mentionedUsers })
+    if (!edits) return MentionsUtils.getLinkedText({ text: this.content.text, userCallback: this.chat.config.mentionedUserCallback, mentionedUsers: this.mentionedUsers })
     const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
     const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
 
-    return MentionsUtils.getLinkedText2({ text: lastEdit.value, userCallback: this.chat.config.mentionedUserCallback, mentionedUsers: this.mentionedUsers })
+    return MentionsUtils.getLinkedText({ text: lastEdit.value, userCallback: this.chat.config.mentionedUserCallback, mentionedUsers: this.mentionedUsers })
   }
 
   async editText(newText: string) {

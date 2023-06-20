@@ -26,14 +26,16 @@ export type DeleteParameters = {
   soft?: boolean
 }
 
+export type MessageMentionedUsers = {
+  [nameOccurrenceIndex: number]: {
+    id: string
+    name: string
+  }
+}
+
 export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel"> & {
   rootMessage?: Message
-  mentionedUsers?: {
-    [nameOccurrenceIndex: number]: {
-      id: string
-      name: string
-    }
-  }
+  mentionedUsers?: MessageMentionedUsers
 }
 
 export type EnhancedMessageEvent = PubNub.MessageEvent & {

@@ -15,6 +15,8 @@ export class MessageInputComponentChat {
   @Input() typingSent!: boolean
   newMessage: MessageToSend
   newMention: { name: string, nameOccurrenceIndex: number } = { name: "", nameOccurrenceIndex: -1 }
+  currentlyHighlightedMention: User | undefined | null
+
   @ViewChild('textAreaElement') userInput: ElementRef | undefined;
 
   constructor() {
@@ -31,7 +33,6 @@ export class MessageInputComponentChat {
     if (resp.differentMention) {
       this.newMention = resp.differentMention
       this.suggestedUsers = await this.chat.getSuggestedGlobalUsers(resp.differentMention.name)
-      // this.suggestedUsers = await this.chat.getSuggestedGlobalUsers(this.newMessage.value)
     } else {
       this.suggestedUsers = []
     }
@@ -41,17 +42,6 @@ export class MessageInputComponentChat {
 
   toggleUserToNotify(user: User) {
     this.newMessage.addMentionedUser(user, this.newMention)
-
-    return
-
-    // const userAlreadyAdded = this.usersToNotify.find((u) => u.id === user.id)
-    //
-    // if (!!userAlreadyAdded) {
-    //   this.usersToNotify = this.usersToNotify.filter((u) => u.id !== user.id)
-    // } else {
-    //   this.newMessage.addMentionedUser(user, this.newMention)
-    //   this.usersToNotify.push(user)
-    // }
   }
 
   isUserToBeNotified(user: User) {
@@ -61,22 +51,17 @@ export class MessageInputComponentChat {
   async handleSend() {
     const payload = this.newMessage.getPayloadToSend()
     console.log("payload", payload)
-    // return
 
     const response = await this.channel.sendText(payload.text, {
       mentionedUsers: payload.mentionedUsers,
       meta: { foo: "bar" },
     })
-    // this.usersToNotify = []
+
     this.suggestedUsers = []
     this.pubnubInput = ""
   }
 
   handleCaret(event: any) {
-    // console.log("event", event)
-    // console.log(this.userInput?.nativeElement.selectionStart)
-
-    const highlightedMention = this.newMessage.getHighlightedMention(this.userInput?.nativeElement.selectionStart)
-    // console.log("highlightedMention", highlightedMention)
+    this.currentlyHighlightedMention = this.newMessage.getHighlightedMention(this.userInput?.nativeElement.selectionStart)
   }
 }
