@@ -128,7 +128,7 @@ export class Channel {
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
-      const { mentionedUsers, rootMessage, ...rest } = options
+      const { mentionedUserIds, rootMessage, ...rest } = options
       let channelIdToSend = this.id
 
       if (rootMessage && this.isThreadRoot()) {
@@ -158,6 +158,10 @@ export class Channel {
         message: {
           type: "text",
           text,
+        },
+        meta: {
+          ...(rest.meta || {}),
+          mentionedUserIds,
         },
       })
     } catch (error) {

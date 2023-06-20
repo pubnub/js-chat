@@ -16,6 +16,15 @@ export class MessageToSend {
     this.chat = chat
   }
 
+  private getWord = (pos: number) => {
+    const n = this.value.substring(pos).match(/^[a-zA-Z0-9-_@]+/)
+    const p = this.value.substring(0, pos).match(/[a-zA-Z0-9-_@]+$/)
+    // if you really only want the word if you click at start or between
+    // but not at end instead use if (!n) return
+    if(!p && !n) return ''
+    return <string>(p || '') + (n || '')
+  }
+
   onChange(text: string) {
     this.previousValue = this.value
     this.value = text
@@ -118,7 +127,46 @@ export class MessageToSend {
         }
       }
     })
+    // console.log("this.mentionedUsers?", this.mentionedUsers)
 
-    return result
+    return {
+      text: this.value,
+      mentionedUserIds: Object.keys(this.mentionedUsers).reduce((acc, key) => ({ ...acc, [key]: this.mentionedUsers[Number(key)].id }), {}),
+    }
+  }
+
+  getHighlightedMention(selectionStart: number) {
+    const highlightedWord = this.getWord(selectionStart)
+
+    if (!highlightedWord.startsWith("@")) {
+      return null
+    }
+
+    const necessaryText = this.value.slice(0, selectionStart)
+
+    // let counter = 0;
+
+    const onlyWordsWithAt = necessaryText.split(" ").filter(word => word.startsWith("@"))
+
+    if (this.mentionedUsers[onlyWordsWithAt.length - 1]) {
+      return this.mentionedUsers[onlyWordsWithAt.length - 1]
+    } else {
+      return null
+    }
+
+    // necessaryText.split(" ").forEach((word, index) => {
+    //   if (wo) {
+    //     const mentionFound = Object.keys(this.mentionedUsers).indexOf(String(counter)) >= 0
+    //
+    //     if (!mentionFound) {
+    //       counter++
+    //     } else {
+    //
+    //
+    //       const userId = this.mentionedUsers[counter].id
+    //       counter++
+    //     }
+    //   }
+    // })
   }
 }

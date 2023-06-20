@@ -41,6 +41,32 @@ export class MentionsUtils {
     return finalResult
   }
 
+  static getLinkedText2({ text, userCallback, mentionedUserIds }: { text: string, userCallback: (userId: string, mentionedName: string) => any, mentionedUserIds: {
+      [nameOccurrenceIndex: number]: string
+    } }) {
+    let counter = 0;
+    let result = ""
+
+    text.split(" ").forEach((word) => {
+      if (!word.startsWith("@")) {
+        result += `${word} `
+      } else {
+        const mentionFound = Object.keys(mentionedUserIds).indexOf(String(counter)) >= 0
+
+        if (!mentionFound) {
+          counter++
+          result += `${word} `
+        } else {
+          const userId = mentionedUserIds[counter]
+          counter++
+          result += `${userCallback(userId, word)} `
+        }
+      }
+    })
+
+    return result
+  }
+
   static parseTextToAddUsers(text: string, mentionedUsers: User[]) {
     const splitWords = text.split(" ")
     let isThisWordUsed = false

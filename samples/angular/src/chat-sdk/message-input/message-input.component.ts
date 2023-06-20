@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core"
+import { Component, Input, ViewChild, ElementRef } from "@angular/core"
 import { Channel, Chat, MessageToSend, User } from "@pubnub/chat"
 
 @Component({
@@ -15,6 +15,7 @@ export class MessageInputComponentChat {
   @Input() typingSent!: boolean
   newMessage: MessageToSend
   newMention: { name: string, nameOccurrenceIndex: number } = { name: "", nameOccurrenceIndex: -1 }
+  @ViewChild('textAreaElement') userInput: ElementRef | undefined;
 
   constructor() {
     this.newMessage = new MessageToSend(this.chat)
@@ -39,14 +40,18 @@ export class MessageInputComponentChat {
   }
 
   toggleUserToNotify(user: User) {
-    const userAlreadyAdded = this.usersToNotify.find((u) => u.id === user.id)
+    this.newMessage.addMentionedUser(user, this.newMention)
 
-    if (!!userAlreadyAdded) {
-      this.usersToNotify = this.usersToNotify.filter((u) => u.id !== user.id)
-    } else {
-      this.newMessage.addMentionedUser(user, this.newMention)
-      this.usersToNotify.push(user)
-    }
+    return
+
+    // const userAlreadyAdded = this.usersToNotify.find((u) => u.id === user.id)
+    //
+    // if (!!userAlreadyAdded) {
+    //   this.usersToNotify = this.usersToNotify.filter((u) => u.id !== user.id)
+    // } else {
+    //   this.newMessage.addMentionedUser(user, this.newMention)
+    //   this.usersToNotify.push(user)
+    // }
   }
 
   isUserToBeNotified(user: User) {
@@ -58,11 +63,20 @@ export class MessageInputComponentChat {
     console.log("payload", payload)
     // return
 
-    const response = await this.channel.sendText(payload, {
-      meta: { foo: "bar" },
+    const response = await this.channel.sendText(payload.text, {
+      mentionedUserIds: payload.mentionedUserIds,
+      meta: { foo: "bar", someValues: { 1: { mentionedName: "Hello world", id: 123 } } },
     })
-    this.usersToNotify = []
+    // this.usersToNotify = []
     this.suggestedUsers = []
     this.pubnubInput = ""
+  }
+
+  handleCaret(event: any) {
+    // console.log("event", event)
+    // console.log(this.userInput?.nativeElement.selectionStart)
+
+    const highlightedMention = this.newMessage.getHighlightedMention(this.userInput?.nativeElement.selectionStart)
+    // console.log("highlightedMention", highlightedMention)
   }
 }
