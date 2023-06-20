@@ -129,6 +129,7 @@ export class Message {
     if (!edits) return this.content.text
     const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
     const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
+
     return lastEdit.value
   }
 

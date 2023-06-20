@@ -6,6 +6,7 @@ import { Message } from "./message"
 import { Membership } from "./membership"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadChannel } from "./thread-channel"
+import { MentionsUtils } from "../mentions-utils"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -22,6 +23,8 @@ export class Chat {
   private user: User
   /** @internal */
   private lastSavedActivityInterval?: ReturnType<typeof setInterval>
+  /** @internal */
+  private suggestedNamesCache: Map<string, User[]>
   /* @internal */
   private subscriptions: { [channel: string]: Set<string> }
 
@@ -44,6 +47,7 @@ export class Chat {
       id: "userId" in pubnubConfig ? pubnubConfig.userId : pubnubConfig.uuid,
     })
     this.subscriptions = {}
+    this.suggestedNamesCache = new Map<string, User[]>()
     this.config = {
       saveDebugLog: saveDebugLog || false,
       typingTimeout: typingTimeout || 5000,
@@ -517,5 +521,29 @@ export class Chat {
     } catch (error) {
       throw error
     }
+  }
+
+  async getSuggestedGlobalUsers(
+    text: string,
+    options: { limit: number } = { limit: 10 }
+  ): Promise<User[]> {
+    const cacheKey = MentionsUtils.getPhraseToLookFor(text)
+
+    if (!cacheKey) {
+      return []
+    }
+
+    if (this.suggestedNamesCache.get(cacheKey)) {
+      return this.suggestedNamesCache.get(cacheKey) as User[]
+    }
+
+    const usersResponse = await this.getUsers({
+      filter: `name LIKE "${cacheKey}*"`,
+      limit: options.limit,
+    })
+
+    this.suggestedNamesCache.set(cacheKey, usersResponse.users)
+
+    return this.suggestedNamesCache.get(cacheKey) as User[]
   }
 }

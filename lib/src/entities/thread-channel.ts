@@ -3,7 +3,6 @@ import { Channel, ChannelFields } from "./channel"
 import { Chat } from "./chat"
 import { ThreadChannelDTOParams } from "../types"
 import { ThreadMessage } from "./thread-message"
-import { Message } from "./message"
 
 export class ThreadChannel extends Channel {
   readonly parentChannelId: string
