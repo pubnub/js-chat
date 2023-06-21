@@ -1,7 +1,7 @@
 import { Chat } from "./chat"
 import PubNub from "pubnub"
 import { MessageActionType, MessageActions, DeleteParameters, MessageDTOParams } from "../types"
-import { MentionsUtils } from "../mentions-utils";
+import { MentionsUtils } from "../mentions-utils"
 
 export type MessageContent = {
   type: "text"
@@ -19,18 +19,18 @@ export class Message {
   readonly timetoken: string
   readonly content: MessageContent
   readonly channelId: string
-  readonly userId?: string
+  readonly userId: string
   readonly actions?: MessageActions
 
   readonly meta?: {
     [key: string]: any
   }
-  get threadRootId() {
+  get hasThread() {
     if (!this.actions?.["threadRootId"]) {
       return false
     }
 
-    return Object.keys(this.actions["threadRootId"])[0]
+    return !!Object.keys(this.actions["threadRootId"])[0]
   }
   get mentionedUsers() {
     if (this.meta?.mentionedUsers) {
@@ -46,6 +46,7 @@ export class Message {
     this.timetoken = params.timetoken
     this.content = params.content
     this.channelId = params.channelId
+    this.userId = params.userId
     Object.assign(this, params)
   }
 
@@ -55,7 +56,7 @@ export class Message {
       timetoken: String(params.timetoken),
       content: params.message,
       channelId: params.channel,
-      userId: "publisher" in params ? params.publisher : params.uuid,
+      userId: "publisher" in params ? params.publisher : params.uuid || "unknown-user",
       actions: "actions" in params ? params.actions : undefined,
       meta:
         "meta" in params ? params.meta : "userMetadata" in params ? params.userMetadata : undefined,
@@ -145,11 +146,20 @@ export class Message {
   get linkedText() {
     const type = MessageActionType.EDITED
     const edits = this.actions?.[type]
-    if (!edits) return MentionsUtils.getLinkedText({ text: this.content.text, userCallback: this.chat.config.mentionedUserCallback, mentionedUsers: this.mentionedUsers })
+    if (!edits)
+      return MentionsUtils.getLinkedText({
+        text: this.content.text,
+        userCallback: this.chat.config.mentionedUserCallback,
+        mentionedUsers: this.mentionedUsers,
+      })
     const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
     const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
 
-    return MentionsUtils.getLinkedText({ text: lastEdit.value, userCallback: this.chat.config.mentionedUserCallback, mentionedUsers: this.mentionedUsers })
+    return MentionsUtils.getLinkedText({
+      text: lastEdit.value,
+      userCallback: this.chat.config.mentionedUserCallback,
+      mentionedUsers: this.mentionedUsers,
+    })
   }
 
   async editText(newText: string) {
@@ -262,12 +272,16 @@ export class Message {
    * Threads
    */
   getThread() {
-    return this.chat.getThreadChannel(this.channelId, this.timetoken)
+    return this.chat.getThreadChannel(this)
+  }
+
+  createThread() {
+    return this.chat.createThreadChannel(this)
   }
 
   /** @internal */
   private async deleteThread(params: DeleteParameters = {}) {
-    if (this.threadRootId) {
+    if (this.hasThread) {
       const thread = await this.getThread()
       await thread.delete(params)
     }

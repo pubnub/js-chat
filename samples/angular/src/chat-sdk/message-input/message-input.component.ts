@@ -29,7 +29,6 @@ export class MessageInputComponentChat {
 
   async handleInput(text: string) {
     const resp = this.newMessageDraft.onChange(text)
-    console.log("resp", resp)
 
     if (resp.differentMention) {
       this.newMention = resp.differentMention

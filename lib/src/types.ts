@@ -34,7 +34,6 @@ export type MessageMentionedUsers = {
 }
 
 export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel"> & {
-  rootMessage?: Message
   mentionedUsers?: MessageMentionedUsers
 }
 
