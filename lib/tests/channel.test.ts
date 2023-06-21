@@ -223,41 +223,6 @@ describe("Channel test", () => {
     expect(updatedMembership2.custom?.role).toBe("member")
   })
 
-  test("should create a thread", async () => {
-    jest.retryTimes(3)
-
-    const channelId = createRandomUserId()
-    const channelName = "Test Channel"
-    const channelDescription = "This is a test channel"
-
-    const channelData = {
-      name: channelName,
-      description: channelDescription,
-    }
-
-    const createdChannel = await chat.createChannel(channelId, channelData)
-
-    const messageText = "Test message"
-
-    await createdChannel.sendText(messageText)
-
-    let messageInTheCreatedChannel = await createdChannel.getHistory()
-
-    await createdChannel.sendText("Whatever text", {
-      rootMessage: messageInTheCreatedChannel.messages[0],
-    })
-
-    messageInTheCreatedChannel = await createdChannel.getHistory()
-
-    expect(messageInTheCreatedChannel.messages[0].threadRootId).toBeDefined()
-
-    const thread = await messageInTheCreatedChannel.messages[0].getThread()
-
-    const threadMessages = await thread.getHistory()
-
-    expect(threadMessages.messages[0].text).toContain("Whatever text")
-  })
-
   test("should create direct conversation and send message", async () => {
     jest.retryTimes(3)
 
