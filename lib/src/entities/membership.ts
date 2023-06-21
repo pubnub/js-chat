@@ -127,7 +127,7 @@ export class Membership {
   }
 
   /*
-   * Undread message counts
+   * Unread message counts
    */
   get lastReadMessageTimetoken() {
     return this.custom?.lastReadMessageTimetoken

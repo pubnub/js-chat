@@ -103,11 +103,8 @@ describe("User test", () => {
   test("Should stream user updates and invoke the callback", async () => {
     const chat = await initTestChat()
 
-    const userId1 = createRandomUserId()
-    const userId2 = createRandomUserId()
-
-    const user1 = await chat.createUser(userId1, {})
-    const user2 = await chat.createUser(userId2, {})
+    const user1 = await chat.createUser(createRandomUserId(), {})
+    const user2 = await chat.createUser(createRandomUserId(), {})
 
     const users = [user1, user2]
 
