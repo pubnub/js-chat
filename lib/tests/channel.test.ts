@@ -268,8 +268,11 @@ describe("Channel test", () => {
 
     const createdChannel = await chat.createChannel(channelId, channelData)
 
+    //debugging
     const messageText = "Test message"
-    await createdChannel.sendText(messageText)
+    // await createdChannel.sendText(messageText)
+    const sentMessageResult = await createdChannel.sendText(messageText)
+    console.log(sentMessageResult)
 
     let history = await createdChannel.getHistory()
     let sentMessage = history.messages[0]
