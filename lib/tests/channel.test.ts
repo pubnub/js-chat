@@ -59,41 +59,6 @@ describe("Channel test", () => {
     expect(isDeleted).toBeTruthy()
   })
 
-  test("should create a thread", async () => {
-    jest.retryTimes(3)
-
-    const channelId = createRandomUserId()
-    const channelName = "Test Channel"
-    const channelDescription = "This is a test channel"
-
-    const channelData = {
-      name: channelName,
-      description: channelDescription,
-    }
-
-    const createdChannel = await chat.createChannel(channelId, channelData)
-
-    const messageText = "Test message"
-
-    await createdChannel.sendText(messageText)
-
-    let messageInTheCreatedChannel = await createdChannel.getHistory()
-
-    await createdChannel.sendText("Whatever text", {
-      rootMessage: messageInTheCreatedChannel.messages[0],
-    })
-
-    messageInTheCreatedChannel = await createdChannel.getHistory()
-
-    expect(messageInTheCreatedChannel.messages[0].threadRootId).toBeDefined()
-
-    const thread = await messageInTheCreatedChannel.messages[0].getThread()
-
-    const threadMessages = await thread.getHistory()
-
-    expect(threadMessages.messages[0].text).toContain("Whatever text")
-  })
-
   test("should get channel history", async () => {
     jest.retryTimes(3)
 
@@ -322,6 +287,48 @@ describe("Channel test", () => {
       (message: Message) => message.content.text === messageText
     )
     expect(messageInHistory).toBeTruthy()
+  })
+
+  test("should create a thread", async () => {
+    jest.retryTimes(3)
+
+    const channelId = createRandomUserId()
+    const channelName = "Test Channel"
+    const channelDescription = "This is a test channel"
+
+    const channelData = {
+      name: channelName,
+      description: channelDescription,
+    }
+
+    const createdChannel = await chat.createChannel(channelId, channelData)
+
+    const messageText = "Test message"
+    await createdChannel.sendText(messageText)
+
+    let history = await createdChannel.getHistory()
+    let sentMessage = history.messages[0]
+
+    expect(sentMessage.hasThread).toBe(false)
+
+    if (!sentMessage.hasThread) {
+      await sentMessage.createThread()
+    }
+
+    history = await createdChannel.getHistory()
+    sentMessage = history.messages[0]
+
+    expect(sentMessage.hasThread).toBe(true)
+
+    const thread = await sentMessage.getThread()
+    const threadText = "Whatever text"
+
+    // Use sendText in thread
+    await thread.sendText(threadText)
+
+    const threadMessages = await thread.getHistory()
+
+    expect(threadMessages.messages.some((message) => message.text === threadText)).toBe(true)
   })
 
   test("should stream channel updates and invoke the callback", async () => {
