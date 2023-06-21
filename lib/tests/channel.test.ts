@@ -280,7 +280,10 @@ describe("Channel test", () => {
       await sentMessage.createThread()
     }
 
+    //debugging
+    await new Promise((resolve) => setTimeout(resolve, 2000))
     history = await createdChannel.getHistory()
+
     sentMessage = history.messages[0]
 
     expect(sentMessage.hasThread).toBe(true)
@@ -402,6 +405,8 @@ describe("Channel test", () => {
 
     await createdChannel.sendText(messageText)
 
+    //debugging
+    await new Promise((resolve) => setTimeout(resolve, 2000))
     const history = await createdChannel.getHistory()
 
     const messageInHistory = history.messages.find(
