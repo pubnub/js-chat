@@ -274,6 +274,8 @@ describe("Channel test", () => {
     let history = await createdChannel.getHistory()
     let sentMessage = history.messages[0]
 
+    console.log(sentMessage)
+
     expect(sentMessage.hasThread).toBe(false)
 
     if (!sentMessage.hasThread) {
