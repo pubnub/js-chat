@@ -15,12 +15,19 @@ export class MessageInputComponentChat {
   @Input() typingSent!: boolean
   newMessageDraft: MessageDraft
   lastAffectedNameOccurrenceIndex = -1
-  currentlyHighlightedMention: User | undefined | null
+  currentlyHighlightedMention: {
+    mentionedUser: User | undefined | null
+    nameOccurrenceIndex: number
+  }
 
   @ViewChild("textAreaElement") userInput: ElementRef | undefined
 
   constructor() {
     this.newMessageDraft = this.channel?.createMessageDraft()
+    this.currentlyHighlightedMention = {
+      mentionedUser: null,
+      nameOccurrenceIndex: -1,
+    }
   }
 
   ngOnInit() {
@@ -36,6 +43,10 @@ export class MessageInputComponentChat {
 
   toggleUserToNotify(user: User) {
     this.newMessageDraft.addMentionedUser(user, this.lastAffectedNameOccurrenceIndex)
+  }
+
+  removeUserFromNotification(nameOccurrenceIndex: number) {
+    this.newMessageDraft.removeMentionedUser(nameOccurrenceIndex)
   }
 
   isUserToBeNotified(user: User) {

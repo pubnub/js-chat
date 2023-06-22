@@ -155,16 +155,26 @@ export class MessageDraft {
       lastMentionedUserInTextIndex,
       necessaryTextSplitBySpace.length
     )
+
     const lastMentionedUser = this.mentionedUsers[onlyWordsWithAt.length - 1]
 
     if (!lastMentionedUser?.name) {
-      return null
+      return {
+        mentionedUser: null,
+        nameOccurrenceIndex: -1,
+      }
     }
 
     if (lastMentionedUserInText.length <= lastMentionedUser.name.split(" ").length) {
-      return lastMentionedUser
+      return {
+        mentionedUser: lastMentionedUser,
+        nameOccurrenceIndex: onlyWordsWithAt.length - 1,
+      }
     }
 
-    return null
+    return {
+      mentionedUser: null,
+      nameOccurrenceIndex: -1,
+    }
   }
 }

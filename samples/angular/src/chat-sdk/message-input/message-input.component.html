@@ -13,10 +13,11 @@
     <div *ngIf="!suggestedUsers.length">
         <span>No user suggestions using this phrase</span>
     </div>
-    <div *ngIf="currentlyHighlightedMention" class="currently-highlighted-mention">
+    <div *ngIf="currentlyHighlightedMention.mentionedUser" class="currently-highlighted-mention">
         <strong>You are currently highlighting this user:</strong>
-        <p>id: {{ currentlyHighlightedMention.id }}</p>
-        <p>name: {{ currentlyHighlightedMention.name }}</p>
+        <p>id: {{ currentlyHighlightedMention.mentionedUser.id }}</p>
+        <p>name: {{ currentlyHighlightedMention.mentionedUser.name }}</p>
+        <button (click)="removeUserFromNotification(currentlyHighlightedMention.nameOccurrenceIndex)">Remove from notification by clicking here</button>
     </div>
     <textarea type="text" [(ngModel)]="pubnubInput" [value]="newMessageDraft.value" (ngModelChange)="handleInput($event)" class="input" (keydown)="handleCaret($event)" #textAreaElement></textarea>
     <button (click)="handleSend()">
