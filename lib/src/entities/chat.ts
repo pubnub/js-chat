@@ -548,7 +548,7 @@ export class Chat {
     }
   }
 
-  async getSuggestedGlobalUsers(
+  async getUserSuggestions(
     text: string,
     options: { limit: number } = { limit: 10 }
   ): Promise<User[]> {

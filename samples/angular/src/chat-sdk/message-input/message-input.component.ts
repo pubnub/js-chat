@@ -32,7 +32,7 @@ export class MessageInputComponentChat {
 
     if (resp.differentMention) {
       this.newMention = resp.differentMention
-      this.suggestedUsers = await this.chat.getSuggestedGlobalUsers(resp.differentMention.name)
+      this.suggestedUsers = await this.chat.getUserSuggestions(resp.differentMention.name)
     } else {
       this.suggestedUsers = []
     }

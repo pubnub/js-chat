@@ -421,7 +421,7 @@ export class Channel {
     }
   }
 
-  async getSuggestedChannelMembers(
+  async getUserSuggestions(
     text: string,
     options: { limit: number } = { limit: 10 }
   ): Promise<Membership[]> {
