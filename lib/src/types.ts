@@ -57,3 +57,8 @@ export type ChannelDTOParams = OptionalAllBut<ChannelMetadataObject<ObjectCustom
   StatusTypeFields
 
 export type ThreadChannelDTOParams = ChannelDTOParams & { parentChannelId: string }
+
+export type MessageDraftConfig = {
+  userSuggestionSource: "channel" | "global"
+  isTypingIndicatorTriggered: boolean
+}

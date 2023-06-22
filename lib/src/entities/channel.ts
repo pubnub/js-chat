@@ -7,7 +7,12 @@ import PubNub, {
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
-import { SendTextOptionParams, DeleteParameters, ChannelDTOParams } from "../types"
+import {
+  SendTextOptionParams,
+  DeleteParameters,
+  ChannelDTOParams,
+  MessageDraftConfig,
+} from "../types"
 import { Membership } from "./membership"
 import { User } from "./user"
 import { MentionsUtils } from "../mentions-utils"
@@ -445,7 +450,7 @@ export class Channel {
     return this.suggestedNames.get(cacheKey) as Membership[]
   }
 
-  createMessageDraft() {
-    return new MessageDraft(this.chat, this)
+  createMessageDraft(config?: Partial<MessageDraftConfig>) {
+    return new MessageDraft(this.chat, this, config)
   }
 }

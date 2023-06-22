@@ -1,7 +1,7 @@
 import { Chat } from "./chat"
 import { User } from "./user"
 import { Channel } from "./channel"
-import { SendTextOptionParams } from "../types"
+import { MessageDraftConfig, SendTextOptionParams } from "../types"
 
 declare global {
   interface Array<T> {
@@ -17,15 +17,25 @@ export class MessageDraft {
   private mentionedUsers: {
     [nameOccurrenceIndex: number]: User
   } = {}
+  readonly config: MessageDraftConfig
 
-  constructor(chat: Chat, channel: Channel) {
+  constructor(chat: Chat, channel: Channel, config?: Partial<MessageDraftConfig>) {
     this.chat = chat
     this.channel = channel
+    this.config = {
+      userSuggestionSource: "channel",
+      isTypingIndicatorTriggered: true,
+      ...(config || {}),
+    }
   }
 
-  onChange(text: string) {
+  async onChange(text: string) {
     this.previousValue = this.value
     this.value = text
+
+    if (this.config.isTypingIndicatorTriggered) {
+      this.value ? this.channel.startTyping() : this.channel.stopTyping()
+    }
 
     const previousWordsStartingWithAt = this.previousValue
       .split(" ")
@@ -59,19 +69,30 @@ export class MessageDraft {
       }
     })
 
-    const differentMention = differentMentions.length
-      ? {
-          name: differentMentions[0],
-          nameOccurrenceIndex: differentMentionPosition,
-        }
-      : null
+    if (!differentMentions.length) {
+      return {
+        nameOccurrenceIndex: -1,
+        suggestedUsers: [],
+      }
+    }
+
+    let suggestedUsers
+
+    if (this.config.userSuggestionSource === "channel") {
+      suggestedUsers = (await this.channel.getUserSuggestions(differentMentions[0])).map(
+        (membership) => membership.user
+      )
+    } else {
+      suggestedUsers = await this.chat.getUserSuggestions(differentMentions[0])
+    }
 
     return {
-      differentMention,
+      nameOccurrenceIndex: differentMentionPosition,
+      suggestedUsers,
     }
   }
 
-  addMentionedUser(user: User, mention: { name: string; nameOccurrenceIndex: number }) {
+  addMentionedUser(user: User, nameOccurrenceIndex: number) {
     let counter = 0
     let result = ""
     let isUserFound = false
@@ -80,11 +101,11 @@ export class MessageDraft {
       if (!word.startsWith("@")) {
         result += `${word} `
       } else {
-        if (counter !== mention.nameOccurrenceIndex) {
+        if (counter !== nameOccurrenceIndex) {
           result += `${word} `
         } else {
           result += `@${user.name} `
-          this.mentionedUsers[mention.nameOccurrenceIndex] = user
+          this.mentionedUsers[nameOccurrenceIndex] = user
           isUserFound = true
         }
         counter++
@@ -96,6 +117,15 @@ export class MessageDraft {
     }
 
     this.value = result.trim()
+  }
+
+  removeMentionedUser(nameOccurrenceIndex: number) {
+    if (this.mentionedUsers[nameOccurrenceIndex]) {
+      delete this.mentionedUsers[nameOccurrenceIndex]
+      return
+    }
+
+    console.warn("This is noop. There is no mention occurrence at this index.")
   }
 
   async send(params: Omit<SendTextOptionParams, "mentionedUsers"> = {}) {

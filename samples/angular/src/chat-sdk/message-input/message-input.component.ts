@@ -14,7 +14,7 @@ export class MessageInputComponentChat {
   @Input() chat!: Chat
   @Input() typingSent!: boolean
   newMessageDraft: MessageDraft
-  newMention: { name: string; nameOccurrenceIndex: number } = { name: "", nameOccurrenceIndex: -1 }
+  lastAffectedNameOccurrenceIndex = -1
   currentlyHighlightedMention: User | undefined | null
 
   @ViewChild("textAreaElement") userInput: ElementRef | undefined
@@ -24,24 +24,18 @@ export class MessageInputComponentChat {
   }
 
   ngOnInit() {
-    this.newMessageDraft = this.channel.createMessageDraft()
+    this.newMessageDraft = this.channel.createMessageDraft({ userSuggestionSource: "global" })
   }
 
   async handleInput(text: string) {
-    const resp = this.newMessageDraft.onChange(text)
-
-    if (resp.differentMention) {
-      this.newMention = resp.differentMention
-      this.suggestedUsers = await this.chat.getUserSuggestions(resp.differentMention.name)
-    } else {
-      this.suggestedUsers = []
-    }
-
-    this.pubnubInput ? this.channel.startTyping() : this.channel.stopTyping()
+    const response = await this.newMessageDraft.onChange(text)
+    console.log("response??", response)
+    this.suggestedUsers = response.suggestedUsers
+    this.lastAffectedNameOccurrenceIndex = response.nameOccurrenceIndex
   }
 
   toggleUserToNotify(user: User) {
-    this.newMessageDraft.addMentionedUser(user, this.newMention)
+    this.newMessageDraft.addMentionedUser(user, this.lastAffectedNameOccurrenceIndex)
   }
 
   isUserToBeNotified(user: User) {
