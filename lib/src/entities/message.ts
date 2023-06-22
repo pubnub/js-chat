@@ -3,6 +3,10 @@ import PubNub from "pubnub"
 import { MessageActionType, MessageActions, DeleteParameters, MessageDTOParams } from "../types"
 import { MentionsUtils } from "../mentions-utils"
 
+type GetLinkedTextParams = {
+  mentionedUserRenderer: (userId: string, mentionedName: string) => any
+}
+
 export type MessageContent = {
   type: "text"
   text: string
@@ -143,21 +147,18 @@ export class Message {
     return lastEdit.value
   }
 
-  get linkedText() {
-    const type = MessageActionType.EDITED
-    const edits = this.actions?.[type]
-    if (!edits)
-      return MentionsUtils.getLinkedText({
-        text: this.content.text,
-        userCallback: this.chat.config.mentionedUserCallback,
-        mentionedUsers: this.mentionedUsers,
-      })
-    const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
-    const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
+  getLinkedText(params?: Partial<GetLinkedTextParams>) {
+    const text = this.text
+
+    let { mentionedUserRenderer } = params || {}
+
+    mentionedUserRenderer ||= function (userId, mentionedName) {
+      return `<a href="https://pubnub.com/${userId}">@${mentionedName}</a> `
+    }
 
     return MentionsUtils.getLinkedText({
-      text: lastEdit.value,
-      userCallback: this.chat.config.mentionedUserCallback,
+      text,
+      userCallback: mentionedUserRenderer,
       mentionedUsers: this.mentionedUsers,
     })
   }

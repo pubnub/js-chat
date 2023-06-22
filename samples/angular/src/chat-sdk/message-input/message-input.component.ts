@@ -36,7 +36,7 @@ export class MessageInputComponentChat {
 
   async handleInput(text: string) {
     const response = await this.newMessageDraft.onChange(text)
-    console.log("response??", response)
+    // console.log("response??", response)
     this.suggestedUsers = response.suggestedUsers
     this.lastAffectedNameOccurrenceIndex = response.nameOccurrenceIndex
   }
