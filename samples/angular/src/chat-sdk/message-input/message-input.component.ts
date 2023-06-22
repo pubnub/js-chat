@@ -49,13 +49,7 @@ export class MessageInputComponentChat {
   }
 
   async handleSend() {
-    const payload = this.newMessageDraft.getPayloadToSend()
-    console.log("payload", payload)
-
-    const response = await this.channel.sendText(payload.text, {
-      mentionedUsers: payload.mentionedUsers,
-      meta: { foo: "bar" },
-    })
+    const response = await this.newMessageDraft.send()
 
     this.suggestedUsers = []
     this.pubnubInput = ""

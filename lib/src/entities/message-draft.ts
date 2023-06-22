@@ -1,6 +1,7 @@
 import { Chat } from "./chat"
 import { User } from "./user"
 import { Channel } from "./channel"
+import { SendTextOptionParams } from "../types"
 
 declare global {
   interface Array<T> {
@@ -97,9 +98,9 @@ export class MessageDraft {
     this.value = result.trim()
   }
 
-  getPayloadToSend() {
-    return {
-      text: this.value,
+  async send(params: Omit<SendTextOptionParams, "mentionedUsers"> = {}) {
+    return this.channel.sendText(this.value, {
+      ...params,
       mentionedUsers: Object.keys(this.mentionedUsers).reduce(
         (acc, key) => ({
           ...acc,
@@ -110,7 +111,7 @@ export class MessageDraft {
         }),
         {}
       ),
-    }
+    })
   }
 
   getHighlightedMention(selectionStart: number) {
