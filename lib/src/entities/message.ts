@@ -5,6 +5,7 @@ import { MentionsUtils } from "../mentions-utils"
 
 type GetLinkedTextParams = {
   mentionedUserRenderer: (userId: string, mentionedName: string) => any
+  plainLinkRenderer: (link: string) => any
 }
 
 export type MessageContent = {
@@ -150,15 +151,22 @@ export class Message {
   getLinkedText(params?: Partial<GetLinkedTextParams>) {
     const text = this.text
 
-    let { mentionedUserRenderer } = params || {}
+    let { mentionedUserRenderer, plainLinkRenderer } = params || {}
 
     mentionedUserRenderer ||= function (userId, mentionedName) {
       return `<a href="https://pubnub.com/${userId}">@${mentionedName}</a> `
     }
 
+    plainLinkRenderer ||= function (link) {
+      const linkWithProtocol = link.startsWith("www.") ? `https://${link}` : link
+
+      return `<a href="${linkWithProtocol}">${link}</a> `
+    }
+
     return MentionsUtils.getLinkedText({
       text,
       userCallback: mentionedUserRenderer,
+      plainLinkRenderer,
       mentionedUsers: this.mentionedUsers,
     })
   }
