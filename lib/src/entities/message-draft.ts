@@ -11,14 +11,18 @@ declare global {
 
 export class MessageDraft {
   private chat: Chat
+  /** @internal */
   private channel: Channel
   public value = ""
+  /** @internal */
   private previousValue = ""
+  /** @internal */
   private mentionedUsers: {
     [nameOccurrenceIndex: number]: User
   } = {}
   readonly config: MessageDraftConfig
 
+  /** @internal */
   constructor(chat: Chat, channel: Channel, config?: Partial<MessageDraftConfig>) {
     this.chat = chat
     this.channel = channel
@@ -41,6 +45,7 @@ export class MessageDraft {
       .split(" ")
       .filter((word) => word.startsWith("@"))
     const currentWordsStartingWithAt = this.value.split(" ").filter((word) => word.startsWith("@"))
+
     let differentMentionPosition = -1
 
     const differentMentions = currentWordsStartingWithAt.filter((m, i) => {

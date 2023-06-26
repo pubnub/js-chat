@@ -2,7 +2,7 @@
     <h1>Message List</h1>
     <div *ngFor="let message of messages">
         <div class="message-row">
-            <p>
+            <p class="linked-text">
                 {{ message.message?.text || message.text }}
             </p>
             <div class="message-row__forward-icon__container" (click)="forwardMessage(message)">
