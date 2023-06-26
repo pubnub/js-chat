@@ -75,3 +75,13 @@ export const extractMentionedUserIds = (messageText: string): string[] => {
   }
   return []
 }
+
+export const extractMentionedUserNames = (messageText: string): string[] => {
+  const regex = /@"([^"]+)"/g
+  let match
+  const mentionedUserNames: string[] = []
+  while ((match = regex.exec(messageText)) !== null) {
+    mentionedUserNames.push(match[1])
+  }
+  return mentionedUserNames
+}

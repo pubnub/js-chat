@@ -1,6 +1,11 @@
 import { Chat, Channel, User, Message, Membership } from "../src"
 import * as dotenv from "dotenv"
-import { initTestChat, createRandomUserId, extractMentionedUserIds } from "./testUtils"
+import {
+  initTestChat,
+  createRandomUserId,
+  extractMentionedUserIds,
+  extractMentionedUserNames,
+} from "./testUtils"
 
 dotenv.config()
 
@@ -419,6 +424,88 @@ describe("Channel test", () => {
 
     await chat.deleteUser(user1.id)
     await chat.deleteUser(user2.id)
+  })
+
+  test("should mention users with multi-word names in a message and validate mentioned users", async () => {
+    jest.retryTimes(3)
+
+    const channelId = createRandomUserId()
+    const channelData = {
+      name: "Test Channel",
+      description: "This is a test channel",
+    }
+    const createdChannel = await chat.createChannel(channelId, channelData)
+
+    const user1Id = `user1_${Date.now()}`
+    const user1 = await chat.createUser(user1Id, { name: "User One" })
+
+    const user2Id = `user2_${Date.now()}`
+    const user2 = await chat.createUser(user2Id, { name: "User Two" })
+
+    const messageText = `Hello, @"${user1.name}" and @"${user2.name}" here is my mail test@pubnub.com`
+
+    await createdChannel.sendText(messageText)
+
+    const history = await createdChannel.getHistory()
+
+    const messageInHistory = history.messages.find(
+      (message: any) => message.content.text === messageText
+    )
+
+    expect(messageInHistory).toBeDefined()
+
+    const mentionedUserNames = extractMentionedUserNames(messageText)
+
+    console.log(mentionedUserNames) // <- log
+
+    const mentionedUsers = [user1, user2].filter(
+      (user) => user.name && mentionedUserNames.includes(user.name)
+    )
+
+    console.log(mentionedUsers) // <- log
+
+    expect(mentionedUsers.length).toBe(2)
+    expect(mentionedUsers[0].name).toBe("User One")
+    expect(mentionedUsers[1].name).toBe("User Two")
+
+    await chat.deleteUser(user1.id)
+    await chat.deleteUser(user2.id)
+  })
+
+  test("should send a message with words that start with @ but are not user mentions", async () => {
+    jest.retryTimes(3)
+
+    const channelId = createRandomUserId()
+    const channelName = "Test Channel"
+    const channelDescription = "This is a test channel"
+
+    const channelData = {
+      name: channelName,
+      description: channelDescription,
+    }
+
+    const createdChannel = await chat.createChannel(channelId, channelData)
+
+    const messageText =
+      "Hello, this is a test message with words that start with @ but are not user mentions: @test, @example, @check."
+
+    await createdChannel.sendText(messageText)
+
+    const history = await createdChannel.getHistory()
+
+    const messageInHistory = history.messages.find(
+      (message: any) => message.content.text === messageText
+    )
+
+    expect(messageInHistory).toBeDefined()
+
+    const mentionedUserIds = extractMentionedUserIds(messageText)
+    const mentionedUserNames = extractMentionedUserNames(messageText)
+
+    // No user IDs should be extracted because there are no valid user mentions
+    expect(mentionedUserIds.length).toBe(0)
+    // No user names should be extracted because there are no valid user mentions
+    expect(mentionedUserNames.length).toBe(0)
   })
 
   jest.retryTimes(3)
