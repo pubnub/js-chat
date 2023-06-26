@@ -502,9 +502,7 @@ describe("Channel test", () => {
     const mentionedUserIds = extractMentionedUserIds(messageText)
     const mentionedUserNames = extractMentionedUserNames(messageText)
 
-    // No user IDs should be extracted because there are no valid user mentions
     expect(mentionedUserIds.length).toBe(0)
-    // No user names should be extracted because there are no valid user mentions
     expect(mentionedUserNames.length).toBe(0)
   })
 
