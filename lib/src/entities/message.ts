@@ -1,10 +1,16 @@
 import { Chat } from "./chat"
 import PubNub from "pubnub"
 import { MessageActionType, MessageActions, DeleteParameters, MessageDTOParams } from "../types"
+import { MentionsUtils } from "../mentions-utils"
+
+type GetLinkedTextParams = {
+  mentionedUserRenderer: (userId: string, mentionedName: string) => any
+}
 
 export type MessageContent = {
   type: "text"
   text: string
+  linkedText: string
 }
 
 export type MessageFields = Pick<
@@ -19,6 +25,7 @@ export class Message {
   readonly channelId: string
   readonly userId: string
   readonly actions?: MessageActions
+
   readonly meta?: {
     [key: string]: any
   }
@@ -28,6 +35,13 @@ export class Message {
     }
 
     return !!Object.keys(this.actions["threadRootId"])[0]
+  }
+  get mentionedUsers() {
+    if (this.meta?.mentionedUsers) {
+      return this.meta.mentionedUsers
+    }
+
+    return {}
   }
 
   /** @internal */
@@ -131,6 +145,22 @@ export class Message {
     const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
 
     return lastEdit.value
+  }
+
+  getLinkedText(params?: Partial<GetLinkedTextParams>) {
+    const text = this.text
+
+    let { mentionedUserRenderer } = params || {}
+
+    mentionedUserRenderer ||= function (userId, mentionedName) {
+      return `<a href="https://pubnub.com/${userId}">@${mentionedName}</a> `
+    }
+
+    return MentionsUtils.getLinkedText({
+      text,
+      userCallback: mentionedUserRenderer,
+      mentionedUsers: this.mentionedUsers,
+    })
   }
 
   async editText(newText: string) {

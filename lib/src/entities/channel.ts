@@ -7,10 +7,16 @@ import PubNub, {
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
-import { SendTextOptionParams, DeleteParameters, ChannelDTOParams } from "../types"
+import {
+  SendTextOptionParams,
+  DeleteParameters,
+  ChannelDTOParams,
+  MessageDraftConfig,
+} from "../types"
 import { Membership } from "./membership"
 import { User } from "./user"
 import { MentionsUtils } from "../mentions-utils"
+import { MessageDraft } from "./message-draft"
 
 export type ChannelFields = Pick<
   Channel,
@@ -122,12 +128,18 @@ export class Channel {
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
+      const { mentionedUsers, ...rest } = options
+
       return await this.chat.sdk.publish({
-        ...options,
+        ...rest,
         channel: this.id,
         message: {
           type: "text",
           text,
+        },
+        meta: {
+          ...(rest.meta || {}),
+          mentionedUsers,
         },
       })
     } catch (error) {
@@ -414,7 +426,7 @@ export class Channel {
     }
   }
 
-  async getSuggestedChannelMembers(
+  async getUserSuggestions(
     text: string,
     options: { limit: number } = { limit: 10 }
   ): Promise<Membership[]> {
@@ -436,5 +448,9 @@ export class Channel {
     this.suggestedNames.set(cacheKey, membersResponse.members)
 
     return this.suggestedNames.get(cacheKey) as Membership[]
+  }
+
+  createMessageDraft(config?: Partial<MessageDraftConfig>) {
+    return new MessageDraft(this.chat, this, config)
   }
 }

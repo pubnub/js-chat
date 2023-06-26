@@ -1,5 +1,5 @@
-import { Component, Input } from "@angular/core"
-import { Channel, Chat, User } from "@pubnub/chat"
+import { Component, Input, ViewChild, ElementRef } from "@angular/core"
+import { Channel, Chat, MessageDraft, User } from "@pubnub/chat"
 
 @Component({
   selector: "app-message-input-chat",
@@ -13,24 +13,40 @@ export class MessageInputComponentChat {
   @Input() channel!: Channel
   @Input() chat!: Chat
   @Input() typingSent!: boolean
+  newMessageDraft: MessageDraft
+  lastAffectedNameOccurrenceIndex = -1
+  currentlyHighlightedMention: {
+    mentionedUser: User | undefined | null
+    nameOccurrenceIndex: number
+  }
+
+  @ViewChild("textAreaElement") userInput: ElementRef | undefined
+
+  constructor() {
+    this.newMessageDraft = this.channel?.createMessageDraft()
+    this.currentlyHighlightedMention = {
+      mentionedUser: null,
+      nameOccurrenceIndex: -1,
+    }
+  }
+
+  ngOnInit() {
+    this.newMessageDraft = this.channel.createMessageDraft({ userSuggestionSource: "global" })
+  }
 
   async handleInput(text: string) {
-    const result = await this.chat.getSuggestedGlobalUsers(text)
-    console.log("result", result)
-    this.suggestedUsers = result
-    // const members = await this.channel.getSuggestedChannelMembers(text)
-    // console.log("members", members)
-    this.pubnubInput ? this.channel.startTyping() : this.channel.stopTyping()
+    const response = await this.newMessageDraft.onChange(text)
+    // console.log("response??", response)
+    this.suggestedUsers = response.suggestedUsers
+    this.lastAffectedNameOccurrenceIndex = response.nameOccurrenceIndex
   }
 
   toggleUserToNotify(user: User) {
-    const userAlreadyAdded = this.usersToNotify.find((u) => u.id === user.id)
+    this.newMessageDraft.addMentionedUser(user, this.lastAffectedNameOccurrenceIndex)
+  }
 
-    if (!!userAlreadyAdded) {
-      this.usersToNotify = this.usersToNotify.filter((u) => u.id !== user.id)
-    } else {
-      this.usersToNotify.push(user)
-    }
+  removeUserFromNotification(nameOccurrenceIndex: number) {
+    this.newMessageDraft.removeMentionedUser(nameOccurrenceIndex)
   }
 
   isUserToBeNotified(user: User) {
@@ -38,9 +54,15 @@ export class MessageInputComponentChat {
   }
 
   async handleSend() {
-    const response = await this.channel.sendText(this.pubnubInput, {
-      meta: { foo: "bar" },
-    })
+    const response = await this.newMessageDraft.send()
+
+    this.suggestedUsers = []
     this.pubnubInput = ""
+  }
+
+  handleCaret(event: any) {
+    this.currentlyHighlightedMention = this.newMessageDraft.getHighlightedMention(
+      this.userInput?.nativeElement.selectionStart
+    )
   }
 }
