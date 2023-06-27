@@ -29,6 +29,7 @@ export class MessageDraft {
     this.config = {
       userSuggestionSource: "channel",
       isTypingIndicatorTriggered: true,
+      userLimit: 10,
       ...(config || {}),
     }
   }
@@ -84,11 +85,15 @@ export class MessageDraft {
     let suggestedUsers
 
     if (this.config.userSuggestionSource === "channel") {
-      suggestedUsers = (await this.channel.getUserSuggestions(differentMentions[0])).map(
-        (membership) => membership.user
-      )
+      suggestedUsers = (
+        await this.channel.getUserSuggestions(differentMentions[0], {
+          limit: this.config.userLimit,
+        })
+      ).map((membership) => membership.user)
     } else {
-      suggestedUsers = await this.chat.getUserSuggestions(differentMentions[0])
+      suggestedUsers = await this.chat.getUserSuggestions(differentMentions[0], {
+        limit: this.config.userLimit,
+      })
     }
 
     return {

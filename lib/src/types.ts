@@ -61,4 +61,5 @@ export type ThreadChannelDTOParams = ChannelDTOParams & { parentChannelId: strin
 export type MessageDraftConfig = {
   userSuggestionSource: "channel" | "global"
   isTypingIndicatorTriggered: boolean
+  userLimit: number
 }
