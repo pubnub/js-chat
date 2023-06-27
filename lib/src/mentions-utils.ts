@@ -1,5 +1,5 @@
-import { MessageMentionedUsers } from "./types";
-import {Validator} from "./validator";
+import { MessageMentionedUsers } from "./types"
+import { Validator } from "./validator"
 
 type GetLinkedTextParams = {
   userCallback: (userId: string, mentionedName: string) => any
@@ -26,8 +26,13 @@ export class MentionsUtils {
     return splitWords[0] + (splitWords[1] ? ` ${splitWords[1]}` : "")
   }
 
-  static getLinkedText({ text, userCallback, mentionedUsers, plainLinkRenderer }: GetLinkedTextParams) {
-    let counter = 0;
+  static getLinkedText({
+    text,
+    userCallback,
+    mentionedUsers,
+    plainLinkRenderer,
+  }: GetLinkedTextParams) {
+    let counter = 0
     let result = ""
     // multi word names
     let indicesToSkip: number[] = []
