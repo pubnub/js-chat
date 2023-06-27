@@ -5,8 +5,8 @@ export class Validator {
     if (validProtocols.every((protocol) => potentialUrl.indexOf(protocol) !== 0)) {
       return false
     }
-    const httphttpsRegex = /^https?:\/\/[^\s/$.?#].[^\s]*$/
-    const wwwRegex = /^www\.[^\s/$.?#].[^\s]*$/
+    const urlRegex =
+      /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi
 
     if (
       potentialUrl.split(".").filter((word) => word !== "").length <
@@ -15,6 +15,6 @@ export class Validator {
       return false
     }
 
-    return [httphttpsRegex, wwwRegex].some((regex) => regex.test(potentialUrl.replaceAll("\n", "")))
+    return urlRegex.test(potentialUrl.replaceAll("\n", ""))
   }
 }
