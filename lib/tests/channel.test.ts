@@ -1,4 +1,4 @@
-import { Chat, Channel, User, Message, Membership } from "../src"
+import { Chat, Channel, User, Message, Membership, MessageDraft } from "../src"
 import * as dotenv from "dotenv"
 import {
   initTestChat,
@@ -499,11 +499,126 @@ describe("Channel test", () => {
 
     expect(messageInHistory).toBeDefined()
 
-    const mentionedUserIds = extractMentionedUserIds(messageText)
     const mentionedUserNames = extractMentionedUserNames(messageText)
 
-    expect(mentionedUserIds.length).toBe(0)
     expect(mentionedUserNames.length).toBe(0)
+  })
+
+  test("should mention users with incorrect usernames and validate no users are mentioned", async () => {
+    jest.retryTimes(3)
+
+    const channelId = createRandomUserId()
+    const channelData = {
+      name: "Test Channel",
+      description: "This is a test channel",
+    }
+    const createdChannel = await chat.createChannel(channelId, channelData)
+
+    const user1Id = `user1_${Date.now()}`
+    const user1 = await chat.createUser(user1Id, { name: "User One" })
+
+    const incorrectUserId = user1Id.substring(0, user1Id.length - 1)
+
+    const messageText = `Hello, @${incorrectUserId}, I tried to mention you`
+
+    await createdChannel.sendText(messageText)
+
+    const history = await createdChannel.getHistory()
+
+    const messageInHistory = history.messages.find(
+      (message: any) => message.content.text === messageText
+    )
+
+    expect(messageInHistory).toBeDefined()
+
+    const mentionedUserIds = extractMentionedUserIds(messageText)
+
+    const mentionedUsers = [user1].filter((user) => mentionedUserIds.includes(user.id))
+
+    expect(mentionedUsers.length).toBe(0)
+
+    await chat.deleteUser(user1.id)
+  })
+
+  test("should mention global users who are not members of the channel", async () => {
+    jest.retryTimes(3)
+
+    const channelId = createRandomUserId()
+    const channelData = {
+      name: "Test Channel",
+      description: "This is a test channel",
+    }
+    const createdChannel = await chat.createChannel(channelId, channelData)
+
+    const user1Id = `user1_${Date.now()}`
+    const user1 = await chat.createUser(user1Id, { name: "User 1" })
+
+    const user2Id = `user2_${Date.now()}`
+    const user2 = await chat.createUser(user2Id, { name: "User 2" })
+
+    await createdChannel.invite(user1)
+
+    const membersResponse = await createdChannel.getMembers()
+    const members = membersResponse.members // Add this line to declare the members array.
+    expect(members.some((member: Membership) => member.user.id === user1.id)).toBeTruthy()
+    expect(members.some((member: Membership) => member.user.id === user2.id)).toBeFalsy()
+
+    const messageText = `Hello, @${user1.id} and @${user2.id} here is my mail test@pubnub.com`
+
+    await createdChannel.sendText(messageText)
+
+    const history = await createdChannel.getHistory()
+
+    const messageInHistory = history.messages.find(
+      (message: any) => message.content.text === messageText
+    )
+
+    expect(messageInHistory).toBeDefined()
+
+    const mentionedUserIds = extractMentionedUserIds(messageText)
+    const mentionedUsers = [user1, user2].filter((user) => mentionedUserIds.includes(user.id))
+
+    // Expect both users (even the global user) to be mentioned
+    expect(mentionedUsers.length).toBe(2)
+    expect(mentionedUsers[0].id).toBe(user1.id)
+    expect(mentionedUsers[1].id).toBe(user2.id)
+
+    await chat.deleteUser(user1.id)
+    await chat.deleteUser(user2.id)
+  })
+
+  test("should mention the same user multiple times in a message and validate mentioned users", async () => {
+    jest.retryTimes(3)
+
+    const channelId = createRandomUserId()
+    const channelData = {
+      name: "Test Channel",
+      description: "This is a test channel",
+    }
+    const createdChannel = await chat.createChannel(channelId, channelData)
+
+    const user1Id = `user1_${Date.now()}`
+    const user1 = await chat.createUser(user1Id, { name: "User 1" })
+
+    const messageText = `Hello, @${user1.id}, how are you? @${user1.id}, are you there?`
+
+    await createdChannel.sendText(messageText)
+
+    const history = await createdChannel.getHistory()
+
+    const messageInHistory = history.messages.find(
+      (message: any) => message.content.text === messageText
+    )
+
+    expect(messageInHistory).toBeDefined()
+
+    const mentionedUserIds = extractMentionedUserIds(messageText)
+    const mentionedUsers = [user1].filter((user) => mentionedUserIds.includes(user.id))
+
+    expect(mentionedUsers.length).toBe(1)
+    expect(mentionedUsers[0].id).toBe(user1.id)
+
+    await chat.deleteUser(user1.id)
   })
 
   jest.retryTimes(3)
