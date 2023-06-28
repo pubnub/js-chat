@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: yarn install
-      - run: yarn test --forceExit --ci --reporters=default --reporters=jest-junit --runInBand
+      - run: yarn test
         env:
           PUBLISH_KEY: ${{ secrets.PUBLISH_KEY }}
           SUBSCRIBE_KEY: ${{ secrets.SUBSCRIBE_KEY }}
