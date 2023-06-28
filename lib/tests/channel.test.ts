@@ -272,6 +272,9 @@ describe("Channel test", () => {
     await createdChannel.sendText(messageText)
 
     let history = await createdChannel.getHistory()
+
+    expect(history.messages.length).toBeGreaterThan(0)
+
     let sentMessage = history.messages[0]
 
     expect(sentMessage.hasThread).toBe(false)
