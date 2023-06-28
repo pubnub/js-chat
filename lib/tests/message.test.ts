@@ -1,6 +1,14 @@
-import { Chat, Channel, Message } from "../src"
+import {
+  Chat,
+  Channel,
+  Message,
+  MessageType,
+  TextMessageContent,
+  ReportMessageContent,
+} from "../src"
 import * as dotenv from "dotenv"
 import { initTestChannel, initTestChat, waitForAllMessagesToBeDelivered } from "./testUtils"
+import { INTERNAL_ADMIN_CHANNEL } from "../src"
 
 dotenv.config()
 
@@ -27,7 +35,9 @@ describe("Send message test", () => {
 
     const disconnect = channel.connect((message) => {
       receiveTime = Date.now()
-      messages.push(message.content.text)
+      if (message.content.text !== undefined) {
+        messages.push(message.content.text)
+      }
     })
 
     const sendTime = Date.now()
@@ -63,7 +73,9 @@ describe("Send message test", () => {
 
     const disconnect = channel.connect((message) => {
       receiveTime = Date.now()
-      messages.push(message.content.text)
+      if (message.content.text !== undefined) {
+        messages.push(message.content.text)
+      }
     })
 
     const sendTime = Date.now()
@@ -234,6 +246,51 @@ describe("Send message test", () => {
     })
 
     await new Promise((resolve) => setTimeout(resolve, 2000))
+  }, 30000)
+
+  test("should report a message", async () => {
+    jest.retryTimes(3)
+
+    if (!channel) {
+      throw new Error("Channel is undefined")
+    }
+
+    const messageText = "Test message to be reported"
+    const reportReason = "Inappropriate content"
+
+    await channel.sendText(messageText)
+
+    const history = await channel.getHistory({ count: 1 })
+    const reportedMessage = history.messages[0]
+
+    await reportedMessage.report(reportReason)
+
+    const adminChannel = INTERNAL_ADMIN_CHANNEL
+    const adminChannelObjPromise = chat.getChannel(adminChannel)
+    if (!adminChannelObjPromise) {
+      throw new Error("Admin channel is undefined")
+    }
+
+    const adminChannelObj = await adminChannelObjPromise // await the Promise to get the Channel object
+
+    if (!adminChannelObj) {
+      throw new Error("Admin channel object is null")
+    }
+
+    const adminChannelHistory = await adminChannelObj.getHistory({ count: 1 })
+
+    const reportedMessageAfterReport = adminChannelHistory.messages[0]
+
+    if (reportedMessageAfterReport?.content.type === MessageType.REPORT) {
+      const reportContent = reportedMessageAfterReport.content as ReportMessageContent
+      expect(reportContent.text).toBe(messageText)
+      expect(reportContent.reason).toBe(reportReason)
+      expect(reportContent.reportedMessageChannelId).toBe(reportedMessage.channelId)
+      expect(reportContent.reportedMessageTimetoken).toBe(reportedMessage.timetoken)
+      expect(reportContent.reportedUserId).toBe(reportedMessage.userId)
+    } else {
+      throw new Error("Reported message content is not of type 'REPORT'")
+    }
   }, 30000)
 
   jest.retryTimes(3)
