@@ -27,7 +27,9 @@ describe("Send message test", () => {
 
     const disconnect = channel.connect((message) => {
       receiveTime = Date.now()
-      messages.push(message.content.text)
+      if (message.content.text !== undefined) {
+        messages.push(message.content.text)
+      }
     })
 
     const sendTime = Date.now()
@@ -63,7 +65,9 @@ describe("Send message test", () => {
 
     const disconnect = channel.connect((message) => {
       receiveTime = Date.now()
-      messages.push(message.content.text)
+      if (message.content.text !== undefined) {
+        messages.push(message.content.text)
+      }
     })
 
     const sendTime = Date.now()
