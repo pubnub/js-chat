@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: yarn install
-      - run: yarn test --forceExit --ci --reporters=default --reporters=jest-junit
+      - run: yarn test --forceExit --ci --reporters=default --reporters=jest-junit --runInBand
         env:
           PUBLISH_KEY: ${{ secrets.PUBLISH_KEY }}
           SUBSCRIBE_KEY: ${{ secrets.SUBSCRIBE_KEY }}
@@ -28,6 +28,6 @@ jobs:
         uses: dorny/test-reporter@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          name: 'Test results'
-          path: 'lib/junit.xml'
-          reporter: 'jest-junit'
+          name: "Test results"
+          path: "lib/junit.xml"
+          reporter: "jest-junit"
