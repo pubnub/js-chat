@@ -42,6 +42,13 @@ describe("Channel test", () => {
   test("should get channel history", async () => {
     jest.retryTimes(3)
 
+    console.log("##########################")
+    console.log("##########################")
+    console.log(process.env.PUBLISH_KEY!)
+    console.log(process.env.SUBSCRIBE_KEY!)
+    console.log("##########################")
+    console.log("##########################")
+
     const messageText1 = "Test message 1"
     const messageText2 = "Test message 2"
 
