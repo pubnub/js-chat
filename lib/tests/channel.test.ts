@@ -42,8 +42,8 @@ describe("Channel test", () => {
   test("should get channel history", async () => {
     jest.retryTimes(3)
 
-    console.log("SUBSCRIBE KEY: ", (chat.sdk as any)._config.subscribeKey)
-    console.log("PUBLISH KEY: ", (chat.sdk as any)._config.publishKey)
+    console.log("SUBSCRIBE KEY: ", (chat.sdk as any)._config.subscribeKey.substr(5, 5))
+    console.log("PUBLISH KEY: ", (chat.sdk as any)._config.publishKey.substr(5, 5))
 
     const messageText1 = "Test message 1"
     const messageText2 = "Test message 2"
