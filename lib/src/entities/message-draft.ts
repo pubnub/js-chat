@@ -46,6 +46,8 @@ export class MessageDraft {
       .split(" ")
       .filter((word) => word.startsWith("@"))
     const currentWordsStartingWithAt = this.value.split(" ").filter((word) => word.startsWith("@"))
+    // console.log("previousWordsStartingWithAt", previousWordsStartingWithAt)
+    // console.log("currentWordsStartingWithAt", currentWordsStartingWithAt)
 
     let differentMentionPosition = -1
 
@@ -56,8 +58,38 @@ export class MessageDraft {
         differentMentionPosition = i
       }
 
-      return previousWordsStartingWithAt.indexOf(m) === -1
+      return isStringDifferent
     })
+
+    if (previousWordsStartingWithAt.length > currentWordsStartingWithAt.length) {
+      // a mention was removed
+      const firstRemovalIndex = previousWordsStartingWithAt.findIndex(
+        (e, i) => !currentWordsStartingWithAt.includes(e)
+      )
+      const lastRemovalIndex = previousWordsStartingWithAt.findLastIndex(
+        (e, i) => !currentWordsStartingWithAt.includes(e)
+      )
+
+      if (lastRemovalIndex !== -1) {
+        let reindexedMentionedUsers = { ...this.mentionedUsers }
+
+        Object.keys(this.mentionedUsers).forEach((key) => {
+          if (Number(key) >= firstRemovalIndex && Number(key) <= lastRemovalIndex) {
+            delete reindexedMentionedUsers[Number(key)]
+          }
+          if (Number(key) > lastRemovalIndex) {
+            delete reindexedMentionedUsers[Number(key)]
+            reindexedMentionedUsers = {
+              ...reindexedMentionedUsers,
+              [Number(key) - lastRemovalIndex + firstRemovalIndex - 1]:
+                this.mentionedUsers[Number(key)],
+            }
+          }
+        })
+
+        this.mentionedUsers = reindexedMentionedUsers
+      }
+    }
 
     Object.keys(this.mentionedUsers).forEach((key) => {
       const mentionedUserName = this.mentionedUsers[Number(key)]?.name
