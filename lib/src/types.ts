@@ -7,10 +7,30 @@ export type StatusTypeFields = {
   type?: string
 }
 
+export enum MessageType {
+  TEXT = "text",
+  TYPING = "typing",
+  REPORT = "report",
+}
+
 export enum MessageActionType {
   REACTIONS = "reactions",
   DELETED = "deleted",
   EDITED = "edited",
+}
+
+export type TextMessageContent = {
+  type: MessageType.TEXT
+  text: string
+}
+
+export type ReportMessageContent = {
+  type: MessageType.REPORT
+  text?: string
+  reason: string
+  reportedMessageTimetoken?: string
+  reportedMessageChannelId?: string
+  reportedUserId?: string
 }
 
 export type MessageActions = {

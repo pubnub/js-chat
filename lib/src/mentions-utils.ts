@@ -1,4 +1,4 @@
-import { MessageMentionedUsers } from "./types";
+import { MessageMentionedUsers } from "./types"
 
 export class MentionsUtils {
   static getPhraseToLookFor(text: string) {
@@ -18,12 +18,20 @@ export class MentionsUtils {
     return splitWords[0] + (splitWords[1] ? ` ${splitWords[1]}` : "")
   }
 
-  static getLinkedText({ text, userCallback, mentionedUsers }: { text: string, userCallback: (userId: string, mentionedName: string) => any, mentionedUsers: MessageMentionedUsers }) {
+  static getLinkedText({
+    text,
+    userCallback,
+    mentionedUsers,
+  }: {
+    text: string
+    userCallback: (userId: string, mentionedName: string) => any
+    mentionedUsers: MessageMentionedUsers
+  }) {
     if (!mentionedUsers || !Object.keys(mentionedUsers).length) {
       return text
     }
 
-    let counter = 0;
+    let counter = 0
     let result = ""
     // multi word names
     let indicesToSkip: number[] = []

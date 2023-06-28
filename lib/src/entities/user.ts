@@ -1,7 +1,14 @@
 import PubNub, { UUIDMetadataObject, ObjectCustom, GetMembershipsParametersv2 } from "pubnub"
 import { Chat } from "./chat"
-import { StatusTypeFields, DeleteParameters, OptionalAllBut } from "../types"
+import {
+  DeleteParameters,
+  MessageType,
+  OptionalAllBut,
+  ReportMessageContent,
+  StatusTypeFields,
+} from "../types"
 import { Membership } from "./membership"
+import { INTERNAL_ADMIN_CHANNEL } from "../constants"
 
 export type UserFields = Pick<
   User,
@@ -118,6 +125,23 @@ export class User {
       memberships: membershipsResponse.data.map((m) =>
         Membership.fromMembershipDTO(this.chat, m, this)
       ),
+    }
+  }
+
+  /*
+   * Other
+   */
+  async report(reason: string) {
+    try {
+      const channel = INTERNAL_ADMIN_CHANNEL
+      const message: ReportMessageContent = {
+        type: MessageType.REPORT,
+        reason,
+        reportedUserId: this.id,
+      }
+      return await this.chat.publish({ message, channel })
+    } catch (error) {
+      throw error
     }
   }
 }
