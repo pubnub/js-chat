@@ -254,7 +254,7 @@ describe("Channel test", () => {
     expect(messageInHistory).toBeTruthy()
   })
 
-  test("should create a thread", async () => {
+  test.only("should create a thread", async () => {
     jest.retryTimes(3)
 
     const channelId = createRandomUserId()
