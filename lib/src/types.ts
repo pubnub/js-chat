@@ -46,8 +46,15 @@ export type DeleteParameters = {
   soft?: boolean
 }
 
+export type MessageMentionedUsers = {
+  [nameOccurrenceIndex: number]: {
+    id: string
+    name: string
+  }
+}
+
 export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel"> & {
-  rootMessage?: Message
+  mentionedUsers?: MessageMentionedUsers
 }
 
 export type EnhancedMessageEvent = PubNub.MessageEvent & {
@@ -70,3 +77,8 @@ export type ChannelDTOParams = OptionalAllBut<ChannelMetadataObject<ObjectCustom
   StatusTypeFields
 
 export type ThreadChannelDTOParams = ChannelDTOParams & { parentChannelId: string }
+
+export type MessageDraftConfig = {
+  userSuggestionSource: "channel" | "global"
+  isTypingIndicatorTriggered: boolean
+}

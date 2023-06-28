@@ -7,8 +7,7 @@
         </div>
         <div *ngFor="let message of messages">
             <div class="message-row">
-                <p>
-                    {{ message.text }}
+                <p [innerHtml]="message.getLinkedText()">
                 </p>
                 <div class="message-row__forward-icon__container" (click)="forwardMessage(message)">
                     <img src="assets/forwardIcon.png" class="message-row__forward-icon" />
@@ -16,14 +15,14 @@
                 <div class="message-row__forward-icon__container" (click)="pinMessage(message)">
                     <img src="assets/star.png" class="message-row__forward-icon" />
                 </div>
-                <div class="message-row__forward-icon__container" (click)="loadThreadMessages(message)" *ngIf="message.threadRootId">
+                <div class="message-row__forward-icon__container" (click)="loadThreadMessages(message)" *ngIf="message.hasThread">
                     <img src="assets/icon-of-blank-message-dialogue-box-free-vector.webp" class="message-row__forward-icon" />
                 </div>
             </div>
             <div class="message-row__thread-messages-container" *ngIf="threadMessages[message.timetoken]">
-                <div *ngIf="message.threadRootId">
+                <div *ngIf="message.hasThread">
                     <span>Thread pinned message: </span>
-                    <span>{{ pinnedMessages[message.threadRootId] }}</span>
+                    <span>{{ pinnedMessages[threadMessages[message.timetoken][0].channelId] }}</span>
                 </div>
                 <div *ngFor="let threadMessage of threadMessages[message.timetoken]">
                     <div class="message-row">

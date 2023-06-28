@@ -54,28 +54,19 @@ export class MessageListComponentChat {
       startTimetoken: this.messages?.[0]?.timetoken,
     })
     await this.getPinnedMessage(this.channel)
-    const msg = historicalMessagesObject.messages[0]
-    // console.log("historicalMessagesObject", historicalMessagesObject)
-    // const ch = await this.chat.getChannel("123")
-    // await ch!.sendText("Tex20", { rootMessage: msg })
+    const msg = historicalMessagesObject.messages[1]
 
+    const things = ["Rock", "Paper", "Scissor"]
+    const thing = things[Math.floor(Math.random() * things.length)]
 
-
-    // await this.channel.sendText("Text1303", { rootMessage: msg })
-
-
-    if (msg.threadRootId) {
+    if (msg.hasThread) {
       const thread = await msg.getThread()
-      const threadMessages = await thread!.getHistory()
-
-      console.log("threadMessages", threadMessages)
-      // await this.channel.sendText("Text1303", { rootMessage: threadMessages.messages[0] })
-      // console.log("threadMessages", threadMessages)
-      // const c = await this.chat.getChannel(threadMessages.messages[0].channelId)
-      // await c!.sendText("whatever", { rootMessage: threadMessages.messages[0] })
+      this.getPinnedMessage(thread)
+      thread.sendText(thing)
+    } else {
+      const thread = await msg.createThread()
+      thread.sendText(thing)
     }
-
-    // const pinnedMessage = await this.channel.getPinnedMessage()
 
     this.isPaginationEnd = !historicalMessagesObject.isMore
 
@@ -109,7 +100,7 @@ export class MessageListComponentChat {
   }
 
   async loadThreadMessages(message: Message) {
-    if (!message.threadRootId) {
+    if (!message.hasThread) {
       return
     }
 
