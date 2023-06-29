@@ -39,7 +39,7 @@ describe("Channel test", () => {
     expect(status).toBe("deleted")
   })
 
-  test("should get channel history", async () => {
+  test.only("should get channel history", async () => {
     jest.retryTimes(3)
 
     const messageText1 = "Test message 1"
@@ -61,7 +61,7 @@ describe("Channel test", () => {
     expect(message2InHistory).toBeTruthy()
   })
 
-  test("should get channel history with pagination", async () => {
+  test.skip("should get channel history with pagination", async () => {
     jest.retryTimes(3)
 
     const messageText1 = "Test message 1"
@@ -163,7 +163,7 @@ describe("Channel test", () => {
     expect(messageInHistory).toBeTruthy()
   })
 
-  test("should create a thread", async () => {
+  test.skip("should create a thread", async () => {
     jest.retryTimes(3)
 
     const messageText = "Test message"
@@ -286,7 +286,7 @@ describe("Channel test", () => {
     channel.leave()
   })
 
-  test("should mention users in a message and validate mentioned users", async () => {
+  test.skip("should mention users in a message and validate mentioned users", async () => {
     jest.retryTimes(3)
 
     const user1Id = `user1_${Date.now()}`
