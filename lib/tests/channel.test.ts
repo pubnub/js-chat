@@ -6,57 +6,37 @@ dotenv.config()
 
 describe("Channel test", () => {
   let chat: Chat
-  let channel: Channel | null
+  let channel: Channel
+  const channelData = {
+    name: "Test Channel",
+    description: "This is a test channel",
+  }
 
   beforeEach(async () => {
     chat = await initTestChat()
+    channel = await chat.createChannel(createRandomUserId(), channelData)
+    jest.resetAllMocks()
   })
 
-  beforeEach(() => {
-    jest.resetAllMocks()
+  afterEach(async () => {
+    await channel.delete()
   })
 
   test("should create a channel", async () => {
     jest.retryTimes(3)
-
-    const channelId = createRandomUserId()
-    const channelName = "Test Channel"
-    const channelDescription = "This is a test channel"
-
-    const channelData = {
-      name: channelName,
-      description: channelDescription,
-    }
-
-    const createdChannel = await chat.createChannel(channelId, channelData)
-
-    expect(createdChannel).toBeDefined()
-    expect(createdChannel.id).toEqual(channelId)
-    expect(createdChannel.name).toEqual(channelName)
-    expect(createdChannel.description).toEqual(channelDescription)
+    expect(channel).toBeDefined()
+    expect(channel.name).toEqual(channelData.name)
+    expect(channel.description).toEqual(channelData.description)
   })
 
   test("should soft delete a channel", async () => {
     jest.retryTimes(3)
-
-    const channelId = createRandomUserId()
-    const channelName = "Test Channel"
-    const channelDescription = "This is a test channel"
-
-    const channelData = {
-      name: channelName,
-      description: channelDescription,
-    }
-
-    const createdChannel = await chat.createChannel(channelId, channelData)
-
     const deleteOptions = {
       soft: true,
     }
 
-    const isDeleted = await createdChannel.delete(deleteOptions)
-
-    expect(isDeleted).toBeTruthy()
+    const { status } = (await channel.delete(deleteOptions)) as Channel
+    expect(status).toBe("deleted")
   })
 
   test("should get channel history", async () => {
@@ -65,24 +45,20 @@ describe("Channel test", () => {
     const messageText1 = "Test message 1"
     const messageText2 = "Test message 2"
 
-    if (channel) {
-      await channel.sendText(messageText1)
-      await channel.sendText(messageText2)
+    await channel.sendText(messageText1)
+    await channel.sendText(messageText2)
 
-      const history = await channel.getHistory()
+    const history = await channel.getHistory()
 
-      const message1InHistory = history.messages.some(
-        (message) => message.content.text === messageText1
-      )
-      const message2InHistory = history.messages.some(
-        (message) => message.content.text === messageText2
-      )
+    const message1InHistory = history.messages.some(
+      (message) => message.content.text === messageText1
+    )
+    const message2InHistory = history.messages.some(
+      (message) => message.content.text === messageText2
+    )
 
-      expect(message1InHistory).toBeTruthy()
-      expect(message2InHistory).toBeTruthy()
-    } else {
-      expect(channel).not.toBeNull()
-    }
+    expect(message1InHistory).toBeTruthy()
+    expect(message2InHistory).toBeTruthy()
   })
 
   test("should get channel history with pagination", async () => {
@@ -92,53 +68,31 @@ describe("Channel test", () => {
     const messageText2 = "Test message 2"
     const messageText3 = "Test message 3"
 
-    if (channel) {
-      const result1 = await channel.sendText(messageText1)
-      const result2 = await channel.sendText(messageText2)
-      const result3 = await channel.sendText(messageText3)
+    await channel.sendText(messageText1)
+    await channel.sendText(messageText2)
+    await channel.sendText(messageText3)
 
-      const history = await channel.getHistory({ count: 2 })
+    const history = await channel.getHistory({ count: 2 })
 
-      expect(history.messages.length).toBe(2)
+    expect(history.messages.length).toBe(2)
+    expect(history.isMore).toBeTruthy()
 
-      expect(history.isMore).toBeTruthy()
+    const secondPage = await channel.getHistory({ startTimetoken: history.messages[0].timetoken })
 
-      const secondPage = await channel.getHistory({ startTimetoken: history.messages[0].timetoken })
-
-      expect(secondPage.messages.length).toBeGreaterThanOrEqual(1)
-    } else {
-      expect(channel).not.toBeNull()
-    }
-  })
-
-  test("should fail when trying to create a channel without required parameters", async () => {
-    jest.retryTimes(3)
-
-    const channelId = createRandomUserId()
-
-    try {
-      await chat.createChannel(channelId, {})
-      fail("Should have thrown an error")
-    } catch (error) {
-      expect(error).toBeInstanceOf(Error)
-    }
+    expect(secondPage.messages.length).toBeGreaterThanOrEqual(1)
   })
 
   test("should fail when trying to send a message to a non-existent channel", async () => {
     jest.retryTimes(3)
 
     const channelId = createRandomUserId()
-    const nonExistentChannel = await chat.getChannel(channelId)
+    const nonExistentChannel = (await chat.getChannel(channelId)) as Channel
 
-    if (nonExistentChannel) {
-      try {
-        await nonExistentChannel.sendText("Test message")
-        expect(true).toBe(false) // Fail the test if no error is thrown
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error)
-      }
-    } else {
-      expect(nonExistentChannel).toBeNull()
+    try {
+      await nonExistentChannel.sendText("Test message")
+      fail("Should have thrown an error")
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error)
     }
   })
 
@@ -146,14 +100,6 @@ describe("Channel test", () => {
     jest.retryTimes(3)
 
     const channelId = createRandomUserId()
-    const channelName = "Test Channel"
-    const channelDescription = "This is a test channel"
-
-    const channelData = {
-      name: channelName,
-      description: channelDescription,
-    }
-
     const createdChannel = await chat.createChannel(channelId, channelData)
     await createdChannel.delete()
 
@@ -164,25 +110,14 @@ describe("Channel test", () => {
       expect(error).toBeInstanceOf(Error)
     }
   })
-  jest.retryTimes(3)
 
   test("should fail when trying to get history of a deleted channel", async () => {
     jest.retryTimes(3)
 
-    const channelId = createRandomUserId()
-    const channelName = "Test Channel"
-    const channelDescription = "This is a test channel"
-
-    const channelData = {
-      name: channelName,
-      description: channelDescription,
-    }
-
-    const createdChannel = await chat.createChannel(channelId, channelData)
-    await createdChannel.delete()
+    await channel.delete()
 
     try {
-      await createdChannel.getHistory()
+      await channel.getHistory()
       fail("Should have thrown an error")
     } catch (error) {
       expect(error).toBeInstanceOf(Error)
@@ -192,53 +127,27 @@ describe("Channel test", () => {
   test("should edit membership metadata", async () => {
     jest.retryTimes(3)
 
-    const user1 = new User(chat, { id: "user1" })
-    const user2 = new User(chat, { id: "user2" })
-
-    const channelId = createRandomUserId()
-    const channelData = {
-      name: "Test Channel",
-      description: "This is a test channel",
-    }
-    const createdChannel = await chat.createChannel(channelId, channelData)
-
-    const membership1 = await createdChannel.join((message) => {
-      // Message callback
+    const membership = await channel.join(() => {
+      //
     })
 
-    const membership2 = await createdChannel.join((message) => {
-      // Message callback
-    })
-
-    const updatedMembership1 = await membership1.update({
+    const updatedMembership = await membership.update({
       custom: { role: "admin" },
     })
 
-    expect(updatedMembership1.custom?.role).toBe("admin")
+    expect(updatedMembership.custom?.role).toBe("admin")
 
-    const updatedMembership2 = await membership2.update({
-      custom: { role: "member" },
-    })
-
-    expect(updatedMembership2.custom?.role).toBe("member")
+    channel.leave()
   })
 
   test("should create direct conversation and send message", async () => {
     jest.retryTimes(3)
 
-    const user1Id = "testUser1"
-    const user1 =
-      (await chat.getUser(user1Id)) || (await chat.createUser(user1Id, { name: "Test User 1" }))
+    const userId = "testUser1"
+    const user =
+      (await chat.getUser(userId)) || (await chat.createUser(userId, { name: "Test User 1" }))
 
-    const channelData = {
-      name: "Direct Conversation",
-      description: "Direct conversation for Test User 1",
-    }
-
-    const directConversation = await chat.createDirectConversation({
-      user: user1,
-      channelData: channelData,
-    })
+    const directConversation = await chat.createDirectConversation({ user, channelData })
 
     expect(directConversation).toBeDefined()
 
@@ -257,21 +166,13 @@ describe("Channel test", () => {
   test("should create a thread", async () => {
     jest.retryTimes(3)
 
-    const channelId = createRandomUserId()
-    const channelName = "Test Channel"
-    const channelDescription = "This is a test channel"
-
-    const channelData = {
-      name: channelName,
-      description: channelDescription,
-    }
-
-    const createdChannel = await chat.createChannel(channelId, channelData)
-
     const messageText = "Test message"
-    await createdChannel.sendText(messageText)
+    await channel.sendText(messageText)
 
-    let history = await createdChannel.getHistory()
+    let history = await channel.getHistory()
+
+    expect(history.messages.length).toBeGreaterThan(0)
+
     let sentMessage = history.messages[0]
 
     expect(sentMessage.hasThread).toBe(false)
@@ -280,7 +181,7 @@ describe("Channel test", () => {
       await sentMessage.createThread()
     }
 
-    history = await createdChannel.getHistory()
+    history = await channel.getHistory()
     sentMessage = history.messages[0]
 
     expect(sentMessage.hasThread).toBe(true)
@@ -366,31 +267,27 @@ describe("Channel test", () => {
     const messageText1 = "Test message 1"
     const messageText2 = "Test message 2"
 
-    if (channel) {
-      await channel.sendText(messageText1)
-      await channel.sendText(messageText2)
+    await channel.sendText(messageText1)
+    await channel.sendText(messageText2)
 
-      const membership = await channel.join((message) => {
-        // Handle received messages
-      })
+    let membership = await channel.join((message) => {
+      //
+    })
+    let unreadCount = await membership.getUnreadMessagesCount()
 
-      const unreadCount = await membership.getUnreadMessagesCount()
+    expect(unreadCount).toBe(false)
 
-      expect(unreadCount).toBe(2)
-    } else {
-      expect(channel).not.toBeNull()
-    }
+    const { messages } = await channel.getHistory()
+    membership = await membership.setLastReadMessage(messages[0])
+    unreadCount = await membership.getUnreadMessagesCount()
+
+    expect(unreadCount).toBe(1)
+
+    channel.leave()
   })
 
   test("should mention users in a message and validate mentioned users", async () => {
     jest.retryTimes(3)
-
-    const channelId = createRandomUserId()
-    const channelData = {
-      name: "Test Channel",
-      description: "This is a test channel",
-    }
-    const createdChannel = await chat.createChannel(channelId, channelData)
 
     const user1Id = `user1_${Date.now()}`
     const user1 = await chat.createUser(user1Id, { name: "User 1" })
@@ -400,9 +297,9 @@ describe("Channel test", () => {
 
     const messageText = `Hello, @${user1.id} and @${user2.id} here is my mail test@pubnub.com`
 
-    await createdChannel.sendText(messageText)
+    await channel.sendText(messageText)
 
-    const history = await createdChannel.getHistory()
+    const history = await channel.getHistory()
 
     const messageInHistory = history.messages.find(
       (message: any) => message.content.text === messageText

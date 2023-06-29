@@ -5,6 +5,7 @@ import UserInfo from "../components/UserInfo.svelte"
 import Subscriptions from "../components/Subscriptions.svelte"
 import UserMethods from "../components/UserMethods.vue"
 import ChannelMethods from "../components/ChannelMethods.tsx"
+import AdminMethods from "../components/AdminMethods.vue"
 ---
 
 <Layout title="Chat">
@@ -21,5 +22,8 @@ import ChannelMethods from "../components/ChannelMethods.tsx"
     <hr class="my-12 border-gray-400" />
     <h2>Channel methods (React)</h2>
     <ChannelMethods client:only="react" />
+    <hr class="my-12 border-gray-400" />
+    <h2>Admin methods (Vue)</h2>
+    <AdminMethods client:only />
   </main>
 </Layout>

@@ -1,17 +1,20 @@
 import { Chat } from "./chat"
 import PubNub from "pubnub"
-import { MessageActionType, MessageActions, DeleteParameters, MessageDTOParams } from "../types"
+import {
+  MessageActionType,
+  MessageActions,
+  DeleteParameters,
+  MessageDTOParams,
+  MessageType,
+  TextMessageContent,
+  ReportMessageContent,
+} from "../types"
+import { INTERNAL_ADMIN_CHANNEL } from "../constants"
 import { MentionsUtils } from "../mentions-utils"
 
 type GetLinkedTextParams = {
   mentionedUserRenderer: (userId: string, mentionedName: string) => any
   plainLinkRenderer: (link: string) => any
-}
-
-export type MessageContent = {
-  type: "text"
-  text: string
-  linkedText: string
 }
 
 export type MessageFields = Pick<
@@ -22,14 +25,14 @@ export type MessageFields = Pick<
 export class Message {
   protected chat: Chat
   readonly timetoken: string
-  readonly content: MessageContent
+  readonly content: TextMessageContent | ReportMessageContent
   readonly channelId: string
   readonly userId: string
   readonly actions?: MessageActions
-
   readonly meta?: {
     [key: string]: any
   }
+
   get hasThread() {
     if (!this.actions?.["threadRootId"]) {
       return false
@@ -37,12 +40,17 @@ export class Message {
 
     return !!Object.keys(this.actions["threadRootId"])[0]
   }
+
   get mentionedUsers() {
     if (this.meta?.mentionedUsers) {
       return this.meta.mentionedUsers
     }
 
     return {}
+  }
+
+  get type() {
+    return this.content.type
   }
 
   /** @internal */
@@ -141,7 +149,7 @@ export class Message {
   get text() {
     const type = MessageActionType.EDITED
     const edits = this.actions?.[type]
-    if (!edits) return this.content.text
+    if (!edits) return this.content.text || ""
     const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
     const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
 
@@ -275,6 +283,23 @@ export class Message {
     const channel = await this.chat.getChannel(this.channelId)
 
     await this.chat.pinMessageToChannel(this, channel!)
+  }
+
+  async report(reason: string) {
+    try {
+      const channel = INTERNAL_ADMIN_CHANNEL
+      const message: ReportMessageContent = {
+        type: MessageType.REPORT,
+        text: this.text,
+        reason,
+        reportedMessageChannelId: this.channelId,
+        reportedMessageTimetoken: this.timetoken,
+        reportedUserId: this.userId,
+      }
+      return await this.chat.publish({ message, channel })
+    } catch (error) {
+      throw error
+    }
   }
 
   /**
