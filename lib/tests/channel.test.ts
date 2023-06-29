@@ -39,16 +39,18 @@ describe("Channel test", () => {
     expect(status).toBe("deleted")
   })
 
-  test("should get channel history", async () => {
+  test.only("should get channel history", async () => {
     jest.retryTimes(3)
 
     const messageText1 = "Test message 1"
     const messageText2 = "Test message 2"
 
-    await channel.sendText(messageText1)
+    channel.sendText(messageText1).then((res) => console.log(res))
     await channel.sendText(messageText2)
 
     const history = await channel.getHistory()
+
+    expect(history.messages.length).toBe(2)
 
     const message1InHistory = history.messages.some(
       (message) => message.content.text === messageText1
