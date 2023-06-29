@@ -45,6 +45,7 @@ describe("Channel test", () => {
     const messageText1 = "Test message 1"
     const messageText2 = "Test message 2"
 
+    console.log("Channel: ", channel.id)
     channel.sendText(messageText1).then((res) => console.log(res))
     await channel.sendText(messageText2)
 
