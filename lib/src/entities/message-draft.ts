@@ -9,6 +9,12 @@ declare global {
   }
 }
 
+type AddLinkedTextParams = {
+  text: string
+  link: string
+  positionInInput: number
+}
+
 export class MessageDraft {
   private chat: Chat
   /** @internal */
@@ -46,8 +52,6 @@ export class MessageDraft {
       .split(" ")
       .filter((word) => word.startsWith("@"))
     const currentWordsStartingWithAt = this.value.split(" ").filter((word) => word.startsWith("@"))
-    // console.log("previousWordsStartingWithAt", previousWordsStartingWithAt)
-    // console.log("currentWordsStartingWithAt", currentWordsStartingWithAt)
 
     let differentMentionPosition = -1
 
@@ -218,5 +222,11 @@ export class MessageDraft {
       mentionedUser: null,
       nameOccurrenceIndex: -1,
     }
+  }
+
+  addLinkedText(params: AddLinkedTextParams) {
+    const { text, link, positionInInput } = params
+
+
   }
 }
