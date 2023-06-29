@@ -2,13 +2,24 @@
 import { Chat } from "../src"
 import { Channel } from "../src"
 import * as dotenv from "dotenv"
-import { nanoid } from "nanoid"
 import { User } from "../src"
 
 dotenv.config()
 
+function makeid(length) {
+  let result = ""
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+  const charactersLength = characters.length
+  let counter = 0
+  while (counter < length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength))
+    counter += 1
+  }
+  return result
+}
+
 export const createRandomUserId = (prefix = "user"): string => {
-  return `${prefix}_${nanoid(8)}`
+  return `${prefix}_${makeid(8)}`
 }
 
 export const initTestChat = (): Promise<Chat> => {
