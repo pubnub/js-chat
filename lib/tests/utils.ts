@@ -1,16 +1,12 @@
 // lib/tests/testUtils.ts
 import { Chat } from "../src"
-import { Channel } from "../src"
 import * as dotenv from "dotenv"
-import { User } from "../src"
 
 dotenv.config()
 
-export function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
+let chat: Chat | undefined
 
-function makeid(length) {
+function makeid(length = 8) {
   let result = ""
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
   const charactersLength = characters.length
@@ -22,47 +18,42 @@ function makeid(length) {
   return result
 }
 
-export const createRandomUserId = () => {
-  return `user_${makeid()}`
+export function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-export const createRandomChannelId = () => {
-  return `channel_${makeid()}`
+export async function createChatInstance() {
+  const keysetError = `
+    #######################################################
+    # Could not read the PubNub keyset from the .env file #
+    #######################################################
+  `
+
+  if (!process.env.PUBLISH_KEY || !process.env.SUBSCRIBE_KEY || !process.env.USER_ID)
+    throw keysetError
+
+  if (!chat) {
+    chat = await Chat.init({
+      publishKey: process.env.PUBLISH_KEY,
+      subscribeKey: process.env.SUBSCRIBE_KEY,
+      userId: process.env.USER_ID,
+    })
+  }
+
+  return chat
 }
 
-export const initTestChat = (): Promise<Chat> => {
-  return Chat.init({
-    publishKey: process.env.PUBLISH_KEY!,
-    subscribeKey: process.env.SUBSCRIBE_KEY!,
-    userId: process.env.USER_ID!,
+export function createRandomChannel() {
+  return chat.createChannel(`channel_${makeid()}`, {
+    name: "Test Channel",
+    description: "This is a test channel",
   })
 }
 
-export const initTestChannel = async (
-  chat: Chat,
-  channelName = "test-react-channel-C1"
-): Promise<Channel> => {
-  let channel = await chat.getChannel(channelName)
-
-  if (!channel) {
-    channel = await chat.createChannel(channelName, {
-      name: "test-channel",
-    })
-  }
-
-  return channel
-}
-
-export const initTestUser = async (chat: Chat, userId = createRandomUserId()): Promise<User> => {
-  let user = await chat.getUser(userId)
-
-  if (!user) {
-    user = await chat.createUser(userId, {
-      name: "Test User",
-    })
-  }
-
-  return user
+export function createRandomUser() {
+  return chat.createUser(`user_${makeid()}`, {
+    name: "Test User",
+  })
 }
 
 export const waitForAllMessagesToBeDelivered = async (
