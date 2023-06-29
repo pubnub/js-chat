@@ -6,6 +6,10 @@ import { User } from "../src"
 
 dotenv.config()
 
+export function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 function makeid(length) {
   let result = ""
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -18,15 +22,19 @@ function makeid(length) {
   return result
 }
 
-export const createRandomUserId = (prefix = "user"): string => {
-  return `${prefix}_${makeid(8)}`
+export const createRandomUserId = () => {
+  return `user_${makeid()}`
+}
+
+export const createRandomChannelId = () => {
+  return `channel_${makeid()}`
 }
 
 export const initTestChat = (): Promise<Chat> => {
   return Chat.init({
-    publishKey: "pub-c-58c29876-cff9-4f15-bb16-6bd785739fe4",
-    subscribeKey: "sub-c-2e5fa5c4-fd65-4ef8-9246-286dde521c20",
-    userId: "test-user",
+    publishKey: process.env.PUBLISH_KEY!,
+    subscribeKey: process.env.SUBSCRIBE_KEY!,
+    userId: process.env.USER_ID!,
   })
 }
 

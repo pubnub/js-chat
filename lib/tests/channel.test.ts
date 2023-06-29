@@ -1,6 +1,6 @@
 import { Chat, Channel, User, Message, Membership } from "../src"
 import * as dotenv from "dotenv"
-import { initTestChat, createRandomUserId, extractMentionedUserIds } from "./testUtils"
+import { initTestChat, createRandomChannelId, extractMentionedUserIds, sleep } from "./testUtils"
 
 dotenv.config()
 
@@ -14,7 +14,7 @@ describe("Channel test", () => {
 
   beforeEach(async () => {
     chat = await initTestChat()
-    channel = await chat.createChannel(createRandomUserId(), channelData)
+    channel = await chat.createChannel(createRandomChannelId(), channelData)
     jest.resetAllMocks()
   })
 
@@ -23,14 +23,12 @@ describe("Channel test", () => {
   })
 
   test("should create a channel", async () => {
-    jest.retryTimes(3)
     expect(channel).toBeDefined()
     expect(channel.name).toEqual(channelData.name)
     expect(channel.description).toEqual(channelData.description)
   })
 
   test("should soft delete a channel", async () => {
-    jest.retryTimes(3)
     const deleteOptions = {
       soft: true,
     }
@@ -39,15 +37,15 @@ describe("Channel test", () => {
     expect(status).toBe("deleted")
   })
 
-  test.only("should get channel history", async () => {
-    jest.retryTimes(3)
-
+  test("should get channel history", async () => {
     const messageText1 = "Test message 1"
     const messageText2 = "Test message 2"
 
-    console.log("Channel: ", channel.id)
-    channel.sendText(messageText1).then((res) => console.log(res))
+    await channel.sendText(messageText1)
     await channel.sendText(messageText2)
+
+    // there's a 1s cache on history calls, waiting for a fraction of that should suffice
+    await sleep(200)
 
     const history = await channel.getHistory()
 
@@ -62,11 +60,9 @@ describe("Channel test", () => {
 
     expect(message1InHistory).toBeTruthy()
     expect(message2InHistory).toBeTruthy()
-  }, 30000)
+  })
 
   test("should get channel history with pagination", async () => {
-    jest.retryTimes(3)
-
     const messageText1 = "Test message 1"
     const messageText2 = "Test message 2"
     const messageText3 = "Test message 3"
@@ -74,6 +70,9 @@ describe("Channel test", () => {
     await channel.sendText(messageText1)
     await channel.sendText(messageText2)
     await channel.sendText(messageText3)
+
+    // there's a 1s cache on history calls, waiting for a fraction of that should suffice
+    await sleep(200)
 
     const history = await channel.getHistory({ count: 2 })
 
@@ -83,12 +82,10 @@ describe("Channel test", () => {
     const secondPage = await channel.getHistory({ startTimetoken: history.messages[0].timetoken })
 
     expect(secondPage.messages.length).toBeGreaterThanOrEqual(1)
-  }, 30000)
+  })
 
   test("should fail when trying to send a message to a non-existent channel", async () => {
-    jest.retryTimes(3)
-
-    const channelId = createRandomUserId()
+    const channelId = createRandomChannelId()
     const nonExistentChannel = (await chat.getChannel(channelId)) as Channel
 
     try {
@@ -100,9 +97,7 @@ describe("Channel test", () => {
   })
 
   test("should fail when trying to send a message to a deleted channel", async () => {
-    jest.retryTimes(3)
-
-    const channelId = createRandomUserId()
+    const channelId = createRandomChannelId()
     const createdChannel = await chat.createChannel(channelId, channelData)
     await createdChannel.delete()
 
@@ -115,8 +110,6 @@ describe("Channel test", () => {
   })
 
   test("should fail when trying to get history of a deleted channel", async () => {
-    jest.retryTimes(3)
-
     await channel.delete()
 
     try {
@@ -128,8 +121,6 @@ describe("Channel test", () => {
   })
 
   test("should edit membership metadata", async () => {
-    jest.retryTimes(3)
-
     const membership = await channel.join(() => {
       //
     })
@@ -144,8 +135,6 @@ describe("Channel test", () => {
   })
 
   test("should create direct conversation and send message", async () => {
-    jest.retryTimes(3)
-
     const userId = "testUser1"
     const user =
       (await chat.getUser(userId)) || (await chat.createUser(userId, { name: "Test User 1" }))
@@ -158,6 +147,9 @@ describe("Channel test", () => {
 
     await directConversation.channel.sendText(messageText)
 
+    // there's a 1s cache on history calls, waiting for a fraction of that should suffice
+    await sleep(200)
+
     const history = await directConversation.channel.getHistory()
 
     const messageInHistory = history.messages.some(
@@ -167,10 +159,11 @@ describe("Channel test", () => {
   })
 
   test("should create a thread", async () => {
-    jest.retryTimes(3)
-
     const messageText = "Test message"
     await channel.sendText(messageText)
+
+    // there's a 1s cache on history calls, waiting for a fraction of that should suffice
+    await sleep(200)
 
     let history = await channel.getHistory()
 
@@ -194,6 +187,9 @@ describe("Channel test", () => {
 
     // Use sendText in thread
     await thread.sendText(threadText)
+
+    // there's a 1s cache on history calls, waiting for a fraction of that should suffice
+    await sleep(200)
 
     const threadMessages = await thread.getHistory()
 
@@ -265,8 +261,6 @@ describe("Channel test", () => {
   }, 10000)
 
   test("should get unread messages count", async () => {
-    jest.retryTimes(3)
-
     const messageText1 = "Test message 1"
     const messageText2 = "Test message 2"
 
@@ -290,8 +284,6 @@ describe("Channel test", () => {
   })
 
   test("should mention users in a message and validate mentioned users", async () => {
-    jest.retryTimes(3)
-
     const user1Id = `user1_${Date.now()}`
     const user1 = await chat.createUser(user1Id, { name: "User 1" })
 
@@ -301,6 +293,9 @@ describe("Channel test", () => {
     const messageText = `Hello, @${user1.id} and @${user2.id} here is my mail test@pubnub.com`
 
     await channel.sendText(messageText)
+
+    // there's a 1s cache on history calls, waiting for a fraction of that should suffice
+    await sleep(200)
 
     const history = await channel.getHistory()
 
@@ -320,6 +315,4 @@ describe("Channel test", () => {
     await chat.deleteUser(user1.id)
     await chat.deleteUser(user2.id)
   })
-
-  jest.retryTimes(3)
 })
