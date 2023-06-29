@@ -46,8 +46,6 @@ export class MessageDraft {
       .split(" ")
       .filter((word) => word.startsWith("@"))
     const currentWordsStartingWithAt = this.value.split(" ").filter((word) => word.startsWith("@"))
-    // console.log("previousWordsStartingWithAt", previousWordsStartingWithAt)
-    // console.log("currentWordsStartingWithAt", currentWordsStartingWithAt)
 
     let differentMentionPosition = -1
 
