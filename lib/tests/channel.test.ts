@@ -59,7 +59,7 @@ describe("Channel test", () => {
 
     expect(message1InHistory).toBeTruthy()
     expect(message2InHistory).toBeTruthy()
-  })
+  }, 30000)
 
   test("should get channel history with pagination", async () => {
     jest.retryTimes(3)
@@ -80,7 +80,7 @@ describe("Channel test", () => {
     const secondPage = await channel.getHistory({ startTimetoken: history.messages[0].timetoken })
 
     expect(secondPage.messages.length).toBeGreaterThanOrEqual(1)
-  })
+  }, 30000)
 
   test("should fail when trying to send a message to a non-existent channel", async () => {
     jest.retryTimes(3)
