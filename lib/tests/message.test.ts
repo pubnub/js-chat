@@ -67,14 +67,16 @@ describe("Send message test", () => {
 
   test("should delete the message", async () => {
     await channel.sendText("Test message")
+    await sleep(150) // history calls have around 130ms of cache time
 
-    const historyBeforeDelete = await channel.getHistory({ count: 100 })
+    const historyBeforeDelete = await channel.getHistory()
     const messagesBeforeDelete: Message[] = historyBeforeDelete.messages
     const sentMessage = messagesBeforeDelete[messagesBeforeDelete.length - 1]
 
     await sentMessage.delete()
+    await sleep(150) // history calls have around 130ms of cache time
 
-    const historyAfterDelete = await channel.getHistory({ count: 100 })
+    const historyAfterDelete = await channel.getHistory()
     const messagesAfterDelete: Message[] = historyAfterDelete.messages
 
     const deletedMessage = messagesAfterDelete.find(
@@ -86,8 +88,9 @@ describe("Send message test", () => {
 
   test("should edit the message", async () => {
     await channel.sendText("Test message")
+    await sleep(150) // history calls have around 130ms of cache time
 
-    const historyBeforeEdit = await channel.getHistory({ count: 100 })
+    const historyBeforeEdit = await channel.getHistory()
     const messagesBeforeEdit: Message[] = historyBeforeEdit.messages
     const sentMessage = messagesBeforeEdit[messagesBeforeEdit.length - 1]
 
@@ -104,8 +107,9 @@ describe("Send message test", () => {
 
   test("should toggle the message reaction", async () => {
     await channel.sendText("Test message")
+    await sleep(150) // history calls have around 130ms of cache time
 
-    const historyBeforeReaction = await channel.getHistory({ count: 100 })
+    const historyBeforeReaction = await channel.getHistory()
     const messagesBeforeReaction: Message[] = historyBeforeReaction.messages
     const sentMessage = messagesBeforeReaction[messagesBeforeReaction.length - 1]
 
@@ -129,6 +133,7 @@ describe("Send message test", () => {
 
   test("should pin the message", async () => {
     await channel.sendText("Test message")
+    await sleep(150) // history calls have around 130ms of cache time
 
     const historyBeforePin = await channel.getHistory()
     const messagesBeforePin: Message[] = historyBeforePin.messages
@@ -141,6 +146,7 @@ describe("Send message test", () => {
 
   test("should unpin the message", async () => {
     await channel.sendText("Test message to be pinned and then unpinned")
+    await sleep(150) // history calls have around 130ms of cache time
 
     const historyBeforePin = await channel.getHistory()
     const messagesBeforePin: Message[] = historyBeforePin.messages
@@ -155,6 +161,7 @@ describe("Send message test", () => {
 
   test("should stream message updates and invoke the callback", async () => {
     await channel.sendText("Test message")
+    await sleep(150) // history calls have around 130ms of cache time
 
     const historyBeforeEdit = await channel.getHistory()
     const messagesBeforeEdit: Message[] = historyBeforeEdit.messages
