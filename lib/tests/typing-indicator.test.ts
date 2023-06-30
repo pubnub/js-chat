@@ -19,7 +19,7 @@ describe("Typing indicator test", () => {
 
     const unsubscribe = await channel?.getTyping(callback)
     await channel?.startTyping()
-    await sleep(5000)
+    await sleep(2000)
 
     expect(callback).toHaveBeenCalledWith(["test-user"])
 
@@ -30,7 +30,7 @@ describe("Typing indicator test", () => {
     const callback = jest.fn()
 
     const unsubscribe = await channel?.getTyping(callback)
-    await sleep(5000)
+    await sleep(2000)
 
     expect(callback).not.toHaveBeenCalled()
 

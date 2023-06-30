@@ -212,6 +212,7 @@ describe("Channel test", () => {
 
     await channel.sendText(messageText1)
     await channel.sendText(messageText2)
+    await sleep(150) // history calls have around 130ms of cache time
 
     let membership = await channel.join(() => null)
     let unreadCount = await membership.getUnreadMessagesCount()
