@@ -1,125 +1,63 @@
 import { Chat, User } from "../src"
-import * as dotenv from "dotenv"
-import { initTestChat, createRandomUserId } from "./testUtils"
-
-dotenv.config()
+import { createChatInstance, createRandomUser, sleep } from "./utils"
 
 describe("User test", () => {
+  jest.retryTimes(3)
+
   let chat: Chat
+  let user: User
+
+  beforeAll(async () => {
+    chat = await createChatInstance()
+  })
 
   beforeEach(async () => {
-    chat = await initTestChat()
+    user = await createRandomUser()
   })
 
-  beforeEach(() => {
-    jest.resetAllMocks()
+  test("Should automatically create chat user while initializing", () => {
+    expect(chat.currentUser).toBeDefined()
+    expect(chat.currentUser.id).toBe(chat.sdk.getUUID())
   })
 
-  test("Should be able to create user", async () => {
-    jest.retryTimes(3)
-
-    const userId = createRandomUserId()
-    const userData = {
-      name: "John Smith",
-      profileUrl: "https://randomuser.me/api/portraits/men/1.jpg",
-      custom: {
-        title: "VP Marketing",
-        linkedInUrl: "https://www.linkedin.com/mkelly_vp",
-      },
-    }
-
-    const createdUser = await chat.createUser(userId, userData)
-
-    expect(createdUser).toBeDefined()
-    expect(createdUser.id).toBe(userId)
-    expect(createdUser.name).toEqual(userData.name)
-    expect(createdUser.profileUrl).toEqual(userData.profileUrl)
-    expect(createdUser.custom).toEqual(userData.custom)
+  test("Should be able to create and fetch user", async () => {
+    expect(user).toBeDefined()
+    const fetchedUser = await chat.getUser(user.id)
+    expect(fetchedUser).toBeDefined()
+    expect(fetchedUser.name).toEqual(user.name)
   })
 
   test("Should be able to update user", async () => {
-    jest.retryTimes(3)
-
-    const userId = createRandomUserId()
-    const initialUserData = {
-      name: "John Smith",
-      profileUrl: "https://randomuser.me/api/portraits/men/1.jpg",
-      custom: {
-        title: "VP Marketing",
-        linkedInUrl: "https://www.linkedin.com/mkelly_vp",
-      },
-    }
-    await chat.createUser(userId, initialUserData)
-
-    const updatedUserData = {
-      name: "Jane Smith",
-      profileUrl: "https://randomuser.me/api/portraits/women/1.jpg",
-      custom: {
-        title: "VP Sales",
-        linkedInUrl: "https://www.linkedin.com/jsmith_vp",
-      },
-    }
-    await chat.updateUser(userId, updatedUserData)
-
-    const fetchedUser = await chat.getUser(userId)
-
-    if (fetchedUser) {
-      expect(fetchedUser.id).toBe(userId)
-      expect(fetchedUser.name).toEqual(updatedUserData.name)
-      expect(fetchedUser.profileUrl).toEqual(updatedUserData.profileUrl)
-      expect(fetchedUser.custom).toEqual(updatedUserData.custom)
-    } else {
-      fail("fetchedUser is null")
-    }
+    const name = "Updated User"
+    const updatedUser = await user.update({ name })
+    expect(updatedUser.id).toBe(user.id)
+    expect(updatedUser.name).toEqual(name)
   })
 
-  test("Should be able to delete (archive) user", async () => {
-    jest.retryTimes(3)
+  test("Should be able to delete user", async () => {
+    const deleteOptions = { soft: true }
+    const { status } = (await user.delete(deleteOptions)) as User
+    expect(status).toBe("deleted")
 
-    const userId = createRandomUserId()
-    const initialUserData = {
-      name: "John Smith",
-      profileUrl: "https://randomuser.me/api/portraits/men/1.jpg",
-      custom: {
-        title: "VP Marketing",
-        linkedInUrl: "https://www.linkedin.com/mkelly_vp",
-      },
-    }
-    await chat.createUser(userId, initialUserData)
-
-    const userToDelete = await chat.getUser(userId)
-    if (!userToDelete) {
-      fail("User to delete is null")
-    }
-    if (userToDelete) {
-      const deleteResult = await chat.deleteUser(userId, { soft: false })
-      expect(deleteResult).toBe(true)
-    }
-
-    const fetchedUser = await chat.getUser(userId)
+    const deleteResult = await user.delete()
+    expect(deleteResult).toBe(true)
+    const fetchedUser = await chat.getUser(user.id)
     expect(fetchedUser).toBeNull()
   })
 
   test("Should stream user updates and invoke the callback", async () => {
-    const chat = await initTestChat()
+    let updatedUser
+    const name = "Updated User"
+    const callback = jest.fn((user) => (updatedUser = user))
 
-    const user1 = await chat.createUser(createRandomUserId(), {})
-    const user2 = await chat.createUser(createRandomUserId(), {})
+    const stopUpdates = user.streamUpdates(callback)
+    await user.update({ name })
+    await sleep(150)
 
-    const users = [user1, user2]
+    expect(callback).toHaveBeenCalledTimes(1)
+    expect(callback).toHaveBeenCalledWith(updatedUser)
+    expect(updatedUser.name).toEqual(name)
 
-    const callback = jest.fn((updatedUsers) => {
-      expect(updatedUsers).toEqual(users)
-    })
-
-    const unsubscribe = User.streamUpdatesOn(users, callback)
-
-    await new Promise<void>((resolve) => setTimeout(resolve, 1000))
-
-    await Promise.all(users.map(async (user) => await user.delete()))
-
-    unsubscribe()
+    stopUpdates()
   })
-
-  jest.retryTimes(3)
 })
