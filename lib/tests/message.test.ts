@@ -1,5 +1,10 @@
 import { Chat, Channel, Message } from "../src"
-import { createChatInstance, createRandomChannel, waitForAllMessagesToBeDelivered } from "./utils"
+import {
+  createChatInstance,
+  createRandomChannel,
+  sleep,
+  waitForAllMessagesToBeDelivered,
+} from "./utils"
 
 describe("Send message test", () => {
   jest.retryTimes(3)
