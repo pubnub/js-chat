@@ -10,7 +10,7 @@ export class MessageInputComponentChat {
   pubnubInput = ""
   suggestedUsers: User[] = []
   usersToNotify: User[] = []
-  isAddTextLinkDialogOpen: boolean = false
+  isAddTextLinkDialogOpen = false
   textLinkDialogValues: {
     text: string
     link: string
@@ -27,7 +27,7 @@ export class MessageInputComponentChat {
     mentionedUser: User | undefined | null
     nameOccurrenceIndex: number
   }
-  messagePreview: string = ""
+  messagePreview = ""
 
   @ViewChild("textAreaElement") userInput: ElementRef | undefined
 
@@ -53,6 +53,7 @@ export class MessageInputComponentChat {
 
   toggleUserToNotify(user: User) {
     this.newMessageDraft.addMentionedUser(user, this.lastAffectedNameOccurrenceIndex)
+    this.messagePreview = this.newMessageDraft.getMessagePreview()
   }
 
   removeUserFromNotification(nameOccurrenceIndex: number) {
@@ -86,7 +87,11 @@ export class MessageInputComponentChat {
       return
     }
 
-    this.newMessageDraft.addLinkedText({ link: this.textLinkDialogValues.link, text: this.textLinkDialogValues.text, positionInInput: this.userInput?.nativeElement.selectionStart })
+    this.newMessageDraft.addLinkedText({
+      link: this.textLinkDialogValues.link,
+      text: this.textLinkDialogValues.text,
+      positionInInput: this.userInput?.nativeElement.selectionStart,
+    })
     this.messagePreview = this.newMessageDraft.getMessagePreview()
   }
 }

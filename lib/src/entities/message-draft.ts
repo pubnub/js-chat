@@ -1,7 +1,9 @@
 import { Chat } from "./chat"
 import { User } from "./user"
 import { Channel } from "./channel"
-import { MessageDraftConfig, SendTextOptionParams } from "../types"
+import { GetLinkedTextParams, MessageDraftConfig, SendTextOptionParams, TextLink } from "../types"
+import { Validator } from "../validator"
+import { MentionsUtils } from "../mentions-utils"
 
 declare global {
   interface Array<T> {
@@ -15,14 +17,8 @@ type AddLinkedTextParams = {
   positionInInput: number
 }
 
-type TextLink = {
-  startIndex: number
-  endIndex: number
-  link: string
-}
-
 const range = (start: number, stop: number, step = 1) =>
-  Array.from({ length: (stop - start) / step + 1 }, (_, i) => start + i * step);
+  Array.from({ length: (stop - start) / step + 1 }, (_, i) => start + i * step)
 
 export class MessageDraft {
   private chat: Chat
@@ -84,8 +80,8 @@ export class MessageDraft {
         }
       })
 
-        newLinks = newLinks.filter((link, linkIndex) => !indicesToFilterOut.includes(linkIndex))
-        this.textLinks = newLinks
+      newLinks = newLinks.filter((link, linkIndex) => !indicesToFilterOut.includes(linkIndex))
+      this.textLinks = newLinks
     }
 
     // a user cut text from the beginning
@@ -124,32 +120,49 @@ export class MessageDraft {
       let differenceEndsAtIndex = -1
 
       this.previousValue.split("").forEach((letter, index) => {
-        if ((this.value[index] !== this.previousValue[index]) && differenceStartsAtIndex === -1) {
+        if (this.value[index] !== this.previousValue[index] && differenceStartsAtIndex === -1) {
           differenceStartsAtIndex = index
         }
-        if ((this.value[this.value.length - 1 - index] !== this.previousValue[this.previousValue.length - 1 - index]) && differenceEndsAtIndex === -1) {
+        if (
+          this.value[this.value.length - 1 - index] !==
+            this.previousValue[this.previousValue.length - 1 - index] &&
+          differenceEndsAtIndex === -1
+        ) {
           differenceEndsAtIndex = this.previousValue.length - index
         }
       })
 
       newLinks.forEach((textLink, i) => {
         // this word was cut
-        if ((differenceStartsAtIndex <= textLink.startIndex) && (differenceEndsAtIndex >= textLink.endIndex)) {
+        if (
+          differenceStartsAtIndex <= textLink.startIndex &&
+          differenceEndsAtIndex >= textLink.endIndex
+        ) {
           indicesToFilterOut.push(i)
           return
         }
         // the middle part of this word was cut
-        if (differenceStartsAtIndex > textLink.startIndex && differenceEndsAtIndex < textLink.endIndex) {
+        if (
+          differenceStartsAtIndex > textLink.startIndex &&
+          differenceEndsAtIndex < textLink.endIndex
+        ) {
           newLinks[i].endIndex -= lengthDifference
           return
         }
         // second part of this word was cut
-        if ((differenceStartsAtIndex >= textLink.startIndex) && (differenceEndsAtIndex >= textLink.endIndex) && differenceStartsAtIndex < textLink.endIndex) {
+        if (
+          differenceStartsAtIndex >= textLink.startIndex &&
+          differenceEndsAtIndex >= textLink.endIndex &&
+          differenceStartsAtIndex < textLink.endIndex
+        ) {
           newLinks[i].endIndex = differenceStartsAtIndex
           return
         }
         // first part of this word was cut
-        if ((differenceEndsAtIndex > textLink.startIndex) && (differenceStartsAtIndex <= textLink.startIndex)) {
+        if (
+          differenceEndsAtIndex > textLink.startIndex &&
+          differenceStartsAtIndex <= textLink.startIndex
+        ) {
           newLinks[i].endIndex -= lengthDifference
           newLinks[i].startIndex = differenceStartsAtIndex
           return
@@ -185,10 +198,14 @@ export class MessageDraft {
       let differenceEndsAtIndex = -1
 
       this.previousValue.split("").forEach((letter, index) => {
-        if ((this.value[index] !== this.previousValue[index]) && differenceStartsAtIndex === -1) {
+        if (this.value[index] !== this.previousValue[index] && differenceStartsAtIndex === -1) {
           differenceStartsAtIndex = index
         }
-        if ((this.value[this.value.length - 1 - index] !== this.previousValue[this.previousValue.length - 1 - index]) && differenceEndsAtIndex === -1) {
+        if (
+          this.value[this.value.length - 1 - index] !==
+            this.previousValue[this.previousValue.length - 1 - index] &&
+          differenceEndsAtIndex === -1
+        ) {
           differenceEndsAtIndex = this.previousValue.length - index
         }
       })
@@ -201,11 +218,17 @@ export class MessageDraft {
           return
         }
         // text was added in the middle of the link
-        if (differenceStartsAtIndex > textLink.startIndex && differenceEndsAtIndex < textLink.endIndex) {
+        if (
+          differenceStartsAtIndex > textLink.startIndex &&
+          differenceEndsAtIndex < textLink.endIndex
+        ) {
           newLinks[i].endIndex += lengthDifference
           return
         }
-        if (differenceStartsAtIndex <= textLink.startIndex && differenceEndsAtIndex >= textLink.endIndex) {
+        if (
+          differenceStartsAtIndex <= textLink.startIndex &&
+          differenceEndsAtIndex >= textLink.endIndex
+        ) {
           indicesToFilterOut.push(i)
           return
         }
@@ -213,7 +236,6 @@ export class MessageDraft {
       newLinks = newLinks.filter((link, linkIndex) => !indicesToFilterOut.includes(linkIndex))
       this.textLinks = newLinks
     }
-    console.log("this.textLinks", this.textLinks)
   }
 
   async onChange(text: string) {
@@ -352,19 +374,24 @@ export class MessageDraft {
     console.warn("This is noop. There is no mention occurrence at this index.")
   }
 
+  private transformMentionedUsersToSend() {
+    return Object.keys(this.mentionedUsers).reduce(
+      (acc, key) => ({
+        ...acc,
+        [key]: {
+          id: this.mentionedUsers[Number(key)].id,
+          name: this.mentionedUsers[Number(key)].name,
+        },
+      }),
+      {}
+    )
+  }
+
   async send(params: Omit<SendTextOptionParams, "mentionedUsers"> = {}) {
     return this.channel.sendText(this.value, {
       ...params,
-      mentionedUsers: Object.keys(this.mentionedUsers).reduce(
-        (acc, key) => ({
-          ...acc,
-          [key]: {
-            id: this.mentionedUsers[Number(key)].id,
-            name: this.mentionedUsers[Number(key)].name,
-          },
-        }),
-        {}
-      ),
+      mentionedUsers: this.transformMentionedUsersToSend(),
+      textLinks: this.textLinks,
     })
   }
 
@@ -404,38 +431,52 @@ export class MessageDraft {
 
   addLinkedText(params: AddLinkedTextParams) {
     const { text, link, positionInInput } = params
-    const linkRanges = this.textLinks.flatMap(textLink => range(textLink.startIndex, textLink.endIndex))
+
+    if (!Validator.isUrl(link)) {
+      throw "You need to insert a URL"
+    }
+
+    const linkRanges = this.textLinks.flatMap((textLink) =>
+      range(textLink.startIndex, textLink.endIndex)
+    )
     if (linkRanges.includes(positionInInput)) {
       throw "You cannot insert a link inside another link"
     }
 
     this.value = this.value.slice(0, positionInInput) + text + this.value.slice(positionInInput)
-    this.textLinks.push({ startIndex: positionInInput, endIndex: positionInInput + text.length, link })
-    console.log("this.textLinks", this.textLinks)
+    this.textLinks.push({
+      startIndex: positionInInput,
+      endIndex: positionInInput + text.length,
+      link,
+    })
   }
 
-  getMessagePreview() {
-    const linkRanges = this.textLinks.map(textLink => range(textLink.startIndex, textLink.endIndex))
-    const startIndices = linkRanges.map(linkRange => linkRange[0])
-    const endIndices = linkRanges.map(linkRange => linkRange[linkRange.length - 1])
+  getMessagePreview(params?: Partial<GetLinkedTextParams>) {
+    let { mentionedUserRenderer, plainLinkRenderer, textLinkRenderer } = params || {}
 
-    let atCounter = 0
-    const startIndicesOfMentionedUsers = []
+    mentionedUserRenderer ||= function (userId, mentionedName) {
+      return `<a href="https://pubnub.com/${userId}">@${mentionedName}</a> `
+    }
 
-    const endIndicesOfMentionedUsers = []
+    plainLinkRenderer ||= function (link) {
+      const linkWithProtocol = link.startsWith("www.") ? `https://${link}` : link
 
-    let concatenatedText = ""
+      return `<a href="${linkWithProtocol}">${link}</a> `
+    }
 
-    this.value.split("").forEach((letter, i) => {
-      if (startIndices.includes(i)) {
-        concatenatedText += `<a href="${this.textLinks.find(textLink => textLink.startIndex === i)?.link}">`
-      }
-      if (endIndices.includes(i)) {
-        concatenatedText += "</a>"
-      }
-      concatenatedText += letter
+    textLinkRenderer ||= function (text, link) {
+      const linkWithProtocol = link.startsWith("www.") ? `https://${link}` : link
+
+      return `<a href="${linkWithProtocol}">${text}</a> `
+    }
+
+    return MentionsUtils.getLinkedText({
+      text: this.value,
+      textLinks: this.textLinks,
+      mentionedUsers: this.transformMentionedUsersToSend(),
+      mentionedUserRenderer,
+      plainLinkRenderer,
+      textLinkRenderer,
     })
-
-    return concatenatedText
   }
 }
