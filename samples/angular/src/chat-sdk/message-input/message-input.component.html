@@ -19,8 +19,20 @@
         <p>name: {{ currentlyHighlightedMention.mentionedUser.name }}</p>
         <button (click)="removeUserFromNotification(currentlyHighlightedMention.nameOccurrenceIndex)">Remove from notification by clicking here</button>
     </div>
-    <textarea type="text" [(ngModel)]="pubnubInput" [value]="newMessageDraft.value" (ngModelChange)="handleInput($event)" class="input" (keydown)="handleCaret($event)" #textAreaElement></textarea>
-    <button (click)="handleSend()">
+    <dialog *ngIf="isAddTextLinkDialogOpen" open>
+        <fieldset>
+            <label for="textLinkDialogValuesText">Text</label><br>
+            <input id="textLinkDialogValuesText" type="text" [(ngModel)]="textLinkDialogValues.text" /><br>
+            <label for="textLinkDialogValuesLink">Link</label><br>
+            <input id="textLinkDialogValuesLink" type="text" [(ngModel)]="textLinkDialogValues.link" /><br>
+            <button (click)="handleDialogClose()" class="button">Ok</button>
+        </fieldset>
+    </dialog>
+    <button (click)="toggleAddTextLinkDialog()" class="button">Open text link dialog</button>
+    <textarea type="text" [(ngModel)]="pubnubInput" [value]="newMessageDraft.value" (ngModelChange)="handleInput($event)" class="input" (keyup)="handleCaret($event)" #textAreaElement></textarea>
+    <button (click)="handleSend()" class="button">
         Send
     </button>
+    <h3>Message preview</h3>
+    <p [innerHTML]="messagePreview | byPassSecurity"></p>
 </div>

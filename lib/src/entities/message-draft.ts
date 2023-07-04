@@ -15,6 +15,15 @@ type AddLinkedTextParams = {
   positionInInput: number
 }
 
+type TextLink = {
+  startIndex: number
+  endIndex: number
+  link: string
+}
+
+const range = (start: number, stop: number, step = 1) =>
+  Array.from({ length: (stop - start) / step + 1 }, (_, i) => start + i * step);
+
 export class MessageDraft {
   private chat: Chat
   /** @internal */
@@ -26,6 +35,8 @@ export class MessageDraft {
   private mentionedUsers: {
     [nameOccurrenceIndex: number]: User
   } = {}
+  /** @internal */
+  private textLinks: TextLink[] = []
   readonly config: MessageDraftConfig
 
   /** @internal */
@@ -40,6 +51,171 @@ export class MessageDraft {
     }
   }
 
+  private reindexTextLinks() {
+    if (this.value.startsWith(this.previousValue)) {
+      // a user keeps adding text to the end; nothing to reindex
+      return
+    }
+    if (this.value === this.previousValue) {
+      // nothing changed so there is nothing to reindex
+      return
+    }
+    const lengthDifference = Math.abs(this.previousValue.length - this.value.length)
+
+    let newLinks = [...this.textLinks]
+    let indicesToFilterOut: number[] = []
+
+    // cut from the end
+    if (this.previousValue.startsWith(this.value)) {
+      const differenceStartsAtIndex = this.value.length
+
+      newLinks.forEach((textLink, i) => {
+        if (textLink.endIndex < differenceStartsAtIndex) {
+          return
+        }
+        // this word was cut
+        if (textLink.startIndex >= differenceStartsAtIndex) {
+          indicesToFilterOut.push(i)
+          return
+        }
+        // second part of this word was cut
+        if (textLink.startIndex < differenceStartsAtIndex) {
+          newLinks[i].endIndex = this.value.length
+        }
+      })
+
+        newLinks = newLinks.filter((link, linkIndex) => !indicesToFilterOut.includes(linkIndex))
+        this.textLinks = newLinks
+    }
+
+    // a user cut text from the beginning
+    else if (this.previousValue.endsWith(this.value)) {
+      newLinks = [...this.textLinks]
+      indicesToFilterOut = []
+      const differenceEndsAtIndex = lengthDifference
+
+      newLinks.forEach((textLink, i) => {
+        // this word is intact
+        if (textLink.startIndex >= differenceEndsAtIndex) {
+          newLinks[i].startIndex -= lengthDifference
+          newLinks[i].endIndex -= lengthDifference
+          return
+        }
+        // this word was cut
+        if (textLink.endIndex <= differenceEndsAtIndex) {
+          indicesToFilterOut.push(i)
+          return
+        }
+        // first part of this word was cut
+        if (textLink.startIndex < differenceEndsAtIndex) {
+          newLinks[i].startIndex = 0
+          newLinks[i].endIndex -= lengthDifference
+        }
+      })
+      newLinks = newLinks.filter((link, linkIndex) => !indicesToFilterOut.includes(linkIndex))
+      this.textLinks = newLinks
+    }
+
+    // a user cut from the middle of the text
+    else if (this.previousValue.length > this.value.length) {
+      newLinks = [...this.textLinks]
+      indicesToFilterOut = []
+      let differenceStartsAtIndex = -1
+      let differenceEndsAtIndex = -1
+
+      this.previousValue.split("").forEach((letter, index) => {
+        if ((this.value[index] !== this.previousValue[index]) && differenceStartsAtIndex === -1) {
+          differenceStartsAtIndex = index
+        }
+        if ((this.value[this.value.length - 1 - index] !== this.previousValue[this.previousValue.length - 1 - index]) && differenceEndsAtIndex === -1) {
+          differenceEndsAtIndex = this.previousValue.length - index
+        }
+      })
+
+      newLinks.forEach((textLink, i) => {
+        // this word was cut
+        if ((differenceStartsAtIndex <= textLink.startIndex) && (differenceEndsAtIndex >= textLink.endIndex)) {
+          indicesToFilterOut.push(i)
+          return
+        }
+        // the middle part of this word was cut
+        if (differenceStartsAtIndex > textLink.startIndex && differenceEndsAtIndex < textLink.endIndex) {
+          newLinks[i].endIndex -= lengthDifference
+          return
+        }
+        // second part of this word was cut
+        if ((differenceStartsAtIndex >= textLink.startIndex) && (differenceEndsAtIndex >= textLink.endIndex) && differenceStartsAtIndex < textLink.endIndex) {
+          newLinks[i].endIndex = differenceStartsAtIndex
+          return
+        }
+        // first part of this word was cut
+        if ((differenceEndsAtIndex > textLink.startIndex) && (differenceStartsAtIndex <= textLink.startIndex)) {
+          newLinks[i].endIndex -= lengthDifference
+          newLinks[i].startIndex = differenceStartsAtIndex
+          return
+        }
+        // this word is intact
+        if (differenceEndsAtIndex < textLink.endIndex) {
+          newLinks[i].startIndex -= lengthDifference
+          newLinks[i].endIndex -= lengthDifference
+          return
+        }
+      })
+
+      newLinks = newLinks.filter((link, linkIndex) => !indicesToFilterOut.includes(linkIndex))
+      this.textLinks = newLinks
+    }
+    // a user keeps adding text to the beginning
+    else if (this.value.endsWith(this.previousValue)) {
+      newLinks = [...this.textLinks]
+      indicesToFilterOut = []
+
+      newLinks.forEach((newLink, i) => {
+        newLinks[i].endIndex += lengthDifference
+        newLinks[i].startIndex += lengthDifference
+      })
+
+      this.textLinks = newLinks
+    }
+    // a user keeps adding text in the middle
+    else if (this.value.length > this.previousValue.length) {
+      newLinks = [...this.textLinks]
+      indicesToFilterOut = []
+      let differenceStartsAtIndex = -1
+      let differenceEndsAtIndex = -1
+
+      this.previousValue.split("").forEach((letter, index) => {
+        if ((this.value[index] !== this.previousValue[index]) && differenceStartsAtIndex === -1) {
+          differenceStartsAtIndex = index
+        }
+        if ((this.value[this.value.length - 1 - index] !== this.previousValue[this.previousValue.length - 1 - index]) && differenceEndsAtIndex === -1) {
+          differenceEndsAtIndex = this.previousValue.length - index
+        }
+      })
+
+      newLinks.forEach((textLink, i) => {
+        // text was added before this link
+        if (differenceEndsAtIndex <= textLink.startIndex) {
+          newLinks[i].startIndex += lengthDifference
+          newLinks[i].endIndex += lengthDifference
+          return
+        }
+        // text was added in the middle of the link
+        if (differenceStartsAtIndex > textLink.startIndex && differenceEndsAtIndex < textLink.endIndex) {
+          newLinks[i].endIndex += lengthDifference
+          return
+        }
+        if (differenceStartsAtIndex <= textLink.startIndex && differenceEndsAtIndex >= textLink.endIndex) {
+          indicesToFilterOut.push(i)
+          return
+        }
+      })
+      newLinks = newLinks.filter((link, linkIndex) => !indicesToFilterOut.includes(linkIndex))
+      this.textLinks = newLinks
+    }
+    console.log("this.textLinks", this.textLinks)
+  }
+
   async onChange(text: string) {
     this.previousValue = this.value
     this.value = text
@@ -47,6 +223,8 @@ export class MessageDraft {
     if (this.config.isTypingIndicatorTriggered) {
       this.value ? this.channel.startTyping() : this.channel.stopTyping()
     }
+
+    this.reindexTextLinks()
 
     const previousWordsStartingWithAt = this.previousValue
       .split(" ")
@@ -226,7 +404,38 @@ export class MessageDraft {
 
   addLinkedText(params: AddLinkedTextParams) {
     const { text, link, positionInInput } = params
+    const linkRanges = this.textLinks.flatMap(textLink => range(textLink.startIndex, textLink.endIndex))
+    if (linkRanges.includes(positionInInput)) {
+      throw "You cannot insert a link inside another link"
+    }
 
+    this.value = this.value.slice(0, positionInInput) + text + this.value.slice(positionInInput)
+    this.textLinks.push({ startIndex: positionInInput, endIndex: positionInInput + text.length, link })
+    console.log("this.textLinks", this.textLinks)
+  }
 
+  getMessagePreview() {
+    const linkRanges = this.textLinks.map(textLink => range(textLink.startIndex, textLink.endIndex))
+    const startIndices = linkRanges.map(linkRange => linkRange[0])
+    const endIndices = linkRanges.map(linkRange => linkRange[linkRange.length - 1])
+
+    let atCounter = 0
+    const startIndicesOfMentionedUsers = []
+
+    const endIndicesOfMentionedUsers = []
+
+    let concatenatedText = ""
+
+    this.value.split("").forEach((letter, i) => {
+      if (startIndices.includes(i)) {
+        concatenatedText += `<a href="${this.textLinks.find(textLink => textLink.startIndex === i)?.link}">`
+      }
+      if (endIndices.includes(i)) {
+        concatenatedText += "</a>"
+      }
+      concatenatedText += letter
+    })
+
+    return concatenatedText
   }
 }
