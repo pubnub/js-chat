@@ -56,7 +56,7 @@ export class MentionsUtils {
         resultWithTextLinks += textLinkRenderer(substring, textLinks[relevantIndex].link)
         return
       }
-      if (allIndices.includes(i)) {
+      if (allIndices.filter((index) => !endIndices.includes(index)).includes(i)) {
         return
       }
       resultWithTextLinks += letter

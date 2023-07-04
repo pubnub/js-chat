@@ -467,7 +467,7 @@ export class MessageDraft {
     textLinkRenderer ||= function (text, link) {
       const linkWithProtocol = link.startsWith("www.") ? `https://${link}` : link
 
-      return `<a href="${linkWithProtocol}">${text}</a> `
+      return `<a href="${linkWithProtocol}">${text}</a>`
     }
 
     return MentionsUtils.getLinkedText({
