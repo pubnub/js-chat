@@ -1,10 +1,10 @@
 import PubNub from "pubnub"
 import { Channel, ChannelFields } from "./channel"
 import { User, UserFields } from "./user"
-import { DeleteParameters } from "../types"
+import { DeleteParameters, TextMessageContent, ReportMessageContent } from "../types"
 import { Message } from "./message"
 import { Membership } from "./membership"
-import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
+import { MESSAGE_THREAD_ID_PREFIX, INTERNAL_ADMIN_CHANNEL } from "../constants"
 import { ThreadChannel } from "./thread-channel"
 import { MentionsUtils } from "../mentions-utils"
 
@@ -63,6 +63,10 @@ export class Chat {
       (await chat.getUser(chat.sdk.getUUID())) ||
       (await chat.createUser(chat.sdk.getUUID(), { name: chat.sdk.getUUID() }))
 
+    if (!(await chat.getChannel(INTERNAL_ADMIN_CHANNEL))) {
+      await chat.createChannel(INTERNAL_ADMIN_CHANNEL, {})
+    }
+
     if (params.storeUserActivityTimestamps) {
       chat.storeUserActivityTimestamp()
     }
@@ -91,6 +95,13 @@ export class Chat {
     return () => {
       this.sdk.removeListener(listener)
     }
+  }
+
+  /* @internal */
+  publish(
+    params: PubNub.PublishParameters & { message: TextMessageContent | ReportMessageContent }
+  ) {
+    return this.sdk.publish(params)
   }
 
   /**
@@ -381,24 +392,16 @@ export class Chat {
    * Messages
    */
   /** @internal */
-  async forwardMessage(message: Message, channelId: string) {
-    if (!channelId) throw "Channel ID is required"
+  async forwardMessage(message: Message, channel: string) {
+    if (!channel) throw "Channel ID is required"
     if (!message) throw "Message is required"
-    if (message.channelId === channelId) throw "You cannot forward the message to the same channel"
+    if (message.channelId === channel) throw "You cannot forward the message to the same channel"
 
-    try {
-      const existingChannel = await this.getChannel(channelId)
-      if (!existingChannel) throw "Channel with this ID does not exist"
-
-      await existingChannel.sendText(message.content.text, {
-        meta: {
-          ...(message.meta || {}),
-          originalPublisher: message.userId,
-        },
-      })
-    } catch (error) {
-      throw error
+    const meta = {
+      ...(message.meta || {}),
+      originalPublisher: message.userId,
     }
+    this.publish({ message: message.content, channel, meta })
   }
 
   /** @internal */

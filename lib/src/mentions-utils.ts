@@ -1,4 +1,12 @@
-import { MessageMentionedUsers } from "./types";
+import { MessageMentionedUsers } from "./types"
+import { Validator } from "./validator"
+
+type GetLinkedTextParams = {
+  userCallback: (userId: string, mentionedName: string) => any
+  plainLinkRenderer: (link: string) => any
+  text: string
+  mentionedUsers: MessageMentionedUsers
+}
 
 export class MentionsUtils {
   static getPhraseToLookFor(text: string) {
@@ -18,12 +26,13 @@ export class MentionsUtils {
     return splitWords[0] + (splitWords[1] ? ` ${splitWords[1]}` : "")
   }
 
-  static getLinkedText({ text, userCallback, mentionedUsers }: { text: string, userCallback: (userId: string, mentionedName: string) => any, mentionedUsers: MessageMentionedUsers }) {
-    if (!mentionedUsers || !Object.keys(mentionedUsers).length) {
-      return text
-    }
-
-    let counter = 0;
+  static getLinkedText({
+    text,
+    userCallback,
+    mentionedUsers,
+    plainLinkRenderer,
+  }: GetLinkedTextParams) {
+    let counter = 0
     let result = ""
     // multi word names
     let indicesToSkip: number[] = []
@@ -31,6 +40,10 @@ export class MentionsUtils {
     text.split(" ").forEach((word, index) => {
       if (!word.startsWith("@")) {
         if (indicesToSkip.includes(index)) {
+          return
+        }
+        if (Validator.isUrl(word)) {
+          result += `${plainLinkRenderer(word)} `
           return
         }
 

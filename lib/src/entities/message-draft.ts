@@ -11,20 +11,25 @@ declare global {
 
 export class MessageDraft {
   private chat: Chat
+  /** @internal */
   private channel: Channel
   public value = ""
+  /** @internal */
   private previousValue = ""
+  /** @internal */
   private mentionedUsers: {
     [nameOccurrenceIndex: number]: User
   } = {}
   readonly config: MessageDraftConfig
 
+  /** @internal */
   constructor(chat: Chat, channel: Channel, config?: Partial<MessageDraftConfig>) {
     this.chat = chat
     this.channel = channel
     this.config = {
       userSuggestionSource: "channel",
       isTypingIndicatorTriggered: true,
+      userLimit: 10,
       ...(config || {}),
     }
   }
@@ -41,6 +46,7 @@ export class MessageDraft {
       .split(" ")
       .filter((word) => word.startsWith("@"))
     const currentWordsStartingWithAt = this.value.split(" ").filter((word) => word.startsWith("@"))
+
     let differentMentionPosition = -1
 
     const differentMentions = currentWordsStartingWithAt.filter((m, i) => {
@@ -50,8 +56,38 @@ export class MessageDraft {
         differentMentionPosition = i
       }
 
-      return previousWordsStartingWithAt.indexOf(m) === -1
+      return isStringDifferent
     })
+
+    if (previousWordsStartingWithAt.length > currentWordsStartingWithAt.length) {
+      // a mention was removed
+      const firstRemovalIndex = previousWordsStartingWithAt.findIndex(
+        (e, i) => !currentWordsStartingWithAt.includes(e)
+      )
+      const lastRemovalIndex = previousWordsStartingWithAt.findLastIndex(
+        (e, i) => !currentWordsStartingWithAt.includes(e)
+      )
+
+      if (lastRemovalIndex !== -1) {
+        let reindexedMentionedUsers = { ...this.mentionedUsers }
+
+        Object.keys(this.mentionedUsers).forEach((key) => {
+          if (Number(key) >= firstRemovalIndex && Number(key) <= lastRemovalIndex) {
+            delete reindexedMentionedUsers[Number(key)]
+          }
+          if (Number(key) > lastRemovalIndex) {
+            delete reindexedMentionedUsers[Number(key)]
+            reindexedMentionedUsers = {
+              ...reindexedMentionedUsers,
+              [Number(key) - lastRemovalIndex + firstRemovalIndex - 1]:
+                this.mentionedUsers[Number(key)],
+            }
+          }
+        })
+
+        this.mentionedUsers = reindexedMentionedUsers
+      }
+    }
 
     Object.keys(this.mentionedUsers).forEach((key) => {
       const mentionedUserName = this.mentionedUsers[Number(key)]?.name
@@ -79,11 +115,15 @@ export class MessageDraft {
     let suggestedUsers
 
     if (this.config.userSuggestionSource === "channel") {
-      suggestedUsers = (await this.channel.getUserSuggestions(differentMentions[0])).map(
-        (membership) => membership.user
-      )
+      suggestedUsers = (
+        await this.channel.getUserSuggestions(differentMentions[0], {
+          limit: this.config.userLimit,
+        })
+      ).map((membership) => membership.user)
     } else {
-      suggestedUsers = await this.chat.getUserSuggestions(differentMentions[0])
+      suggestedUsers = await this.chat.getUserSuggestions(differentMentions[0], {
+        limit: this.config.userLimit,
+      })
     }
 
     return {
