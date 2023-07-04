@@ -89,7 +89,7 @@ describe("User test", () => {
     if (!adminChannelObj) {
       throw new Error("Admin channel object is null")
     }
-
+    await sleep(150)
     const adminChannelHistory = await adminChannelObj.getHistory({ count: 1 })
 
     const reportedUserAfterReport = adminChannelHistory.messages[0]

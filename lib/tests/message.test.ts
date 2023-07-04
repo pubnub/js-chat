@@ -205,6 +205,7 @@ describe("Send message test", () => {
 
     await channel.sendText(messageText)
 
+    await sleep(150)
     const history = await channel.getHistory({ count: 1 })
     const reportedMessage = history.messages[0]
 
