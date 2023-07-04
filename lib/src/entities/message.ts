@@ -10,6 +10,12 @@ import {
   ReportMessageContent,
 } from "../types"
 import { INTERNAL_ADMIN_CHANNEL } from "../constants"
+import { MentionsUtils } from "../mentions-utils"
+
+type GetLinkedTextParams = {
+  mentionedUserRenderer: (userId: string, mentionedName: string) => any
+  plainLinkRenderer: (link: string) => any
+}
 
 export type MessageFields = Pick<
   Message,
@@ -21,18 +27,28 @@ export class Message {
   readonly timetoken: string
   readonly content: TextMessageContent | ReportMessageContent
   readonly channelId: string
-  readonly userId?: string
+  readonly userId: string
   readonly actions?: MessageActions
   readonly meta?: {
     [key: string]: any
   }
-  get threadRootId() {
+
+  get hasThread() {
     if (!this.actions?.["threadRootId"]) {
       return false
     }
 
-    return Object.keys(this.actions["threadRootId"])[0]
+    return !!Object.keys(this.actions["threadRootId"])[0]
   }
+
+  get mentionedUsers() {
+    if (this.meta?.mentionedUsers) {
+      return this.meta.mentionedUsers
+    }
+
+    return {}
+  }
+
   get type() {
     return this.content.type
   }
@@ -43,6 +59,7 @@ export class Message {
     this.timetoken = params.timetoken
     this.content = params.content
     this.channelId = params.channelId
+    this.userId = params.userId
     Object.assign(this, params)
   }
 
@@ -52,7 +69,7 @@ export class Message {
       timetoken: String(params.timetoken),
       content: params.message,
       channelId: params.channel,
-      userId: "publisher" in params ? params.publisher : params.uuid,
+      userId: "publisher" in params ? params.publisher : params.uuid || "unknown-user",
       actions: "actions" in params ? params.actions : undefined,
       meta:
         "meta" in params ? params.meta : "userMetadata" in params ? params.userMetadata : undefined,
@@ -132,11 +149,34 @@ export class Message {
   get text() {
     const type = MessageActionType.EDITED
     const edits = this.actions?.[type]
-    if (!edits) return this.content.text
+    if (!edits) return this.content.text || ""
     const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
     const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
 
     return lastEdit.value
+  }
+
+  getLinkedText(params?: Partial<GetLinkedTextParams>) {
+    const text = this.text
+
+    let { mentionedUserRenderer, plainLinkRenderer } = params || {}
+
+    mentionedUserRenderer ||= function (userId, mentionedName) {
+      return `<a href="https://pubnub.com/${userId}">@${mentionedName}</a> `
+    }
+
+    plainLinkRenderer ||= function (link) {
+      const linkWithProtocol = link.startsWith("www.") ? `https://${link}` : link
+
+      return `<a href="${linkWithProtocol}">${link}</a> `
+    }
+
+    return MentionsUtils.getLinkedText({
+      text,
+      userCallback: mentionedUserRenderer,
+      plainLinkRenderer,
+      mentionedUsers: this.mentionedUsers,
+    })
   }
 
   async editText(newText: string) {
@@ -266,12 +306,16 @@ export class Message {
    * Threads
    */
   getThread() {
-    return this.chat.getThreadChannel(this.channelId, this.timetoken)
+    return this.chat.getThreadChannel(this)
+  }
+
+  createThread() {
+    return this.chat.createThreadChannel(this)
   }
 
   /** @internal */
   private async deleteThread(params: DeleteParameters = {}) {
-    if (this.threadRootId) {
+    if (this.hasThread) {
       const thread = await this.getThread()
       await thread.delete(params)
     }

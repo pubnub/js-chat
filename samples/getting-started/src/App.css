@@ -1,0 +1,95 @@
+* {
+  color: #585858;
+  line-height: normal;
+  margin: 0;
+}
+
+html {
+  font-family:Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  height: 100%;
+}
+
+body {
+  align-items: center;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+}
+
+main {
+  background: #f0f3f7;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+  max-height: 95vh;
+  max-width: 95vw;
+  width: 800px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+section{
+  border: solid #d0dae5;
+  border-width: 1px 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: flex-end;
+  overflow-y: auto;
+}
+
+ol {
+  list-style: none;
+  max-height: 100%;
+  padding: 0;
+}
+
+li {
+  display: flex;
+  margin: 10px 0;
+}
+
+aside {
+  border-radius: 100%;
+  color: #f0f3f7;
+  height: 32px;
+  line-height: 32px;
+  margin: 2px 16px;
+  text-align: center;
+  width: 32px;
+}
+
+time {
+  font-size: 0.9rem;
+  font-weight: 300;
+  padding: 0 10px;
+}
+
+p {
+  margin: 10px 0;
+}
+
+form {
+  display: flex;
+  padding: 16px;
+}
+
+input {
+  background: #e4e9f0;
+  border-radius: 15px;
+  border: none;
+  padding: 8px 14px;
+  width: 100%;
+}
+
+input[type=submit] {
+  cursor: pointer;
+  margin-left: 10px;
+  width: auto;
+}

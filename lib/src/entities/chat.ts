@@ -20,7 +20,7 @@ type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
 export class Chat {
   readonly sdk: PubNub
   readonly config: ChatConfig
-  private user?: User
+  private user: User
   /** @internal */
   private lastSavedActivityInterval?: ReturnType<typeof setInterval>
   /** @internal */
@@ -28,7 +28,8 @@ export class Chat {
   /* @internal */
   private subscriptions: { [channel: string]: Set<string> }
 
-  constructor(params: ChatConstructor) {
+  /** @internal */
+  private constructor(params: ChatConstructor) {
     const {
       saveDebugLog,
       typingTimeout,
@@ -42,6 +43,9 @@ export class Chat {
     }
 
     this.sdk = new PubNub(pubnubConfig)
+    this.user = new User(this, {
+      id: "userId" in pubnubConfig ? pubnubConfig.userId : pubnubConfig.uuid,
+    })
     this.subscriptions = {}
     this.suggestedNamesCache = new Map<string, User[]>()
     this.config = {
@@ -198,11 +202,10 @@ export class Chat {
   }
 
   /** @internal */
-  async getThreadChannel(parentChannelId: string, timetoken: string) {
-    if (!parentChannelId.length) throw "parentChannelId is required"
-    if (!timetoken.length) throw "timetoken is required"
+  async getThreadChannel(message: Message) {
+    if (!message) throw "Message is required"
 
-    const threadChannelId = this.getThreadId(parentChannelId, timetoken)
+    const threadChannelId = this.getThreadId(message.channelId, message.timetoken)
 
     try {
       const response = await this.sdk.objects.getChannelMetadata({
@@ -210,7 +213,7 @@ export class Chat {
       })
       return ThreadChannel.fromDTO(this, {
         ...response.data,
-        parentChannelId,
+        parentChannelId: message.channelId,
       })
     } catch (error) {
       const e = error as { status: { errorData: { status: number } } }
@@ -221,20 +224,39 @@ export class Chat {
   }
 
   /** @internal */
-  async createThread(parentChannelId: string, timetoken: string) {
+  async createThreadChannel(message: Message) {
     try {
-      const threadChannelId = this.getThreadId(parentChannelId, timetoken)
+      if (message.channelId.startsWith(MESSAGE_THREAD_ID_PREFIX)) {
+        throw "Only one level of thread nesting is allowed"
+      }
+
+      const threadChannelId = this.getThreadId(message.channelId, message.timetoken)
+
+      const existingThread = await this.getChannel(threadChannelId)
+      if (existingThread) throw "Thread for this message already exists"
 
       const response = await this.sdk.objects.setChannelMetadata({
         channel: threadChannelId,
         data: {
-          description: `Thread on channel ${parentChannelId} with message timetoken ${timetoken}`,
+          description: `Thread on channel ${message.channelId} with message timetoken ${message.timetoken}`,
         },
       })
-      return ThreadChannel.fromDTO(this, {
-        ...response.data,
-        parentChannelId,
-      })
+      const data = await Promise.all([
+        ThreadChannel.fromDTO(this, {
+          ...response.data,
+          parentChannelId: message.channelId,
+        }),
+        this.sdk.addMessageAction({
+          channel: message.channelId,
+          messageTimetoken: message.timetoken,
+          action: {
+            type: "threadRootId",
+            value: threadChannelId,
+          },
+        }),
+      ])
+
+      return data[0]
     } catch (e) {
       console.error(e)
       throw e
@@ -522,7 +544,7 @@ export class Chat {
     }
   }
 
-  async getSuggestedGlobalUsers(
+  async getUserSuggestions(
     text: string,
     options: { limit: number } = { limit: 10 }
   ): Promise<User[]> {

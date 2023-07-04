@@ -11,14 +11,14 @@ import {
   SendTextOptionParams,
   DeleteParameters,
   ChannelDTOParams,
+  MessageDraftConfig,
   MessageType,
   TextMessageContent,
 } from "../types"
 import { Membership } from "./membership"
 import { User } from "./user"
-import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
-import { ThreadMessage } from "./thread-message"
 import { MentionsUtils } from "../mentions-utils"
+import { MessageDraft } from "./message-draft"
 
 export type ChannelFields = Pick<
   Channel,
@@ -113,10 +113,6 @@ export class Channel {
   /*
    * Publishing
    */
-  /** @internal */
-  private isThreadRoot() {
-    return this.id.startsWith(MESSAGE_THREAD_ID_PREFIX)
-  }
 
   /** @internal */
   private markMessageAsThreadRoot(timetoken: string) {
@@ -134,35 +130,22 @@ export class Channel {
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
-      const { rootMessage, ...rest } = options
-      let channelIdToSend = this.id
-
-      if (rootMessage && this.isThreadRoot()) {
-        throw "Only one level of thread nesting is allowed"
-      }
-      if (rootMessage && rootMessage instanceof ThreadMessage) {
-        throw "rootMessage should be an instance of Message"
-      }
-      if (rootMessage && rootMessage.channelId !== this.id) {
-        throw "This 'rootMessage' you provided does not come from this channel"
-      }
-
-      if (rootMessage) {
-        channelIdToSend = this.chat.getThreadId(this.id, rootMessage.timetoken)
-
-        if (!rootMessage.threadRootId) {
-          await Promise.all([
-            this.markMessageAsThreadRoot(rootMessage.timetoken),
-            this.chat.createThread(this.id, rootMessage.timetoken),
-          ])
-        }
-      }
+      const { mentionedUsers, ...rest } = options
 
       const message: TextMessageContent = {
         type: MessageType.TEXT,
         text,
       }
-      return await this.chat.publish({ ...rest, channel: channelIdToSend, message })
+
+      return await this.chat.publish({
+        ...rest,
+        channel: this.id,
+        message,
+        meta: {
+          ...(rest.meta || {}),
+          mentionedUsers,
+        },
+      })
     } catch (error) {
       throw error
     }
@@ -445,7 +428,7 @@ export class Channel {
     }
   }
 
-  async getSuggestedChannelMembers(
+  async getUserSuggestions(
     text: string,
     options: { limit: number } = { limit: 10 }
   ): Promise<Membership[]> {
@@ -467,5 +450,9 @@ export class Channel {
     this.suggestedNames.set(cacheKey, membersResponse.members)
 
     return this.suggestedNames.get(cacheKey) as Membership[]
+  }
+
+  createMessageDraft(config?: Partial<MessageDraftConfig>) {
+    return new MessageDraft(this.chat, this, config)
   }
 }

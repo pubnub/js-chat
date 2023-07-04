@@ -1,4 +1,12 @@
-import { User } from "./entities/user"
+import { MessageMentionedUsers } from "./types"
+import { Validator } from "./validator"
+
+type GetLinkedTextParams = {
+  userCallback: (userId: string, mentionedName: string) => any
+  plainLinkRenderer: (link: string) => any
+  text: string
+  mentionedUsers: MessageMentionedUsers
+}
 
 export class MentionsUtils {
   static getPhraseToLookFor(text: string) {
@@ -18,11 +26,49 @@ export class MentionsUtils {
     return splitWords[0] + (splitWords[1] ? ` ${splitWords[1]}` : "")
   }
 
-  static areMentionedUsersInTextValid(text: string, mentionedUsers: User[]) {
-    const mentionedUsersFromTheText = text.split(" ").filter((word) => word.startsWith("@"))
+  static getLinkedText({
+    text,
+    userCallback,
+    mentionedUsers,
+    plainLinkRenderer,
+  }: GetLinkedTextParams) {
+    let counter = 0
+    let result = ""
+    // multi word names
+    let indicesToSkip: number[] = []
 
-    if (mentionedUsers.length !== mentionedUsersFromTheText.length) {
-      return false
-    }
+    text.split(" ").forEach((word, index) => {
+      if (!word.startsWith("@")) {
+        if (indicesToSkip.includes(index)) {
+          return
+        }
+        if (Validator.isUrl(word)) {
+          result += `${plainLinkRenderer(word)} `
+          return
+        }
+
+        result += `${word} `
+      } else {
+        const mentionFound = Object.keys(mentionedUsers).indexOf(String(counter)) >= 0
+
+        if (!mentionFound) {
+          counter++
+          result += `${word} `
+        } else {
+          const userId = mentionedUsers[counter].id
+          const userName = mentionedUsers[counter].name
+          const userNameWords = userName.split(" ")
+
+          if (userNameWords.length > 1) {
+            indicesToSkip = userNameWords.map((_, i) => index + i)
+          }
+
+          counter++
+          result += `${userCallback(userId, userName)} `
+        }
+      }
+    })
+
+    return result
   }
 }
