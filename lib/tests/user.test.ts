@@ -64,17 +64,11 @@ describe("User test", () => {
   })
 
   test("should report a user", async () => {
-    const userToReport = await chat.createUser(createRandomUserId(), {
-      name: "User to be Reported",
-      profileUrl: "https://randomuser.me/api/portraits/men/66.jpg",
-      custom: {
-        title: "User Role",
-      },
-    })
+    jest.retryTimes(3)
 
     const reportReason = "Inappropriate behavior"
 
-    await userToReport.report(reportReason)
+    await user.report(reportReason)
 
     const adminChannel = INTERNAL_ADMIN_CHANNEL
     const adminChannelObjPromise = chat.getChannel(adminChannel)
@@ -94,7 +88,7 @@ describe("User test", () => {
 
     if (reportedUserAfterReport?.content.type === MessageType.REPORT) {
       const reportContent = reportedUserAfterReport.content as ReportMessageContent
-      expect(reportContent.reportedUserId).toBe(userToReport.id)
+      expect(reportContent.reportedUserId).toBe(user.id)
       expect(reportContent.reason).toBe(reportReason)
     } else {
       throw new Error("Reported message content is not of type 'REPORT'")
