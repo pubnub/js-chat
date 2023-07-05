@@ -69,7 +69,6 @@ describe("User test", () => {
     const reportReason = "Inappropriate behavior"
 
     await user.report(reportReason)
-    console.log("Reported User ID: ", user.id)
 
     const adminChannel = INTERNAL_ADMIN_CHANNEL
     const adminChannelObjPromise = chat.getChannel(adminChannel)
@@ -90,7 +89,6 @@ describe("User test", () => {
 
     if (reportedUserAfterReport?.content.type === MessageType.REPORT) {
       const reportContent = reportedUserAfterReport.content as ReportMessageContent
-      console.log("Received User ID: ", reportContent.reportedUserId)
       expect(reportContent.reportedUserId).toBe(user.id)
       expect(reportContent.reason).toBe(reportReason)
     } else {

@@ -207,7 +207,6 @@ describe("Send message test", () => {
     await channel.sendText(messageText)
 
     await sleep(150) // history calls have around 130ms of cache time
-
     const history = await channel.getHistory({ count: 1 })
     const reportedMessage = history.messages[0]
 
