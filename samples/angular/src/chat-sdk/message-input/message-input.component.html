@@ -19,6 +19,10 @@
         <p>name: {{ currentlyHighlightedMention.mentionedUser.name }}</p>
         <button (click)="removeUserFromNotification(currentlyHighlightedMention.nameOccurrenceIndex)">Remove from notification by clicking here</button>
     </div>
+    <div *ngIf="quotedMessage">
+        <p>You are quoting user: {{ quotedMessage.userId }}</p>
+        <p>Quote content: {{ quotedMessage.text }}</p>
+    </div>
     <textarea type="text" [(ngModel)]="pubnubInput" [value]="newMessageDraft.value" (ngModelChange)="handleInput($event)" class="input" (keydown)="handleCaret($event)" #textAreaElement></textarea>
     <button (click)="handleSend()">
         Send

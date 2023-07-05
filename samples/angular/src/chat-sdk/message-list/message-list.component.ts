@@ -1,5 +1,6 @@
 import { Component, Input, SimpleChanges } from "@angular/core"
 import { Channel, Chat, Message, ThreadMessage } from "@pubnub/chat"
+import { StateService } from "../../app/state.service"
 
 @Component({
   selector: "app-message-list-chat",
@@ -19,7 +20,7 @@ export class MessageListComponentChat {
     [key: string]: string
   }
 
-  constructor() {
+  constructor(private stateService: StateService) {
     this.messages = []
     this.isPaginationEnd = false
     this.threadMessages = {}
@@ -108,5 +109,9 @@ export class MessageListComponentChat {
     const threadMessages = await thread!.getHistory()
     await this.getPinnedMessage(thread!)
     this.threadMessages[message.timetoken] = threadMessages.messages
+  }
+
+  quoteMessage(message: Message) {
+    this.stateService.changeChannelQuote({ [message.channelId]: message })
   }
 }

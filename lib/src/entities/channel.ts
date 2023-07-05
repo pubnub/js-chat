@@ -130,7 +130,11 @@ export class Channel {
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
-      const { mentionedUsers, ...rest } = options
+      const { mentionedUsers, quotedMessage, ...rest } = options
+
+      if (quotedMessage && quotedMessage.channelId !== this.id) {
+        throw "You cannot quote messages from other channels"
+      }
 
       const message: TextMessageContent = {
         type: MessageType.TEXT,
@@ -144,6 +148,13 @@ export class Channel {
         meta: {
           ...(rest.meta || {}),
           mentionedUsers,
+          quotedMessage: quotedMessage
+            ? {
+                timetoken: quotedMessage.timetoken,
+                text: quotedMessage.text,
+                userId: quotedMessage.userId,
+              }
+            : undefined,
         },
       })
     } catch (error) {

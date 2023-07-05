@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core"
 import { Subject } from "rxjs"
-import { Channel } from "@pubnub/chat"
+import { Channel, Message } from "@pubnub/chat"
 
 @Injectable({
   providedIn: "root",
@@ -10,11 +10,15 @@ export class StateService {
   createChannelModalChatSDKOpen = false
   createDirectConversationChatSDKOpen = false
   currentChannel: Channel | null = null
+  pendingQuotes: { [channelId: string]: Message | null } = {}
 
   JSSDKModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
   chatSDKModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
   chatSDKCreateDirectConversationModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
   currentChannelChange: Subject<Channel | null> = new Subject<Channel | null>()
+  pendingQuotesChange: Subject<{ [channelId: string]: Message | null }> = new Subject<{
+    [channelId: string]: Message | null
+  }>()
 
   constructor() {
     this.JSSDKModalVisibilityChange.subscribe((value) => {
@@ -28,6 +32,9 @@ export class StateService {
     })
     this.currentChannelChange.subscribe((value) => {
       this.currentChannel = value
+    })
+    this.pendingQuotesChange.subscribe((value) => {
+      this.pendingQuotes = { ...this.pendingQuotes, ...value }
     })
   }
 
@@ -55,5 +62,9 @@ export class StateService {
 
   getCreateChannelModalChatSDKOpen() {
     return this.createChannelModalChatSDKOpen
+  }
+
+  changeChannelQuote(channelQuote: { [channelId: string]: Message | null }) {
+    this.pendingQuotesChange.next(channelQuote)
   }
 }

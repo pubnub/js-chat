@@ -55,6 +55,7 @@ export type MessageMentionedUsers = {
 
 export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel"> & {
   mentionedUsers?: MessageMentionedUsers
+  quotedMessage?: Message
 }
 
 export type EnhancedMessageEvent = PubNub.MessageEvent & {

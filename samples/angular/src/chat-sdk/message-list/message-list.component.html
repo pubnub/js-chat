@@ -7,16 +7,31 @@
         </div>
         <div *ngFor="let message of messages">
             <div class="message-row">
-                <p [innerHtml]="message.getLinkedText()" class="linked-text">
-                </p>
-                <div class="message-row__forward-icon__container" (click)="forwardMessage(message)">
-                    <img src="assets/forwardIcon.png" class="message-row__forward-icon" />
+                <div class="message-row__content">
+                    <div *ngIf="message.quotedMessage">
+                        <p>
+                            Quoted message: {{ message.quotedMessage.text }}
+                        </p>
+                        <p>
+                            Quote author: {{ message.quotedMessage.userId }}
+                        </p>
+                    </div>
+                    <p [innerHtml]="message.getLinkedText()" class="linked-text">
+                    </p>
                 </div>
-                <div class="message-row__forward-icon__container" (click)="pinMessage(message)">
-                    <img src="assets/star.png" class="message-row__forward-icon" />
-                </div>
-                <div class="message-row__forward-icon__container" (click)="loadThreadMessages(message)" *ngIf="message.hasThread">
-                    <img src="assets/icon-of-blank-message-dialogue-box-free-vector.webp" class="message-row__forward-icon" />
+                <div class="message-row__toolbox">
+                    <div class="message-row__forward-icon__container" (click)="forwardMessage(message)">
+                        <img src="assets/forwardIcon.png" class="message-row__forward-icon" />
+                    </div>
+                    <div class="message-row__forward-icon__container" (click)="pinMessage(message)">
+                        <img src="assets/star.png" class="message-row__forward-icon" />
+                    </div>
+                    <div class="message-row__forward-icon__container" (click)="loadThreadMessages(message)" *ngIf="message.hasThread">
+                        <img src="assets/icon-of-blank-message-dialogue-box-free-vector.webp" class="message-row__forward-icon" />
+                    </div>
+                    <div class="message-row__forward-icon__container" (click)="quoteMessage(message)">
+                        <img src="assets/quote-mark-icon-symbol-illustration-free-vector.jpeg" class="message-row__forward-icon" />
+                    </div>
                 </div>
             </div>
             <div class="message-row__thread-messages-container" *ngIf="threadMessages[message.timetoken]">

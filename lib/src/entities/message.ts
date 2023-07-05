@@ -53,6 +53,14 @@ export class Message {
     return this.content.type
   }
 
+  get quotedMessage() {
+    if (this.meta?.quotedMessage) {
+      return this.meta.quotedMessage
+    }
+
+    return undefined
+  }
+
   /** @internal */
   constructor(chat: Chat, params: MessageFields) {
     this.chat = chat
