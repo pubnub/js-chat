@@ -5,6 +5,7 @@ import {
   sleep,
   waitForAllMessagesToBeDelivered,
 } from "./utils"
+import { createRandomUserId } from "./testUtils"
 import { INTERNAL_ADMIN_CHANNEL } from "../src"
 
 describe("Send message test", () => {
@@ -205,7 +206,6 @@ describe("Send message test", () => {
 
     await channel.sendText(messageText)
 
-    await sleep(150)
     const history = await channel.getHistory({ count: 1 })
     const reportedMessage = history.messages[0]
 
