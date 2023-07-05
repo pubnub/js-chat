@@ -445,7 +445,7 @@ export class MessageDraft {
       throw "You cannot insert a link inside another link"
     }
 
-    this.value = this.value.slice(0, positionInInput) + text + this.value.slice(positionInInput)
+    this.onChange(this.value.slice(0, positionInInput) + text + this.value.slice(positionInInput))
     this.textLinks.push({
       startIndex: positionInInput,
       endIndex: positionInInput + text.length,
