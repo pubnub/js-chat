@@ -2,6 +2,7 @@ import { Chat } from "./chat"
 import { User } from "./user"
 import { Channel } from "./channel"
 import { MessageDraftConfig, SendTextOptionParams } from "../types"
+import { Message } from "./message"
 
 declare global {
   interface Array<T> {
@@ -20,6 +21,8 @@ export class MessageDraft {
   private mentionedUsers: {
     [nameOccurrenceIndex: number]: User
   } = {}
+  /** @internal */
+  private quotedMessage: Message | undefined = undefined
   readonly config: MessageDraftConfig
 
   /** @internal */
@@ -168,7 +171,7 @@ export class MessageDraft {
     console.warn("This is noop. There is no mention occurrence at this index.")
   }
 
-  async send(params: Omit<SendTextOptionParams, "mentionedUsers"> = {}) {
+  async send(params: Omit<SendTextOptionParams, "mentionedUsers" | "quotedMessage"> = {}) {
     return this.channel.sendText(this.value, {
       ...params,
       mentionedUsers: Object.keys(this.mentionedUsers).reduce(
@@ -181,6 +184,7 @@ export class MessageDraft {
         }),
         {}
       ),
+      quotedMessage: this.quotedMessage,
     })
   }
 
@@ -216,5 +220,17 @@ export class MessageDraft {
       mentionedUser: null,
       nameOccurrenceIndex: -1,
     }
+  }
+
+  addQuote(message: Message) {
+    if (message.channelId !== this.channel.id) {
+      throw "You cannot quote messages from other channels"
+    }
+
+    this.quotedMessage = message
+  }
+
+  removeQuote() {
+    this.quotedMessage = undefined
   }
 }

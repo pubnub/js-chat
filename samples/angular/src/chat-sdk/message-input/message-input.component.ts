@@ -65,7 +65,11 @@ export class MessageInputComponentChat {
   }
 
   async handleSend() {
-    const response = await this.newMessageDraft.send({ quotedMessage: this.quotedMessage })
+    if (this.quotedMessage) {
+      this.newMessageDraft.addQuote(this.quotedMessage)
+    }
+
+    const response = await this.newMessageDraft.send()
 
     this.suggestedUsers = []
     this.pubnubInput = ""
