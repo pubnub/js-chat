@@ -73,7 +73,13 @@ export class MentionsUtils {
           return
         }
         if (Validator.isUrl(word)) {
-          result += `${plainLinkRenderer(word)} `
+          const lastCharacter = word.slice(-1)
+          if (["!", "?", ".", ","].includes(lastCharacter)) {
+            result += `${plainLinkRenderer(word.slice(0, -1))}`.trimEnd()
+            result += `${lastCharacter} `
+          } else {
+            result += `${plainLinkRenderer(word)} `
+          }
           return
         }
 

@@ -94,4 +94,9 @@ export class MessageInputComponentChat {
     })
     this.messagePreview = this.newMessageDraft.getMessagePreview()
   }
+
+  removeTextLink() {
+    this.newMessageDraft.removeLinkedText(this.userInput?.nativeElement.selectionStart)
+    this.messagePreview = this.newMessageDraft.getMessagePreview()
+  }
 }

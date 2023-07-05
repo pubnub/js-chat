@@ -28,6 +28,7 @@
             <button (click)="handleDialogClose()" class="button">Ok</button>
         </fieldset>
     </dialog>
+    <button (click)="removeTextLink()">Remove link from this string</button>
     <button (click)="toggleAddTextLinkDialog()" class="button">Open text link dialog</button>
     <textarea type="text" [(ngModel)]="pubnubInput" [value]="newMessageDraft.value" (ngModelChange)="handleInput($event)" class="input" (keyup)="handleCaret($event)" #textAreaElement></textarea>
     <button (click)="handleSend()" class="button">

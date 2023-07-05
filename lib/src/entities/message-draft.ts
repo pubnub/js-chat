@@ -47,6 +47,7 @@ export class MessageDraft {
     }
   }
 
+  /** @internal */
   private reindexTextLinks() {
     if (this.value.startsWith(this.previousValue)) {
       // a user keeps adding text to the end; nothing to reindex
@@ -374,6 +375,7 @@ export class MessageDraft {
     console.warn("This is noop. There is no mention occurrence at this index.")
   }
 
+  /** @internal */
   private transformMentionedUsersToSend() {
     return Object.keys(this.mentionedUsers).reduce(
       (acc, key) => ({
@@ -449,6 +451,22 @@ export class MessageDraft {
       endIndex: positionInInput + text.length,
       link,
     })
+  }
+
+  removeLinkedText(positionInInput: number) {
+    if (Number.isNaN(positionInInput)) {
+      throw "You need to insert a number"
+    }
+
+    const relevantTextLinkIndex = this.textLinks.findIndex((textLink) =>
+      range(textLink.startIndex, textLink.endIndex).includes(positionInInput)
+    )
+
+    if (relevantTextLinkIndex === -1) {
+      console.warn("This operation is noop. There is no link at this position.")
+      return
+    }
+    this.textLinks = this.textLinks.filter((_, i) => i !== relevantTextLinkIndex)
   }
 
   getMessagePreview(params?: Partial<GetLinkedTextParams>) {
