@@ -64,8 +64,6 @@ describe("User test", () => {
   })
 
   test("should report a user", async () => {
-    jest.retryTimes(3)
-
     const userToReport = await chat.createUser(createRandomUserId(), {
       name: "User to be Reported",
       profileUrl: "https://randomuser.me/api/portraits/men/66.jpg",
