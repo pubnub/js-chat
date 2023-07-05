@@ -225,6 +225,7 @@ describe("Send message test", () => {
       throw new Error("Admin channel object is null")
     }
 
+    await sleep(150) // history calls have around 130ms of cache time
     const adminChannelHistory = await adminChannelObj.getHistory({ count: 1 })
 
     const reportedMessageAfterReport = adminChannelHistory.messages[0]
