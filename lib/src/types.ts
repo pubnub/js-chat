@@ -1,5 +1,6 @@
 import PubNub, { ChannelMetadataObject, ObjectCustom, PublishParameters } from "pubnub"
 import { User } from "./entities/user"
+import { Message } from "./entities/message"
 
 export type StatusTypeFields = {
   status?: string
@@ -55,6 +56,7 @@ export type MessageMentionedUsers = {
 export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel"> & {
   mentionedUsers?: MessageMentionedUsers
   textLinks?: TextLink[]
+  quotedMessage?: Message
 }
 
 export type EnhancedMessageEvent = PubNub.MessageEvent & {

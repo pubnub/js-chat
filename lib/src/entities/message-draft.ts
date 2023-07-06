@@ -4,6 +4,7 @@ import { Channel } from "./channel"
 import { GetLinkedTextParams, MessageDraftConfig, SendTextOptionParams, TextLink } from "../types"
 import { Validator } from "../validator"
 import { MentionsUtils } from "../mentions-utils"
+import { Message } from "./message"
 
 declare global {
   interface Array<T> {
@@ -33,6 +34,8 @@ export class MessageDraft {
   } = {}
   /** @internal */
   private textLinks: TextLink[] = []
+  /** @internal */
+  private quotedMessage: Message | undefined = undefined
   readonly config: MessageDraftConfig
 
   /** @internal */
@@ -394,6 +397,7 @@ export class MessageDraft {
       ...params,
       mentionedUsers: this.transformMentionedUsersToSend(),
       textLinks: this.textLinks,
+      quotedMessage: this.quotedMessage,
     })
   }
 
@@ -496,5 +500,17 @@ export class MessageDraft {
       plainLinkRenderer,
       textLinkRenderer,
     })
+  }
+
+  addQuote(message: Message) {
+    if (message.channelId !== this.channel.id) {
+      throw "You cannot quote messages from other channels"
+    }
+
+    this.quotedMessage = message
+  }
+
+  removeQuote() {
+    this.quotedMessage = undefined
   }
 }

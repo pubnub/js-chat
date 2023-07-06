@@ -1,15 +1,16 @@
 import { Component, Input, SimpleChanges, Pipe, PipeTransform } from "@angular/core"
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml } from "@angular/platform-browser"
 import { Channel, Chat, Message, ThreadMessage } from "@pubnub/chat"
+import { StateService } from "../../app/state.service"
 
 @Pipe({
-  name: 'byPassSecurity'
+  name: "byPassSecurity",
 })
 export class ByPassSecurityPipe implements PipeTransform {
   constructor(private sanitizer: DomSanitizer) {}
 
-  transform (value: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(value);
+  transform(value: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(value)
   }
 }
 
@@ -31,7 +32,7 @@ export class MessageListComponentChat {
     [key: string]: string
   }
 
-  constructor(private sanitizer: DomSanitizer) {
+  constructor(private sanitizer: DomSanitizer, private stateService: StateService) {
     this.messages = []
     this.isPaginationEnd = false
     this.threadMessages = {}
@@ -132,5 +133,9 @@ export class MessageListComponentChat {
     }
 
     return message.getLinkedText({ plainLinkRenderer })
+  }
+
+  quoteMessage(message: Message) {
+    this.stateService.changeChannelQuote({ [message.channelId]: message })
   }
 }

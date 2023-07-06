@@ -30,8 +30,12 @@
     </dialog>
     <button (click)="removeTextLink()">Remove link from this string</button>
     <button (click)="toggleAddTextLinkDialog()" class="button">Open text link dialog</button>
-    <textarea type="text" [(ngModel)]="pubnubInput" [value]="newMessageDraft.value" (ngModelChange)="handleInput($event)" class="input" (keyup)="handleCaret($event)" #textAreaElement></textarea>
-    <button (click)="handleSend()" class="button">
+    <div *ngIf="quotedMessage">
+        <p>You are quoting user: {{ quotedMessage.userId }}</p>
+        <p>Quote content: {{ quotedMessage.text }}</p>
+    </div>
+    <textarea type="text" [(ngModel)]="pubnubInput" [value]="newMessageDraft.value" (ngModelChange)="handleInput($event)" class="input" (keydown)="handleCaret($event)" #textAreaElement></textarea>
+    <button (click)="handleSend()">
         Send
     </button>
     <h3>Message preview</h3>

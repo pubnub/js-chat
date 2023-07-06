@@ -50,11 +50,19 @@ export class Message {
       return this.meta.textLinks
     }
 
-    return {}
+    return []
   }
 
   get type() {
     return this.content.type
+  }
+
+  get quotedMessage() {
+    if (this.meta?.quotedMessage) {
+      return this.meta.quotedMessage
+    }
+
+    return undefined
   }
 
   /** @internal */

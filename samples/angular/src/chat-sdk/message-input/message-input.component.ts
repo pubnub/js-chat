@@ -1,5 +1,6 @@
 import { Component, Input, ViewChild, ElementRef } from "@angular/core"
 import { Channel, Chat, MessageDraft, User } from "@pubnub/chat"
+import { StateService } from "../../app/state.service"
 
 @Component({
   selector: "app-message-input-chat",
@@ -31,7 +32,7 @@ export class MessageInputComponentChat {
 
   @ViewChild("textAreaElement") userInput: ElementRef | undefined
 
-  constructor() {
+  constructor(private stateService: StateService) {
     this.newMessageDraft = this.channel?.createMessageDraft()
     this.currentlyHighlightedMention = {
       mentionedUser: null,
@@ -64,11 +65,26 @@ export class MessageInputComponentChat {
     return !!this.usersToNotify.find((u) => u.id === user.id)
   }
 
+  get quotedMessage() {
+    const quote = this.stateService.pendingQuotes[this.channel.id]
+
+    if (!quote) {
+      return undefined
+    }
+
+    return quote
+  }
+
   async handleSend() {
+    if (this.quotedMessage) {
+      this.newMessageDraft.addQuote(this.quotedMessage)
+    }
+
     const response = await this.newMessageDraft.send()
 
     this.suggestedUsers = []
     this.pubnubInput = ""
+    this.stateService.changeChannelQuote({ [this.channel.id]: null })
   }
 
   handleCaret(event: any) {
