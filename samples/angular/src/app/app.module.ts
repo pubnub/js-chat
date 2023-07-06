@@ -7,7 +7,7 @@ import { MessageListComponentSDK } from "../js-sdk/message-list/message-list.com
 import { FormsModule, ReactiveFormsModule } from "@angular/forms"
 import { TypingIndicatorComponentSDK } from "../js-sdk/typing-indicator/typing-indicator.component"
 import { TypingIndicatorComponentChat } from "../chat-sdk/typing-indicator/typing-indicator.component"
-import { MessageListComponentChat } from "../chat-sdk/message-list/message-list.component"
+import { ByPassSecurityPipe, MessageListComponentChat } from "../chat-sdk/message-list/message-list.component"
 import { MessageInputComponentChat } from "../chat-sdk/message-input/message-input.component"
 import { CreateChannelModalComponentChat } from "../chat-sdk/create-channel-modal/create-channel-modal.component"
 import { ChannelListComponentChat } from "../chat-sdk/channel-list/channel-list.component"
@@ -29,6 +29,7 @@ import { CreateDirectConversationModalChat } from "../chat-sdk/create-direct-con
     ChannelListComponentSDK,
     CreateChannelModalComponentSDK,
     CreateDirectConversationModalChat,
+    ByPassSecurityPipe,
   ],
   imports: [BrowserModule, ReactiveFormsModule, FormsModule],
   providers: [],

@@ -10,6 +10,14 @@ export class MessageInputComponentChat {
   pubnubInput = ""
   suggestedUsers: User[] = []
   usersToNotify: User[] = []
+  isAddTextLinkDialogOpen = false
+  textLinkDialogValues: {
+    text: string
+    link: string
+  } = {
+    text: "",
+    link: "",
+  }
   @Input() channel!: Channel
   @Input() chat!: Chat
   @Input() typingSent!: boolean
@@ -19,6 +27,7 @@ export class MessageInputComponentChat {
     mentionedUser: User | undefined | null
     nameOccurrenceIndex: number
   }
+  messagePreview = ""
 
   @ViewChild("textAreaElement") userInput: ElementRef | undefined
 
@@ -39,10 +48,12 @@ export class MessageInputComponentChat {
     // console.log("response??", response)
     this.suggestedUsers = response.suggestedUsers
     this.lastAffectedNameOccurrenceIndex = response.nameOccurrenceIndex
+    this.messagePreview = this.newMessageDraft.getMessagePreview()
   }
 
   toggleUserToNotify(user: User) {
     this.newMessageDraft.addMentionedUser(user, this.lastAffectedNameOccurrenceIndex)
+    this.messagePreview = this.newMessageDraft.getMessagePreview()
   }
 
   removeUserFromNotification(nameOccurrenceIndex: number) {
@@ -64,5 +75,28 @@ export class MessageInputComponentChat {
     this.currentlyHighlightedMention = this.newMessageDraft.getHighlightedMention(
       this.userInput?.nativeElement.selectionStart
     )
+  }
+
+  toggleAddTextLinkDialog() {
+    this.isAddTextLinkDialogOpen = !this.isAddTextLinkDialogOpen
+  }
+
+  handleDialogClose() {
+    this.isAddTextLinkDialogOpen = false
+    if (!this.textLinkDialogValues.text || !this.textLinkDialogValues.link) {
+      return
+    }
+
+    this.newMessageDraft.addLinkedText({
+      link: this.textLinkDialogValues.link,
+      text: this.textLinkDialogValues.text,
+      positionInInput: this.userInput?.nativeElement.selectionStart,
+    })
+    this.messagePreview = this.newMessageDraft.getMessagePreview()
+  }
+
+  removeTextLink() {
+    this.newMessageDraft.removeLinkedText(this.userInput?.nativeElement.selectionStart)
+    this.messagePreview = this.newMessageDraft.getMessagePreview()
   }
 }

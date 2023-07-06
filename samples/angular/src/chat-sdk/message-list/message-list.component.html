@@ -7,7 +7,7 @@
         </div>
         <div *ngFor="let message of messages">
             <div class="message-row">
-                <p [innerHtml]="message.getLinkedText()" class="linked-text">
+                <p [innerHtml]="renderMessage(message) | byPassSecurity" class="linked-text">
                 </p>
                 <div class="message-row__forward-icon__container" (click)="forwardMessage(message)">
                     <img src="assets/forwardIcon.png" class="message-row__forward-icon" />
