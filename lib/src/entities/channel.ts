@@ -114,23 +114,9 @@ export class Channel {
    * Publishing
    */
 
-  /** @internal */
-  private markMessageAsThreadRoot(timetoken: string) {
-    const channelIdToSend = this.chat.getThreadId(this.id, timetoken)
-
-    return this.chat.sdk.addMessageAction({
-      channel: this.id,
-      messageTimetoken: timetoken,
-      action: {
-        type: "threadRootId",
-        value: channelIdToSend,
-      },
-    })
-  }
-
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
-      const { mentionedUsers, quotedMessage, ...rest } = options
+      const { mentionedUsers, textLinks, quotedMessage, ...rest } = options
 
       if (quotedMessage && quotedMessage.channelId !== this.id) {
         throw "You cannot quote messages from other channels"
@@ -148,6 +134,7 @@ export class Channel {
         meta: {
           ...(rest.meta || {}),
           mentionedUsers,
+          textLinks,
           quotedMessage: quotedMessage
             ? {
                 timetoken: quotedMessage.timetoken,

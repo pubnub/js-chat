@@ -1,12 +1,17 @@
-import { MessageMentionedUsers } from "./types"
+import { MessageMentionedUsers, TextLink } from "./types"
 import { Validator } from "./validator"
 
 type GetLinkedTextParams = {
-  userCallback: (userId: string, mentionedName: string) => any
+  mentionedUserRenderer: (userId: string, mentionedName: string) => any
   plainLinkRenderer: (link: string) => any
+  textLinkRenderer: (text: string, link: string) => any
   text: string
   mentionedUsers: MessageMentionedUsers
+  textLinks: TextLink[]
 }
+
+const range = (start: number, stop: number, step = 1) =>
+  Array.from({ length: (stop - start) / step + 1 }, (_, i) => start + i * step)
 
 export class MentionsUtils {
   static getPhraseToLookFor(text: string) {
@@ -28,22 +33,53 @@ export class MentionsUtils {
 
   static getLinkedText({
     text,
-    userCallback,
+    mentionedUserRenderer,
     mentionedUsers,
     plainLinkRenderer,
+    textLinkRenderer,
+    textLinks,
   }: GetLinkedTextParams) {
+    let resultWithTextLinks = ""
+
+    const textLinkRanges = textLinks.map((textLink) =>
+      range(textLink.startIndex, textLink.endIndex)
+    )
+    const allIndices = textLinkRanges.flatMap((v) => v)
+    const startIndices = textLinkRanges.map((linkRange) => linkRange[0])
+    const endIndices = textLinkRanges.map((linkRange) => linkRange[linkRange.length - 1])
+
+    text.split("").forEach((letter, i) => {
+      if (startIndices.includes(i)) {
+        const relevantIndex = startIndices.indexOf(i)
+        const substring = text.substring(i, endIndices[relevantIndex])
+
+        resultWithTextLinks += textLinkRenderer(substring, textLinks[relevantIndex].link)
+        return
+      }
+      if (allIndices.filter((index) => !endIndices.includes(index)).includes(i)) {
+        return
+      }
+      resultWithTextLinks += letter
+    })
+
     let counter = 0
     let result = ""
     // multi word names
     let indicesToSkip: number[] = []
 
-    text.split(" ").forEach((word, index) => {
+    resultWithTextLinks.split(" ").forEach((word, index) => {
       if (!word.startsWith("@")) {
         if (indicesToSkip.includes(index)) {
           return
         }
         if (Validator.isUrl(word)) {
-          result += `${plainLinkRenderer(word)} `
+          const lastCharacter = word.slice(-1)
+          if (["!", "?", ".", ","].includes(lastCharacter)) {
+            result += `${plainLinkRenderer(word.slice(0, -1))}`.trimEnd()
+            result += `${lastCharacter} `
+          } else {
+            result += `${plainLinkRenderer(word)} `
+          }
           return
         }
 
@@ -64,7 +100,7 @@ export class MentionsUtils {
           }
 
           counter++
-          result += `${userCallback(userId, userName)} `
+          result += `${mentionedUserRenderer(userId, userName)} `
         }
       }
     })

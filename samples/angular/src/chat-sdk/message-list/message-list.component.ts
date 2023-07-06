@@ -1,6 +1,18 @@
-import { Component, Input, SimpleChanges } from "@angular/core"
+import { Component, Input, SimpleChanges, Pipe, PipeTransform } from "@angular/core"
+import { DomSanitizer, SafeHtml } from "@angular/platform-browser"
 import { Channel, Chat, Message, ThreadMessage } from "@pubnub/chat"
 import { StateService } from "../../app/state.service"
+
+@Pipe({
+  name: "byPassSecurity",
+})
+export class ByPassSecurityPipe implements PipeTransform {
+  constructor(private sanitizer: DomSanitizer) {}
+
+  transform(value: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(value)
+  }
+}
 
 @Component({
   selector: "app-message-list-chat",
@@ -20,7 +32,7 @@ export class MessageListComponentChat {
     [key: string]: string
   }
 
-  constructor(private stateService: StateService) {
+  constructor(private sanitizer: DomSanitizer, private stateService: StateService) {
     this.messages = []
     this.isPaginationEnd = false
     this.threadMessages = {}
@@ -109,6 +121,18 @@ export class MessageListComponentChat {
     const threadMessages = await thread!.getHistory()
     await this.getPinnedMessage(thread!)
     this.threadMessages[message.timetoken] = threadMessages.messages
+  }
+
+  renderMessage(message: Message) {
+    const plainLinkRenderer = (link: string) => {
+      if (link.includes("youtube")) {
+        return "[Link was cut]"
+      }
+
+      return `<a href="${link}">${link}</a>`
+    }
+
+    return message.getLinkedText({ plainLinkRenderer })
   }
 
   quoteMessage(message: Message) {

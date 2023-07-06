@@ -16,7 +16,7 @@
                             Quote author: {{ message.quotedMessage.userId }}
                         </p>
                     </div>
-                    <p [innerHtml]="message.getLinkedText()" class="linked-text">
+                    <p [innerHtml]="renderMessage(message) | byPassSecurity" class="linked-text">
                     </p>
                 </div>
                 <div class="message-row__toolbox">

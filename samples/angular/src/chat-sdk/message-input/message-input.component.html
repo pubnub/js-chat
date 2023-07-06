@@ -19,6 +19,17 @@
         <p>name: {{ currentlyHighlightedMention.mentionedUser.name }}</p>
         <button (click)="removeUserFromNotification(currentlyHighlightedMention.nameOccurrenceIndex)">Remove from notification by clicking here</button>
     </div>
+    <dialog *ngIf="isAddTextLinkDialogOpen" open>
+        <fieldset>
+            <label for="textLinkDialogValuesText">Text</label><br>
+            <input id="textLinkDialogValuesText" type="text" [(ngModel)]="textLinkDialogValues.text" /><br>
+            <label for="textLinkDialogValuesLink">Link</label><br>
+            <input id="textLinkDialogValuesLink" type="text" [(ngModel)]="textLinkDialogValues.link" /><br>
+            <button (click)="handleDialogClose()" class="button">Ok</button>
+        </fieldset>
+    </dialog>
+    <button (click)="removeTextLink()">Remove link from this string</button>
+    <button (click)="toggleAddTextLinkDialog()" class="button">Open text link dialog</button>
     <div *ngIf="quotedMessage">
         <p>You are quoting user: {{ quotedMessage.userId }}</p>
         <p>Quote content: {{ quotedMessage.text }}</p>
@@ -27,4 +38,6 @@
     <button (click)="handleSend()">
         Send
     </button>
+    <h3>Message preview</h3>
+    <p [innerHTML]="messagePreview | byPassSecurity"></p>
 </div>
