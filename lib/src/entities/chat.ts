@@ -7,6 +7,8 @@ import { Membership } from "./membership"
 import { MESSAGE_THREAD_ID_PREFIX, INTERNAL_ADMIN_CHANNEL } from "../constants"
 import { ThreadChannel } from "./thread-channel"
 import { MentionsUtils } from "../mentions-utils"
+import {EventListener} from "../event-listener";
+import {EventEmitter} from "../event-emitter";
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -25,8 +27,11 @@ export class Chat {
   private lastSavedActivityInterval?: ReturnType<typeof setInterval>
   /** @internal */
   private suggestedNamesCache: Map<string, User[]>
-  /* @internal */
+  /** @internal */
   private subscriptions: { [channel: string]: Set<string> }
+  readonly eventListener: EventListener
+  /** @internal */
+  readonly eventEmitter: EventEmitter
 
   /** @internal */
   private constructor(params: ChatConstructor) {
@@ -48,6 +53,8 @@ export class Chat {
     })
     this.subscriptions = {}
     this.suggestedNamesCache = new Map<string, User[]>()
+    this.eventListener = new EventListener(this)
+    this.eventEmitter = new EventEmitter(this)
     this.config = {
       saveDebugLog: saveDebugLog || false,
       typingTimeout: typingTimeout || 5000,

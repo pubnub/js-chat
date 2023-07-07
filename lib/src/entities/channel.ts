@@ -127,7 +127,7 @@ export class Channel {
         text,
       }
 
-      return await this.chat.publish({
+      const publishResponse = await this.chat.publish({
         ...rest,
         channel: this.id,
         message,
@@ -144,6 +144,14 @@ export class Channel {
             : undefined,
         },
       })
+
+      if (mentionedUsers) {
+        Object.keys(mentionedUsers).forEach((key) => {
+          this.chat.eventEmitter.emitUserMention({ targetUserId: mentionedUsers[Number(key)].id, mentionedAtChannelId: this.id })
+        })
+      }
+
+      return publishResponse
     } catch (error) {
       throw error
     }
