@@ -66,8 +66,9 @@ export class MentionsUtils {
     let result = ""
     // multi word names
     let indicesToSkip: number[] = []
+    const splitResultWithTextLinks = resultWithTextLinks.split(" ")
 
-    resultWithTextLinks.split(" ").forEach((word, index) => {
+    splitResultWithTextLinks.forEach((word, index) => {
       if (!word.startsWith("@")) {
         if (indicesToSkip.includes(index)) {
           return
@@ -94,13 +95,21 @@ export class MentionsUtils {
           const userId = mentionedUsers[counter].id
           const userName = mentionedUsers[counter].name
           const userNameWords = userName.split(" ")
+          let possiblePunctuation = ""
 
           if (userNameWords.length > 1) {
             indicesToSkip = userNameWords.map((_, i) => index + i)
+            const lastWord = splitResultWithTextLinks[indicesToSkip[indicesToSkip.length - 1]]
+            const lastUserNameWord = userNameWords[userNameWords.length - 1]
+            possiblePunctuation = lastWord.replace(lastUserNameWord, "")
+          } else {
+            possiblePunctuation = word.replace(userName, "")
           }
+          possiblePunctuation = possiblePunctuation.replace("@", "")
 
           counter++
-          result += `${mentionedUserRenderer(userId, userName)} `
+          result += `${mentionedUserRenderer(userId, userName)}`.trimEnd()
+          result += `${possiblePunctuation} `
         }
       }
     })
