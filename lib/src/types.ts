@@ -55,6 +55,8 @@ export type MessageMentionedUsers = {
 
 export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel"> & {
   mentionedUsers?: MessageMentionedUsers
+  textLinks?: TextLink[]
+  quotedMessage?: Message
 }
 
 export type EnhancedMessageEvent = PubNub.MessageEvent & {
@@ -82,4 +84,16 @@ export type MessageDraftConfig = {
   userSuggestionSource: "channel" | "global"
   isTypingIndicatorTriggered: boolean
   userLimit: number
+}
+
+export type TextLink = {
+  startIndex: number
+  endIndex: number
+  link: string
+}
+
+export type GetLinkedTextParams = {
+  mentionedUserRenderer: (userId: string, mentionedName: string) => any
+  plainLinkRenderer: (link: string) => any
+  textLinkRenderer: (text: string, link: string) => any
 }

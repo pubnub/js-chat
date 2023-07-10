@@ -8,14 +8,10 @@ import {
   MessageType,
   TextMessageContent,
   ReportMessageContent,
+  GetLinkedTextParams,
 } from "../types"
 import { INTERNAL_ADMIN_CHANNEL } from "../constants"
 import { MentionsUtils } from "../mentions-utils"
-
-type GetLinkedTextParams = {
-  mentionedUserRenderer: (userId: string, mentionedName: string) => any
-  plainLinkRenderer: (link: string) => any
-}
 
 export type MessageFields = Pick<
   Message,
@@ -49,8 +45,24 @@ export class Message {
     return {}
   }
 
+  get textLinks() {
+    if (this.meta?.textLinks) {
+      return this.meta.textLinks
+    }
+
+    return []
+  }
+
   get type() {
     return this.content.type
+  }
+
+  get quotedMessage() {
+    if (this.meta?.quotedMessage) {
+      return this.meta.quotedMessage
+    }
+
+    return undefined
   }
 
   /** @internal */
@@ -159,7 +171,7 @@ export class Message {
   getLinkedText(params?: Partial<GetLinkedTextParams>) {
     const text = this.text
 
-    let { mentionedUserRenderer, plainLinkRenderer } = params || {}
+    let { mentionedUserRenderer, plainLinkRenderer, textLinkRenderer } = params || {}
 
     mentionedUserRenderer ||= function (userId, mentionedName) {
       return `<a href="https://pubnub.com/${userId}">@${mentionedName}</a> `
@@ -171,10 +183,18 @@ export class Message {
       return `<a href="${linkWithProtocol}">${link}</a> `
     }
 
+    textLinkRenderer ||= function (text, link) {
+      const linkWithProtocol = link.startsWith("www.") ? `https://${link}` : link
+
+      return `<a href="${linkWithProtocol}">${text}</a> `
+    }
+
     return MentionsUtils.getLinkedText({
       text,
-      userCallback: mentionedUserRenderer,
+      mentionedUserRenderer,
       plainLinkRenderer,
+      textLinkRenderer,
+      textLinks: this.textLinks,
       mentionedUsers: this.mentionedUsers,
     })
   }
