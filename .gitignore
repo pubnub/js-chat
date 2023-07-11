@@ -5,3 +5,5 @@ dist/
 .angular/
 .vscode/
 .env
+results.xml
+junit.xml

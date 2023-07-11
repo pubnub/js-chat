@@ -263,7 +263,8 @@ export default function () {
 
           <h3 className="mt-10">Text messages</h3>
           <p className="mb-3">
-            R- Mark as read | T - Open thread | E - Edit | DS - Soft delete | DH - hard delete
+            MR - Mark as read | RP - Report | OT - Open thread | ED - Edit | DS - Soft delete | DH -
+            hard delete
           </p>
           <div className="grid lg:grid-cols-2 gap-8">
             <section>

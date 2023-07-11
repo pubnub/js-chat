@@ -2,12 +2,23 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  max-width: 250px;
+  //max-width: 250px;
 }
 
 .message-row__forward-icon {
   width: 20px;
   height: 20px;
+}
+
+.message-row__toolbox {
+  display: flex;
+  flex-direction: row;
+}
+
+.message-row__content {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid red;
 }
 
 .message-row__forward-icon__container {
@@ -16,4 +27,8 @@
 
 .message-row__thread-messages-container {
   padding-left: 32px;
+}
+
+.linked-text {
+  word-break: break-all;
 }

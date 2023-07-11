@@ -12,6 +12,8 @@ import {
   DeleteParameters,
   ChannelDTOParams,
   MessageDraftConfig,
+  MessageType,
+  TextMessageContent,
 } from "../types"
 import { Membership } from "./membership"
 import { User } from "./user"
@@ -112,34 +114,34 @@ export class Channel {
    * Publishing
    */
 
-  /** @internal */
-  private markMessageAsThreadRoot(timetoken: string) {
-    const channelIdToSend = this.chat.getThreadId(this.id, timetoken)
-
-    return this.chat.sdk.addMessageAction({
-      channel: this.id,
-      messageTimetoken: timetoken,
-      action: {
-        type: "threadRootId",
-        value: channelIdToSend,
-      },
-    })
-  }
-
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
-      const { mentionedUsers, ...rest } = options
+      const { mentionedUsers, textLinks, quotedMessage, ...rest } = options
 
-      return await this.chat.sdk.publish({
+      if (quotedMessage && quotedMessage.channelId !== this.id) {
+        throw "You cannot quote messages from other channels"
+      }
+
+      const message: TextMessageContent = {
+        type: MessageType.TEXT,
+        text,
+      }
+
+      return await this.chat.publish({
         ...rest,
         channel: this.id,
-        message: {
-          type: "text",
-          text,
-        },
+        message,
         meta: {
           ...(rest.meta || {}),
           mentionedUsers,
+          textLinks,
+          quotedMessage: quotedMessage
+            ? {
+                timetoken: quotedMessage.timetoken,
+                text: quotedMessage.text,
+                userId: quotedMessage.userId,
+              }
+            : undefined,
         },
       })
     } catch (error) {
@@ -159,7 +161,7 @@ export class Channel {
     return await this.chat.sdk.signal({
       channel: this.id,
       message: {
-        type: "typing",
+        type: MessageType.TYPING,
         value,
       },
     })
@@ -187,7 +189,7 @@ export class Channel {
       signal: (event: SignalEvent) => {
         const { channel, message, publisher } = event
         if (channel !== this.id) return
-        if (message.type !== "typing") return
+        if (message.type !== MessageType.TYPING) return
         const timer = this.typingIndicators.get(publisher)
 
         if (!message.value && timer) {
@@ -231,9 +233,7 @@ export class Channel {
   connect(callback: (message: Message) => void) {
     const listener = {
       message: (event: MessageEvent) => {
-        const { message, channel } = event
-        if (channel !== this.id) return
-        if (!["text"].includes(message.type)) return
+        if (event.channel !== this.id) return
         callback(Message.fromDTO(this.chat, event))
       },
     }
