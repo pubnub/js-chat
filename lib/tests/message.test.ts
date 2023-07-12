@@ -193,7 +193,7 @@ describe("Send message test", () => {
     await new Promise((resolve) => setTimeout(resolve, 2000))
   }, 30000)
 
-  test.only("should report a message", async () => {
+  test("should report a message", async () => {
     const messageText = "Test message to be reported"
     const reportReason = "Inappropriate content"
 
