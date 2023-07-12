@@ -1,6 +1,5 @@
-import { Chat, User, ReportMessageContent, MessageType } from "../src"
+import { Chat, User, MessageType } from "../src"
 import { createChatInstance, createRandomUser, sleep } from "./utils"
-import { createRandomUserId } from "./testUtils"
 import { INTERNAL_ADMIN_CHANNEL } from "../src"
 
 describe("User test", () => {
@@ -64,35 +63,18 @@ describe("User test", () => {
   })
 
   test("should report a user", async () => {
-    jest.retryTimes(3)
-
     const reportReason = "Inappropriate behavior"
-
     await user.report(reportReason)
-
-    const adminChannel = INTERNAL_ADMIN_CHANNEL
-    const adminChannelObjPromise = chat.getChannel(adminChannel)
-    if (!adminChannelObjPromise) {
-      throw new Error("Admin channel is undefined")
-    }
-
-    const adminChannelObj = await adminChannelObjPromise
-
-    if (!adminChannelObj) {
-      throw new Error("Admin channel object is null")
-    }
-
     await sleep(150) // history calls have around 130ms of cache time
-    const adminChannelHistory = await adminChannelObj.getHistory({ count: 1 })
 
-    const reportedUserAfterReport = adminChannelHistory.messages[0]
+    const adminChannel = await chat.getChannel(INTERNAL_ADMIN_CHANNEL)
+    expect(adminChannel).toBeDefined()
 
-    if (reportedUserAfterReport?.content.type === MessageType.REPORT) {
-      const reportContent = reportedUserAfterReport.content as ReportMessageContent
-      expect(reportContent.reportedUserId).toBe(user.id)
-      expect(reportContent.reason).toBe(reportReason)
-    } else {
-      throw new Error("Reported message content is not of type 'REPORT'")
-    }
-  }, 30000)
+    const adminChannelHistory = await adminChannel.getHistory({ count: 1 })
+    const reportMessage = adminChannelHistory.messages[0]
+
+    expect(reportMessage?.content.type).toBe(MessageType.REPORT)
+    expect(reportMessage?.content.reportedUserId).toBe(user.id)
+    expect(reportMessage?.content.reason).toBe(reportReason)
+  })
 })
