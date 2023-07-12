@@ -1,4 +1,4 @@
-import { Channel, Message } from "../src"
+import { Channel, Message, Chat } from "../src"
 import {
   sleep,
   extractMentionedUserIds,
