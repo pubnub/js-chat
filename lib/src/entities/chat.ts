@@ -13,6 +13,13 @@ type ChatConfig = {
   typingTimeout: number
   storeUserActivityInterval: number
   storeUserActivityTimestamps: boolean
+  pushNotifications: {
+    sendPushes: boolean
+    deviceToken?: string
+    deviceGateway: "apns2" | "fcm"
+    apnsTopic?: string
+    apnsEnvironment: "development" | "production"
+  }
 }
 
 type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
@@ -35,11 +42,16 @@ export class Chat {
       typingTimeout,
       storeUserActivityInterval,
       storeUserActivityTimestamps,
+      pushNotifications,
       ...pubnubConfig
     } = params
 
     if (storeUserActivityInterval && storeUserActivityInterval < 600000) {
       throw "storeUserActivityInterval must be at least 600000ms"
+    }
+
+    if (pushNotifications?.deviceGateway === "apns2" && !pushNotifications?.apnsTopic) {
+      throw "apnsTopic has to be defined when deviceGateway is set to apns2"
     }
 
     this.sdk = new PubNub(pubnubConfig)
@@ -53,6 +65,11 @@ export class Chat {
       typingTimeout: typingTimeout || 5000,
       storeUserActivityInterval: storeUserActivityInterval || 600000,
       storeUserActivityTimestamps: storeUserActivityTimestamps || false,
+      pushNotifications: pushNotifications || {
+        sendPushes: false,
+        apnsEnvironment: "development",
+        deviceGateway: "fcm",
+      },
     }
   }
 
@@ -566,5 +583,44 @@ export class Chat {
     this.suggestedNamesCache.set(cacheKey, usersResponse.users)
 
     return this.suggestedNamesCache.get(cacheKey) as User[]
+  }
+
+  /**
+   * Register for push notifications
+   */
+
+  /** @internal */
+  getCommonPushOptions() {
+    const { deviceToken, deviceGateway, apnsEnvironment, apnsTopic } = this.config.pushNotifications
+    if (!deviceToken) throw "Device Token has to be defined in Chat pushNotifications config."
+
+    return {
+      device: deviceToken,
+      pushGateway: deviceGateway,
+      ...(deviceGateway === "apns2" && {
+        environment: apnsEnvironment,
+        topic: apnsTopic,
+      }),
+    }
+  }
+
+  async registerPushChannels(channels: string[]) {
+    return await this.sdk.push.addChannels({ channels, ...this.getCommonPushOptions() })
+  }
+
+  async unregisterPushChannels(channels: string[]) {
+    return await this.sdk.push.removeChannels({
+      channels,
+      ...this.getCommonPushOptions(),
+    })
+  }
+
+  async unregisterAllPushChannels() {
+    return await this.sdk.push.deleteDevice(this.getCommonPushOptions())
+  }
+
+  async getPushChannels() {
+    const response = await this.sdk.push.listChannels(this.getCommonPushOptions())
+    return response.channels
   }
 }
