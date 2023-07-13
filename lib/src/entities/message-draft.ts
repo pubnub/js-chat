@@ -361,6 +361,7 @@ export class MessageDraft {
         counter++
       }
     })
+    console.log("result", result)
 
     if (!isUserFound) {
       throw "This user does not appear in the text"

@@ -67,17 +67,17 @@ export const waitForAllMessagesToBeDelivered = async (
   })
 }
 
-export const extractMentionedUserIds = (messageText: string): string[] => {
-  const regex = /@(\w+)(?!\.[^\s@])\b/g
-  const matches = messageText.match(regex)
-  if (matches) {
-    return matches.map((match) => match.slice(1))
-  }
-  return []
-}
+// export const extractMentionedUserIds = (messageText: string): string[] => {
+//   const regex = /@(\w+)(?!\.[^\s@])\b/g
+//   const matches = messageText.match(regex)
+//   if (matches) {
+//     return matches.map((match) => match.slice(1))
+//   }
+//   return []
+// }
 
 export const extractMentionedUserNames = (messageText: string): string[] => {
-  const regex = /@"([^"]+)"/g
+  const regex = /@([^"]+)/g
   let match
   const mentionedUserNames: string[] = []
   while ((match = regex.exec(messageText)) !== null) {

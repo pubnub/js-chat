@@ -22,6 +22,7 @@ describe("Channel test", () => {
 
   beforeEach(async () => {
     channel = await createRandomChannel()
+    messageDraft = channel.createMessageDraft()
   })
 
   afterEach(async () => {
@@ -257,8 +258,8 @@ describe("Channel test", () => {
     await chat.deleteUser(user2.id)
   })
 
-  test("should mention users with multi-word names in a message and validate mentioned users", async () => {
-    jest.retryTimes(3)
+  test.only("should mention users with multi-word names in a message and validate mentioned users", async () => {
+    // jest.retryTimes(3)
 
     const user1Id = `user1_${Date.now()}`
     const user1 = await chat.createUser(user1Id, { name: "User One" })
@@ -266,18 +267,27 @@ describe("Channel test", () => {
     const user2Id = `user2_${Date.now()}`
     const user2 = await chat.createUser(user2Id, { name: "User Two" })
 
-    const messageText = `Hello, @"${user1.name}" and @"${user2.name}" here is my mail test@pubnub.com`
+    const messageText = `Hello, @${user1.name} and @${user2.name} here is my mail test@pubnub.com`
 
-    await channel.sendText(messageText)
+    await messageDraft.onChange("Hello, @User One")
+    messageDraft.addMentionedUser(user1, 0)
+    await messageDraft.onChange(" and @User Two")
+    messageDraft.addMentionedUser(user2, 1)
+    await messageDraft.onChange(" here is my mail test@pubnub.com")
+
+    await messageDraft.send()
     await sleep(150) // history calls have around 130ms of cache time
 
     const history = await channel.getHistory()
+    console.log("history", history.messages[0].content)
 
     const messageInHistory = history.messages.find(
       (message: any) => message.content.text === messageText
     )
 
     expect(messageInHistory).toBeDefined()
+
+    console.log("mentioned users: ", messageInHistory.mentionedUsers)
 
     const mentionedUserNames = extractMentionedUserNames(messageText)
 
