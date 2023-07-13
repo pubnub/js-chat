@@ -1,4 +1,4 @@
-import { Channel, Message, Chat, MessageDraft } from "../src"
+import { Channel, Message, Chat, MessageDraft, Membership } from "../src"
 import {
   sleep,
   extractMentionedUserIds,
@@ -23,10 +23,13 @@ describe("Channel test", () => {
   beforeEach(async () => {
     channel = await createRandomChannel()
     messageDraft = channel.createMessageDraft()
+    const allUsersData = await chat.getUsers({ limit: 100 })
+    allUsersData.users.forEach((user) => chat.deleteUser(user.id))
   })
 
   afterEach(async () => {
     await channel.delete()
+    jest.clearAllMocks()
   })
 
   test("should create a channel", async () => {
@@ -232,34 +235,46 @@ describe("Channel test", () => {
 
   test("should mention users in a message and validate mentioned users", async () => {
     const user1Id = `user1_${Date.now()}`
-    const user1 = await chat.createUser(user1Id, { name: "User 1" })
+    const user1 = await chat.createUser(user1Id, { name: "User1" })
 
     const user2Id = `user2_${Date.now()}`
-    const user2 = await chat.createUser(user2Id, { name: "User 2" })
+    const user2 = await chat.createUser(user2Id, { name: "User2" })
 
-    const messageText = `Hello, @${user1.id} and @${user2.id} here is my mail test@pubnub.com`
-    await channel.sendText(messageText)
+    const messageText = `Hello, @${user1.name} and @${user2.name} here is my mail test@pubnub.com`
+
+    await messageDraft.onChange("Hello, @Use")
+    messageDraft.addMentionedUser(user1, 0)
+    await messageDraft.onChange(`Hello, @${user1.name} and @Use`)
+    messageDraft.addMentionedUser(user2, 1)
+    await messageDraft.onChange(
+      `Hello, @${user1.name} and @${user2.name} here is my mail test@pubnub.com`
+    )
+
+    await messageDraft.send()
     await sleep(150) // history calls have around 130ms of cache time
 
     const history = await channel.getHistory()
+
     const messageInHistory = history.messages.find(
       (message: any) => message.content.text === messageText
     )
+
     expect(messageInHistory).toBeDefined()
 
-    const mentionedUserIds = extractMentionedUserIds(messageText)
-    const mentionedUsers = [user1, user2].filter((user) => mentionedUserIds.includes(user.id))
+    expect(Object.keys(messageInHistory.mentionedUsers).length).toBe(2)
+    expect(messageInHistory.mentionedUsers["0"].id).toEqual(user1.id)
+    expect(messageInHistory.mentionedUsers["1"].id).toEqual(user2.id)
 
-    expect(mentionedUsers.length).toBe(2)
-    expect(mentionedUsers[0].id).toBe(user1.id)
-    expect(mentionedUsers[1].id).toBe(user2.id)
+    const extractedNamesFromText = extractMentionedUserIds(messageText)
+    expect(messageInHistory.mentionedUsers["0"].name).toEqual(extractedNamesFromText[0])
+    expect(messageInHistory.mentionedUsers["1"].name).toEqual(extractedNamesFromText[1])
 
     await chat.deleteUser(user1.id)
     await chat.deleteUser(user2.id)
   })
 
-  test.only("should mention users with multi-word names in a message and validate mentioned users", async () => {
-    // jest.retryTimes(3)
+  test("should mention users with multi-word names in a message and validate mentioned users", async () => {
+    jest.retryTimes(3)
 
     const user1Id = `user1_${Date.now()}`
     const user1 = await chat.createUser(user1Id, { name: "User One" })
@@ -269,17 +284,18 @@ describe("Channel test", () => {
 
     const messageText = `Hello, @${user1.name} and @${user2.name} here is my mail test@pubnub.com`
 
-    await messageDraft.onChange("Hello, @User One")
+    await messageDraft.onChange("Hello, @Use")
     messageDraft.addMentionedUser(user1, 0)
-    await messageDraft.onChange(" and @User Two")
+    await messageDraft.onChange(`Hello, @${user1.name} and @Use`)
     messageDraft.addMentionedUser(user2, 1)
-    await messageDraft.onChange(" here is my mail test@pubnub.com")
+    await messageDraft.onChange(
+      `Hello, @${user1.name} and @${user2.name} here is my mail test@pubnub.com`
+    )
 
     await messageDraft.send()
     await sleep(150) // history calls have around 130ms of cache time
 
     const history = await channel.getHistory()
-    console.log("history", history.messages[0].content)
 
     const messageInHistory = history.messages.find(
       (message: any) => message.content.text === messageText
@@ -287,17 +303,9 @@ describe("Channel test", () => {
 
     expect(messageInHistory).toBeDefined()
 
-    console.log("mentioned users: ", messageInHistory.mentionedUsers)
-
-    const mentionedUserNames = extractMentionedUserNames(messageText)
-
-    const mentionedUsers = [user1, user2].filter(
-      (user) => user.name && mentionedUserNames.includes(user.name)
-    )
-
-    expect(mentionedUsers.length).toBe(2)
-    expect(mentionedUsers[0].name).toBe("User One")
-    expect(mentionedUsers[1].name).toBe("User Two")
+    expect(Object.keys(messageInHistory.mentionedUsers).length).toBe(2)
+    expect(messageInHistory.mentionedUsers["0"].id).toEqual(user1.id)
+    expect(messageInHistory.mentionedUsers["1"].id).toEqual(user2.id)
 
     await chat.deleteUser(user1.id)
     await chat.deleteUser(user2.id)
@@ -320,12 +328,10 @@ describe("Channel test", () => {
 
     expect(messageInHistory).toBeDefined()
 
-    const mentionedUserNames = extractMentionedUserNames(messageText)
-
-    expect(mentionedUserNames.length).toBe(0)
+    expect(Object.keys(messageInHistory.mentionedUsers).length).toBe(0)
   })
 
-  test("should mention users with incorrect usernames and validate no users are mentioned", async () => {
+  test("should try to mention users with incorrect usernames and validate no users are mentioned", async () => {
     jest.retryTimes(3)
 
     const user1Id = `user1_${Date.now()}`
@@ -333,29 +339,30 @@ describe("Channel test", () => {
 
     const incorrectUserId = user1Id.substring(0, user1Id.length - 1)
 
-    const messageText = `Hello, @${incorrectUserId}, I tried to mention you`
+    await messageDraft.onChange("Hello, @Use")
+    messageDraft.addMentionedUser(user1, 0)
+    await messageDraft.onChange(`Hello, @${user1.name}, I tried to mention you`)
+    const finalMessageTextToSend = `Hello, @${incorrectUserId}, I tried to mention you`
+    await messageDraft.onChange(finalMessageTextToSend)
 
-    await channel.sendText(messageText)
+    await messageDraft.send()
     await sleep(150) // history calls have around 130ms of cache time
 
     const history = await channel.getHistory()
 
     const messageInHistory = history.messages.find(
-      (message: any) => message.content.text === messageText
+      (message: any) => message.content.text === finalMessageTextToSend
     )
 
     expect(messageInHistory).toBeDefined()
 
-    const mentionedUserIds = extractMentionedUserIds(messageText)
-
-    const mentionedUsers = [user1].filter((user) => mentionedUserIds.includes(user.id))
-
-    expect(mentionedUsers.length).toBe(0)
+    console.log("messageInHistory.mentionedUsers: ", messageInHistory.mentionedUsers)
+    expect(Object.keys(messageInHistory.mentionedUsers).length).toBe(0)
 
     await chat.deleteUser(user1.id)
   })
 
-  test("should mention global users who are not members of the channel", async () => {
+  test("should suggest global users who are not members of the channel", async () => {
     jest.retryTimes(3)
 
     const user1Id = `user1_${Date.now()}`
@@ -366,30 +373,24 @@ describe("Channel test", () => {
 
     await channel.invite(user1)
 
-    const membersResponse = await channel.getMembers()
-    const members = membersResponse.members
-    expect(members.some((member: Membership) => member.user.id === user1.id)).toBeTruthy()
-    expect(members.some((member: Membership) => member.user.id === user2.id)).toBeFalsy()
+    messageDraft = channel.createMessageDraft({ userSuggestionSource: "global", userLimit: 100 })
+    jest.spyOn(chat, "getUserSuggestions")
+    const onChangeResponse = await messageDraft.onChange("Hello, @Use")
 
-    const messageText = `Hello, @${user1.id} and @${user2.id} here is my mail test@pubnub.com`
+    // verification that users inside the keyset were suggested
+    expect(chat.getUserSuggestions).toHaveBeenCalledTimes(1)
 
-    await channel.sendText(messageText)
-    await sleep(150) // history calls have around 130ms of cache time
-
-    const history = await channel.getHistory()
-
-    const messageInHistory = history.messages.find(
-      (message: any) => message.content.text === messageText
+    const foundUser1AmongSuggestedUsers = onChangeResponse.suggestedUsers.find(
+      (suggestedUser) => suggestedUser.id === user1.id
     )
 
-    expect(messageInHistory).toBeDefined()
-
-    const mentionedUserIds = extractMentionedUserIds(messageText)
-    const mentionedUsers = [user1, user2].filter((user) => mentionedUserIds.includes(user.id))
-
-    expect(mentionedUsers.length).toBe(2)
-    expect(mentionedUsers[0].id).toBe(user1.id)
-    expect(mentionedUsers[1].id).toBe(user2.id)
+    expect(foundUser1AmongSuggestedUsers).toBeTruthy()
+    // get members of the channel and verify if user that is memeber of channel exists in keyset
+    const membersResponse = await channel.getMembers()
+    const members = membersResponse.members
+    expect(
+      onChangeResponse.suggestedUsers.some((suggestedUser) => !members.includes(suggestedUser.id))
+    ).toBeTruthy()
 
     await chat.deleteUser(user1.id)
     await chat.deleteUser(user2.id)
@@ -401,9 +402,15 @@ describe("Channel test", () => {
     const user1Id = `user1_${Date.now()}`
     const user1 = await chat.createUser(user1Id, { name: "User 1" })
 
-    const messageText = `Hello, @${user1.id}, how are you? @${user1.id}, are you there?`
+    const messageText = `Hello, @${user1.name}, how are you? @${user1.name}, are you there?`
 
-    await channel.sendText(messageText)
+    await messageDraft.onChange("Hello, @Use")
+    messageDraft.addMentionedUser(user1, 0)
+    await messageDraft.onChange(`Hello, @${user1.name}, how are you? @Use`)
+    messageDraft.addMentionedUser(user1, 1)
+    await messageDraft.onChange(messageText)
+
+    await messageDraft.send()
     await sleep(150) // history calls have around 130ms of cache time
 
     const history = await channel.getHistory()
@@ -414,11 +421,9 @@ describe("Channel test", () => {
 
     expect(messageInHistory).toBeDefined()
 
-    const mentionedUserIds = extractMentionedUserIds(messageText)
-    const mentionedUsers = [user1].filter((user) => mentionedUserIds.includes(user.id))
-
-    expect(mentionedUsers.length).toBe(1)
-    expect(mentionedUsers[0].id).toBe(user1.id)
+    expect(Object.keys(messageInHistory.mentionedUsers).length).toBe(2)
+    expect(messageInHistory.mentionedUsers["0"].id).toEqual(user1.id)
+    expect(messageInHistory.mentionedUsers["1"].id).toEqual(user1.id)
 
     await chat.deleteUser(user1.id)
   })
@@ -428,24 +433,89 @@ describe("Channel test", () => {
 
     const user1Id = `user1_${Date.now()}`
     const user1 = await chat.createUser(user1Id, { name: "User 1" })
+    const user2Id = `user2_${Date.now()}`
+    const user2 = await chat.createUser(user2Id, { name: "User 2" })
 
-    const messageDraft = new MessageDraft(chat, channel)
-    messageDraft.value = `Hello, @${user1Id}, how are you? @${user1Id}, are you there?`
+    const messageDraft = channel.createMessageDraft()
 
-    messageDraft.addMentionedUser(user1, 1)
+    const originalMessage = `Hello, @${user1.name}, how are you? @${user2.name}, are you there?`
+    await messageDraft.onChange("Hello, @Use")
+    messageDraft.addMentionedUser(user1, 0)
+    await messageDraft.onChange(`Hello, @${user1.name}, how are you? @Use`)
+    messageDraft.addMentionedUser(user2, 1)
+    await messageDraft.onChange(originalMessage)
 
-    const expectedMessage = `Hello, @${user1Id}, how are you? @User 1 are you there?`
+    const expectedMessage = `Hello, @${user1.name}, how are you? @User 2, are you there?`
+
     expect(messageDraft.value).toEqual(expectedMessage)
-
-    expect(messageDraft.mentionedUsers[1]).toEqual(user1)
 
     messageDraft.removeMentionedUser(1)
 
-    expect(messageDraft.mentionedUsers[0]).toBeUndefined()
+    //tbd ->utils
+    await messageDraft.send()
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const history = await channel.getHistory()
+
+    const messageInHistory = history.messages.find(
+      (message: any) => message.content.text === expectedMessage
+    )
+
+    expect(messageInHistory).toBeDefined()
+
+    expect(Object.keys(messageInHistory.mentionedUsers).length).toBe(1)
+    expect(messageInHistory.mentionedUsers["0"].id).toBe(user1.id)
+
+    await chat.deleteUser(user1.id)
+  })
+
+  test.only("should correctly add and remove the middle mentioned user", async () => {
+    jest.retryTimes(3)
+
+    const user1Id = `user1_${Date.now()}`
+    const user1 = await chat.createUser(user1Id, { name: "User 1" })
+    const user2Id = `user2_${Date.now()}`
+    const user2 = await chat.createUser(user2Id, { name: "User 2" })
+    const user3Id = `user3_${Date.now()}`
+    const user3 = await chat.createUser(user3Id, { name: "User 3" })
+
+    const messageDraft = channel.createMessageDraft()
+
+    await messageDraft.onChange("Hello, @Use")
+    messageDraft.addMentionedUser(user1, 0)
+    await messageDraft.onChange(`Hello, @${user1.name}, how are you? @Use`)
+    messageDraft.addMentionedUser(user2, 1)
+    await messageDraft.onChange(
+      `Hello, @${user1.name}, how are you? @${user2.name}, are you there? Test: @Use`
+    )
+    messageDraft.addMentionedUser(user3, 2)
+
+    const expectedMessage = `Hello, @${user1.name}, how are you? @User 2, are you there? Test: @${user3.name}`
 
     expect(messageDraft.value).toEqual(expectedMessage)
 
+    messageDraft.removeMentionedUser(1)
+
+    //tbd ->utils
+    await messageDraft.send()
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const history = await channel.getHistory()
+
+    const messageInHistory = history.messages.find(
+      (message: any) => message.content.text === expectedMessage
+    )
+
+    expect(messageInHistory).toBeDefined()
+
+    expect(Object.keys(messageInHistory.mentionedUsers).length).toBe(2)
+    expect(messageInHistory.mentionedUsers["0"].id).toBe(user1.id)
+    expect(messageInHistory.mentionedUsers["1"]).toBeUndefined()
+    expect(messageInHistory.mentionedUsers["2"].id).toBe(user3.id)
+
     await chat.deleteUser(user1.id)
+    await chat.deleteUser(user2.id)
+    await chat.deleteUser(user3.id)
   })
 
   test("should mention user in a message and validate cache", async () => {
@@ -454,30 +524,15 @@ describe("Channel test", () => {
     const user1Id = `user1_${Date.now()}`
     const user1 = await chat.createUser(user1Id, { name: "User 1" })
 
-    const messageText = `Hello, @${user1.id}, how are you? @${user1.id}, are you there?`
+    messageDraft = channel.createMessageDraft({ userSuggestionSource: "global" })
 
-    const getUserSpy = jest.spyOn(chat, "getUser")
+    jest.spyOn(chat, "getUsers")
 
-    await channel.sendText(messageText)
-    await sleep(150) // history calls have around 130ms of cache time
-
-    const history = await channel.getHistory()
-
-    const messageInHistory = history.messages.find(
-      (message: any) => message.content.text === messageText
-    )
-
-    expect(messageInHistory).toBeDefined()
-
-    const mentionedUserIds = extractMentionedUserIds(messageText)
-    const mentionedUsers = [user1].filter((user) => mentionedUserIds.includes(user.id))
-
-    expect(mentionedUsers.length).toBe(1)
-    expect(mentionedUsers[0].id).toBe(user1.id)
-
-    expect(getUserSpy).toHaveBeenCalled()
-
-    expect(getUserSpy).toHaveBeenCalledTimes(1)
+    await messageDraft.onChange("Hello, @Use")
+    await messageDraft.onChange("Hello, @User")
+    await messageDraft.onChange("Hello, @Use")
+    await messageDraft.onChange("Hello, @User")
+    expect(chat.getUsers).toHaveBeenCalledTimes(2)
 
     await chat.deleteUser(user1.id)
   })

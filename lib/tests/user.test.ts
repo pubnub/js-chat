@@ -1,5 +1,6 @@
-import { Chat, User } from "../src"
+import { Chat, User, MessageType } from "../src"
 import { createChatInstance, createRandomUser, sleep } from "./utils"
+import { INTERNAL_ADMIN_CHANNEL } from "../src"
 
 describe("User test", () => {
   jest.retryTimes(3)
@@ -59,5 +60,21 @@ describe("User test", () => {
     expect(updatedUser.name).toEqual(name)
 
     stopUpdates()
+  })
+
+  test("should report a user", async () => {
+    const reportReason = "Inappropriate behavior"
+    await user.report(reportReason)
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const adminChannel = await chat.getChannel(INTERNAL_ADMIN_CHANNEL)
+    expect(adminChannel).toBeDefined()
+
+    const adminChannelHistory = await adminChannel.getHistory({ count: 1 })
+    const reportMessage = adminChannelHistory.messages[0]
+
+    expect(reportMessage?.content.type).toBe(MessageType.REPORT)
+    expect(reportMessage?.content.reportedUserId).toBe(user.id)
+    expect(reportMessage?.content.reason).toBe(reportReason)
   })
 })

@@ -53,6 +53,8 @@ export type MessageMentionedUsers = {
   }
 }
 
+export type MessageDraftOptions = Omit<PublishParameters, "message" | "channel">
+
 export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel"> & {
   mentionedUsers?: MessageMentionedUsers
   textLinks?: TextLink[]
