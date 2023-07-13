@@ -7,3 +7,5 @@ dist/
 .env
 results.xml
 junit.xml
+yarn-error.log
+package-lock.json

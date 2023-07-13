@@ -193,6 +193,35 @@ describe("Send message test", () => {
     await new Promise((resolve) => setTimeout(resolve, 2000))
   }, 30000)
 
+  test("should add linked text correctly", async () => {
+    const messageDraft = channel.createMessageDraft()
+    messageDraft.onChange("Click here")
+    messageDraft.addLinkedText({ text: "here", link: "https://pubnub.com", positionInInput: 6 })
+
+    const messagePreview = messageDraft.getMessagePreview()
+
+    expect(messagePreview).toContain('<a href="https://pubnub.com">here</a>')
+
+    messageDraft.removeLinkedText(6)
+
+    const updatedMessagePreview = messageDraft.getMessagePreview()
+
+    expect(updatedMessagePreview).not.toContain('<a href="https://pubnub.com">here</a>')
+  }, 30000)
+
+  test("should convert text with URLs into hyperlinks", async () => {
+    const messageDraft = channel.createMessageDraft()
+    const inputText = "Check out this website: www.example.com"
+    const expectedHTML = '<a href="https://www.example.com">www.example.com</a>'
+
+    messageDraft.onChange(inputText)
+
+    const messagePreview = messageDraft.getMessagePreview()
+
+    expect(messagePreview).toContain(expectedHTML)
+    expect(messagePreview).toContain("https://www.example.com")
+  }, 30000)
+
   test("should report a message", async () => {
     const messageText = "Test message to be reported"
     const reportReason = "Inappropriate content"
