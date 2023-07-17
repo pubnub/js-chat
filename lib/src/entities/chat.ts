@@ -7,8 +7,6 @@ import { Membership } from "./membership"
 import { MESSAGE_THREAD_ID_PREFIX, INTERNAL_ADMIN_CHANNEL } from "../constants"
 import { ThreadChannel } from "./thread-channel"
 import { MentionsUtils } from "../mentions-utils"
-import {EventListener} from "../event-listener";
-import {EventEmitter} from "../event-emitter";
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -18,6 +16,8 @@ type ChatConfig = {
 }
 
 type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
+
+const USER_CHANNEL_ID_PREFIX = "pnc_UserTechnicalChannel_"
 
 export class Chat {
   readonly sdk: PubNub
@@ -29,9 +29,6 @@ export class Chat {
   private suggestedNamesCache: Map<string, User[]>
   /** @internal */
   private subscriptions: { [channel: string]: Set<string> }
-  readonly eventListener: EventListener
-  /** @internal */
-  readonly eventEmitter: EventEmitter
 
   /** @internal */
   private constructor(params: ChatConstructor) {
@@ -53,8 +50,7 @@ export class Chat {
     })
     this.subscriptions = {}
     this.suggestedNamesCache = new Map<string, User[]>()
-    this.eventListener = new EventListener(this)
-    this.eventEmitter = new EventEmitter(this)
+
     this.config = {
       saveDebugLog: saveDebugLog || false,
       typingTimeout: typingTimeout || 5000,
@@ -573,5 +569,17 @@ export class Chat {
     this.suggestedNamesCache.set(cacheKey, usersResponse.users)
 
     return this.suggestedNamesCache.get(cacheKey) as User[]
+  }
+
+  async listenForChatUserEvents(func: (message: Message) => void) {
+    const currentUser = this.currentUser
+
+    const channelId = `${USER_CHANNEL_ID_PREFIX}${currentUser.id}`
+
+    const channel =
+      (await this.getChannel(channelId)) ||
+      (await this.createChannel(channelId, { description: "user mention channel" }))
+
+    return channel.connect(func)
   }
 }

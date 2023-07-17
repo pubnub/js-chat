@@ -3,7 +3,10 @@ import PubNub from "pubnub"
 import { Channel, Chat } from "@pubnub/chat"
 import { StateService } from "./state.service"
 
-const userId = (new URLSearchParams(window.location.search)).get("userid") as string
+const userId = (new URLSearchParams(window.location.search).get("userid") as string) || "test-user"
+
+const publishKey = "demo"
+const subscribeKey = "demo"
 
 @Component({
   selector: "app-root",
@@ -22,8 +25,8 @@ export class AppComponent {
   constructor(public stateService: StateService) {}
 
   pubnub = new PubNub({
-    publishKey: "pub-c-0457cb83-0786-43df-bc70-723b16a6e816",
-    subscribeKey: "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de",
+    publishKey,
+    subscribeKey,
     userId,
   })
 
@@ -31,8 +34,8 @@ export class AppComponent {
 
   async ngOnInit() {
     this.chat = await Chat.init({
-      publishKey: "pub-c-0457cb83-0786-43df-bc70-723b16a6e816",
-      subscribeKey: "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de",
+      publishKey,
+      subscribeKey,
       userId,
       typingTimeout: 2000,
     })
@@ -48,8 +51,8 @@ export class AppComponent {
       (await this.chat.getChannel("forward-channel")) ||
       (await this.chat.createChannel("forward-channel", { name: "forward channel" }))
 
-    this.chat.eventListener.listenForCurrentUserMentions(msg => {
-      console.log("mention?", msg)
+    this.chat.listenForChatUserEvents((msg) => {
+      console.log("event??", msg)
     })
   }
 

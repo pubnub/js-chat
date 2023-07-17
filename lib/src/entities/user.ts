@@ -1,6 +1,8 @@
-import PubNub, { UUIDMetadataObject, ObjectCustom, GetMembershipsParametersv2 } from "pubnub"
+import PubNub, { GetMembershipsParametersv2, ObjectCustom, UUIDMetadataObject } from "pubnub"
 import { Chat } from "./chat"
 import {
+  ChatEventDependantPayload,
+  ChatEventNames,
   DeleteParameters,
   MessageType,
   OptionalAllBut,
@@ -9,6 +11,7 @@ import {
 } from "../types"
 import { Membership } from "./membership"
 import { INTERNAL_ADMIN_CHANNEL } from "../constants"
+import { ChatEvents } from "../chat-events"
 
 export type UserFields = Pick<
   User,
@@ -27,11 +30,14 @@ export class User {
   readonly type?: string
   readonly updated?: string
   readonly lastActiveTimestamp?: number
+  /** @internal */
+  private readonly chatEvents: ChatEvents
 
   /** @internal */
   constructor(chat: Chat, params: UserFields) {
     this.chat = chat
     this.id = params.id
+    this.chatEvents = new ChatEvents(chat)
     Object.assign(this, params)
   }
   /** @internal */
@@ -143,5 +149,10 @@ export class User {
     } catch (error) {
       throw error
     }
+  }
+
+  /** @internal */
+  async emitEvent<K extends ChatEventNames>(eventName: K, params: ChatEventDependantPayload[K]) {
+    return this.chatEvents.emitUserRelatedEvent(eventName, this.id, params)
   }
 }

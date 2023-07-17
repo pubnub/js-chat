@@ -1,18 +1,18 @@
 import PubNub, {
-  SignalEvent,
+  GetChannelMembersParameters,
   MessageEvent,
   ObjectCustom,
-  GetChannelMembersParameters,
   SetMembershipsParameters,
+  SignalEvent,
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
 import {
-  SendTextOptionParams,
-  DeleteParameters,
   ChannelDTOParams,
+  DeleteParameters,
   MessageDraftConfig,
   MessageType,
+  SendTextOptionParams,
   TextMessageContent,
 } from "../types"
 import { Membership } from "./membership"
@@ -147,7 +147,8 @@ export class Channel {
 
       if (mentionedUsers) {
         Object.keys(mentionedUsers).forEach((key) => {
-          this.chat.eventEmitter.emitUserMention({ targetUserId: mentionedUsers[Number(key)].id, mentionedAtChannelId: this.id })
+          const mentionedUser = new User(this.chat, { id: mentionedUsers[Number(key)].id })
+          mentionedUser.emitEvent(MessageType.USER_MENTION, { mentionedAtChannelId: this.id })
         })
       }
 

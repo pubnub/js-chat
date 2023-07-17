@@ -11,6 +11,8 @@ export enum MessageType {
   TEXT = "text",
   TYPING = "typing",
   REPORT = "report",
+  USER_MENTION = "pnc_UserMention",
+  USER_FLAGGED = "pnc_UserFlagged",
 }
 
 export enum MessageActionType {
@@ -97,3 +99,18 @@ export type GetLinkedTextParams = {
   plainLinkRenderer: (link: string) => any
   textLinkRenderer: (text: string, link: string) => any
 }
+
+export type ChatEventDependantPayload = {
+  [MessageType.USER_MENTION]: {
+    mentionedAtChannelId: string
+  }
+  [MessageType.USER_FLAGGED]: {
+    reason: string
+  }
+}
+
+export type UserMentionMessageContent = {
+  type: MessageType.USER_MENTION
+} & ChatEventDependantPayload[MessageType.USER_MENTION]
+
+export type ChatEventNames = MessageType.USER_MENTION | MessageType.USER_FLAGGED
