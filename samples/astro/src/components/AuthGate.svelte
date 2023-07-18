@@ -15,6 +15,10 @@
         publishKey: import.meta.env.PUBLIC_PUB_KEY || "",
         userId: $userIdAtom,
         authKey: $authTokenAtom,
+        pushNotifications: {
+          sendPushes: true,
+          apnsTopic: "org.reactjs.native.example.PushTestNative",
+        },
       })
       chatAtom.set(chat)
     }
