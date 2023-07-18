@@ -18,7 +18,7 @@ export class ChannelListComponentChat {
   constructor(private stateService: StateService) {}
 
   async loadChannels() {
-    this.channels = (await this.chat.getChannels({ limit: 5 })).channels
+    this.channels = (await this.chat.getChannels({ limit: 100 })).channels
   }
 
   async loadMemberships() {

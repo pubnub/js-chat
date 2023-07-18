@@ -6,7 +6,7 @@ import {
   UserMentionMessageContent,
 } from "./types"
 
-const USER_CHANNEL_ID_PREFIX = "pnc_UserTechnicalChannel_"
+export const USER_CHANNEL_ID_PREFIX = "pnc_UserTechnicalChannel_"
 
 export class ChatEvents {
   private chat: Chat

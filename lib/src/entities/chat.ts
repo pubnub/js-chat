@@ -7,6 +7,7 @@ import { Membership } from "./membership"
 import { MESSAGE_THREAD_ID_PREFIX, INTERNAL_ADMIN_CHANNEL } from "../constants"
 import { ThreadChannel } from "./thread-channel"
 import { MentionsUtils } from "../mentions-utils"
+import { USER_CHANNEL_ID_PREFIX } from "../chat-events"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -16,8 +17,6 @@ type ChatConfig = {
 }
 
 type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
-
-const USER_CHANNEL_ID_PREFIX = "pnc_UserTechnicalChannel_"
 
 export class Chat {
   readonly sdk: PubNub
@@ -316,12 +315,20 @@ export class Chat {
   }
 
   async getChannels(params: Omit<PubNub.GetAllMetadataParameters, "include">) {
+    const customerDefinedFilterExpression = params.filter
+
     const mandatoryOptions = {
       include: {
         totalCount: true,
         customFields: true,
       },
+      filter: `!(id like '${MESSAGE_THREAD_ID_PREFIX}*') && !(id like '${USER_CHANNEL_ID_PREFIX}*')`,
     }
+
+    if (customerDefinedFilterExpression) {
+      mandatoryOptions.filter += ` && ${customerDefinedFilterExpression}`
+    }
+
     const options = Object.assign({}, params, mandatoryOptions)
     try {
       const response = await this.sdk.objects.getAllChannelMetadata(options)

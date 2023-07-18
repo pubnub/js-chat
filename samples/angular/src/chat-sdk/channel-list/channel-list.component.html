@@ -11,7 +11,8 @@
                 <input type="text" [(ngModel)]="nameInput" />
                 <button (click)="editChannel()">Edit</button>
             </div>
-            <div *ngIf="i !== channelClickedNumber">
+            <div *ngIf="i !== channelClickedNumber" class="channel-info">
+                <span>Channel id: {{ channel.id }}</span>
                 <span (click)="clickOnChannel(i)">{{ channel.name || "No channel name provided" }}</span>
             </div>
             <button (click)="deleteChannel(channel.id)">delete</button>
