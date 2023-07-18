@@ -16,7 +16,7 @@ type ChatConfig = {
   pushNotifications: {
     sendPushes: boolean
     deviceToken?: string
-    deviceGateway: "apns2" | "fcm"
+    deviceGateway: "apns2" | "gcm"
     apnsTopic?: string
     apnsEnvironment: "development" | "production"
   }
@@ -68,7 +68,7 @@ export class Chat {
       pushNotifications: pushNotifications || {
         sendPushes: false,
         apnsEnvironment: "development",
-        deviceGateway: "fcm",
+        deviceGateway: "gcm",
       },
     }
   }

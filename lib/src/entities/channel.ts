@@ -118,11 +118,11 @@ export class Channel {
     const { sendPushes, apnsTopic } = this.chat.config.pushNotifications
     if (!sendPushes) return {}
 
-    const title = this.name || this.id
-    const author = this.chat.currentUser.name || this.chat.currentUser.id
-    const body = `${author}: ${text}`
-    const pushBuilder = PubNub.notificationPayload(title, body)
+    const title = this.chat.currentUser.name || this.chat.currentUser.id
+    const pushBuilder = PubNub.notificationPayload(title, text)
     const pushGateways = ["fcm"]
+    pushBuilder.sound = "default"
+    if (this.name) pushBuilder.subtitle = this.name
     if (apnsTopic) {
       pushBuilder.apns.configurations = [{ targets: [{ topic: apnsTopic }] }]
       pushGateways.push("apns2")
@@ -473,7 +473,6 @@ export class Channel {
   }
 
   registerForPush() {
-    console.log("#### funky console.log from the library 2")
     return this.chat.registerPushChannels([this.id])
   }
 
