@@ -174,19 +174,19 @@ export class Message {
     let { mentionedUserRenderer, plainLinkRenderer, textLinkRenderer } = params || {}
 
     mentionedUserRenderer ||= function (userId, mentionedName) {
-      return `<a href="https://pubnub.com/${userId}">@${mentionedName}</a> `
+      return `<a href="https://pubnub.com/${userId}">@${mentionedName}</a>`
     }
 
     plainLinkRenderer ||= function (link) {
       const linkWithProtocol = link.startsWith("www.") ? `https://${link}` : link
 
-      return `<a href="${linkWithProtocol}">${link}</a> `
+      return `<a href="${linkWithProtocol}">${link}</a>`
     }
 
     textLinkRenderer ||= function (text, link) {
       const linkWithProtocol = link.startsWith("www.") ? `https://${link}` : link
 
-      return `<a href="${linkWithProtocol}">${text}</a> `
+      return `<a href="${linkWithProtocol}">${text}</a>`
     }
 
     return MentionsUtils.getLinkedText({

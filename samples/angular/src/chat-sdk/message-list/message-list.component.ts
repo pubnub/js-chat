@@ -73,12 +73,12 @@ export class MessageListComponentChat {
     const thing = things[Math.floor(Math.random() * things.length)]
 
     if (msg.hasThread) {
-      const thread = await msg.getThread()
-      this.getPinnedMessage(thread)
-      thread.sendText(thing)
+      // const thread = await msg.getThread()
+      // this.getPinnedMessage(thread)
+      // thread.sendText(thing)
     } else {
-      const thread = await msg.createThread()
-      thread.sendText(thing)
+      // const thread = await msg.createThread()
+      // thread.sendText(thing)
     }
 
     this.isPaginationEnd = !historicalMessagesObject.isMore

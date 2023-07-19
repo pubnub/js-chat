@@ -242,16 +242,8 @@ export class MessageDraft {
     }
   }
 
-  async onChange(text: string) {
-    this.previousValue = this.value
-    this.value = text
-
-    if (this.config.isTypingIndicatorTriggered) {
-      this.value ? this.channel.startTyping() : this.channel.stopTyping()
-    }
-
-    this.reindexTextLinks()
-
+  /** @internal */
+  private async parseTextToGetSuggestedUser() {
     const previousWordsStartingWithAt = this.previousValue
       .split(" ")
       .filter((word) => word.startsWith("@"))
@@ -340,6 +332,19 @@ export class MessageDraft {
       nameOccurrenceIndex: differentMentionPosition,
       suggestedUsers,
     }
+  }
+
+  async onChange(text: string) {
+    this.previousValue = this.value
+    this.value = text
+
+    if (this.config.isTypingIndicatorTriggered) {
+      this.value ? this.channel.startTyping() : this.channel.stopTyping()
+    }
+
+    this.reindexTextLinks()
+
+    return this.parseTextToGetSuggestedUser()
   }
 
   addMentionedUser(user: User, nameOccurrenceIndex: number) {
@@ -477,13 +482,13 @@ export class MessageDraft {
     let { mentionedUserRenderer, plainLinkRenderer, textLinkRenderer } = params || {}
 
     mentionedUserRenderer ||= function (userId, mentionedName) {
-      return `<a href="https://pubnub.com/${userId}">@${mentionedName}</a> `
+      return `<a href="https://pubnub.com/${userId}">@${mentionedName}</a>`
     }
 
     plainLinkRenderer ||= function (link) {
       const linkWithProtocol = link.startsWith("www.") ? `https://${link}` : link
 
-      return `<a href="${linkWithProtocol}">${link}</a> `
+      return `<a href="${linkWithProtocol}">${link}</a>`
     }
 
     textLinkRenderer ||= function (text, link) {
