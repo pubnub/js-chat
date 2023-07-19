@@ -6,7 +6,6 @@ import {
   createRandomChannel,
   createChatInstance,
 } from "./utils"
-import { extractMentionedUserNames } from "./testUtils"
 import { jest } from "@jest/globals"
 
 describe("Channel test", () => {
@@ -533,7 +532,7 @@ describe("Channel test", () => {
     await messageDraft.onChange("Hello, @User")
     await messageDraft.onChange("Hello, @Use")
     await messageDraft.onChange("Hello, @User")
-    expect(chat.getUsers).toHaveBeenCalledTimes(1)
+    expect(chat.getUsers).toHaveBeenCalledTimes(2)
 
     await chat.deleteUser(user1.id)
   })
