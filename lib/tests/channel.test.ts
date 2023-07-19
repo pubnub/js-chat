@@ -355,7 +355,6 @@ describe("Channel test", () => {
 
     expect(messageInHistory).toBeDefined()
 
-    console.log("messageInHistory.mentionedUsers: ", messageInHistory.mentionedUsers)
     expect(Object.keys(messageInHistory.mentionedUsers).length).toBe(0)
 
     await chat.deleteUser(user1.id)
