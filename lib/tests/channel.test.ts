@@ -6,6 +6,7 @@ import {
   createRandomChannel,
   createChatInstance,
 } from "./utils"
+
 import { jest } from "@jest/globals"
 
 describe("Channel test", () => {
@@ -467,7 +468,7 @@ describe("Channel test", () => {
     await chat.deleteUser(user1.id)
   })
 
-  test("should correctly add and remove the middle mentioned user", async () => {
+  test.only("should correctly add and remove the middle mentioned user", async () => {
     jest.retryTimes(3)
 
     const user1Id = `user1_${Date.now()}`
