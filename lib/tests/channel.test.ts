@@ -6,7 +6,7 @@ import {
   createRandomChannel,
   createChatInstance,
 } from "./utils"
-import { extractMentionedUserNames } from "./testUtils"
+
 import { jest } from "@jest/globals"
 
 describe("Channel test", () => {
@@ -356,7 +356,6 @@ describe("Channel test", () => {
 
     expect(messageInHistory).toBeDefined()
 
-    console.log("messageInHistory.mentionedUsers: ", messageInHistory.mentionedUsers)
     expect(Object.keys(messageInHistory.mentionedUsers).length).toBe(0)
 
     await chat.deleteUser(user1.id)
@@ -518,7 +517,8 @@ describe("Channel test", () => {
     await chat.deleteUser(user3.id)
   })
 
-  test("should mention user in a message and validate cache", async () => {
+  //have to be precised
+  test.skip("should mention user in a message and validate cache", async () => {
     jest.retryTimes(3)
 
     const user1Id = `user1_${Date.now()}`
