@@ -145,7 +145,7 @@ export class Channel {
         ...this.getPushPayload(text),
       }
 
-      return await this.chat.publish({
+      const publishResponse = await this.chat.publish({
         ...rest,
         channel: this.id,
         message,
@@ -162,6 +162,25 @@ export class Channel {
             : undefined,
         },
       })
+
+      if (mentionedUsers) {
+        Object.keys(mentionedUsers).forEach((key) => {
+          const userId = mentionedUsers[Number(key)].id
+          const payload = {
+            messageTimetoken: String(publishResponse.timetoken),
+            channel: this.id,
+            ...this.getPushPayload(text),
+          }
+          this.chat.emitEvent({
+            channel: userId,
+            type: "mention",
+            method: "publish",
+            payload,
+          })
+        })
+      }
+
+      return publishResponse
     } catch (error) {
       throw error
     }
@@ -176,12 +195,11 @@ export class Channel {
    */
   /* @internal */
   private async sendTypingSignal(value: boolean) {
-    return await this.chat.sdk.signal({
+    return await this.chat.emitEvent({
       channel: this.id,
-      message: {
-        type: MessageType.TYPING,
-        value,
-      },
+      method: "signal",
+      type: "typing",
+      payload: { value },
     })
   }
 
@@ -207,7 +225,7 @@ export class Channel {
       signal: (event: SignalEvent) => {
         const { channel, message, publisher } = event
         if (channel !== this.id) return
-        if (message.type !== MessageType.TYPING) return
+        if (message.type !== "typing") return
         const timer = this.typingIndicators.get(publisher)
 
         if (!message.value && timer) {

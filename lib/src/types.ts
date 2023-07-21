@@ -9,8 +9,6 @@ export type StatusTypeFields = {
 
 export enum MessageType {
   TEXT = "text",
-  TYPING = "typing",
-  REPORT = "report",
 }
 
 export enum MessageActionType {
@@ -24,14 +22,28 @@ export type TextMessageContent = {
   text: string
 }
 
-export type ReportMessageContent = {
-  type: MessageType.REPORT
-  text?: string
-  reason: string
-  reportedMessageTimetoken?: string
-  reportedMessageChannelId?: string
-  reportedUserId?: string
+export type EventContent = {
+  typing: {
+    value: boolean
+  }
+  report: {
+    text?: string
+    reason: string
+    reportedMessageTimetoken?: string
+    reportedMessageChannelId?: string
+    reportedUserId?: string
+  }
+  receipt: {
+    messageTimetoken: string
+  }
+  mention: {
+    messageTimetoken: string
+    channel: string
+  }
+  custom: any
 }
+
+export type EventType = keyof EventContent
 
 export type MessageActions = {
   [type: string]: {
