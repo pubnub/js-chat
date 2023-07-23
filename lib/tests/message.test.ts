@@ -1,10 +1,11 @@
-import { Chat, Channel, Message } from "../src"
+import { Chat, Channel, Message, MessageType } from "../src"
 import {
   createChatInstance,
   createRandomChannel,
   sleep,
   waitForAllMessagesToBeDelivered,
 } from "./utils"
+import { INTERNAL_ADMIN_CHANNEL } from "../src"
 
 describe("Send message test", () => {
   jest.retryTimes(3)
@@ -191,4 +192,59 @@ describe("Send message test", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 2000))
   }, 30000)
+
+  test("should add linked text correctly", async () => {
+    const messageDraft = channel.createMessageDraft()
+    messageDraft.onChange("Click here")
+    messageDraft.addLinkedText({ text: "here", link: "https://pubnub.com", positionInInput: 6 })
+
+    const messagePreview = messageDraft.getMessagePreview()
+
+    expect(messagePreview).toContain('<a href="https://pubnub.com">here</a>')
+
+    messageDraft.removeLinkedText(6)
+
+    const updatedMessagePreview = messageDraft.getMessagePreview()
+
+    expect(updatedMessagePreview).not.toContain('<a href="https://pubnub.com">here</a>')
+  }, 30000)
+
+  test("should convert text with URLs into hyperlinks", async () => {
+    const messageDraft = channel.createMessageDraft()
+    const inputText = "Check out this website: www.example.com"
+    const expectedHTML = '<a href="https://www.example.com">www.example.com</a>'
+
+    messageDraft.onChange(inputText)
+
+    const messagePreview = messageDraft.getMessagePreview()
+
+    expect(messagePreview).toContain(expectedHTML)
+    expect(messagePreview).toContain("https://www.example.com")
+  }, 30000)
+
+  test("should report a message", async () => {
+    const messageText = "Test message to be reported"
+    const reportReason = "Inappropriate content"
+
+    await channel.sendText(messageText)
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const history = await channel.getHistory({ count: 1 })
+    const reportedMessage = history.messages[0]
+    await reportedMessage.report(reportReason)
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const adminChannel = await chat.getChannel(INTERNAL_ADMIN_CHANNEL)
+    expect(adminChannel).toBeDefined()
+
+    const adminChannelHistory = await adminChannel.getHistory({ count: 1 })
+    const reportMessage = adminChannelHistory.messages[0]
+
+    expect(reportMessage?.content.type).toBe(MessageType.REPORT)
+    expect(reportMessage?.content.text).toBe(messageText)
+    expect(reportMessage?.content.reason).toBe(reportReason)
+    expect(reportMessage?.content.reportedMessageChannelId).toBe(reportedMessage.channelId)
+    expect(reportMessage?.content.reportedMessageTimetoken).toBe(reportedMessage.timetoken)
+    expect(reportMessage?.content.reportedUserId).toBe(reportedMessage.userId)
+  })
 })

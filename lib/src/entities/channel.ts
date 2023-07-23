@@ -113,6 +113,23 @@ export class Channel {
   /*
    * Publishing
    */
+  /** @internal */
+  private getPushPayload(text: string) {
+    const { sendPushes, apnsTopic } = this.chat.config.pushNotifications
+    if (!sendPushes) return {}
+
+    const title = this.chat.currentUser.name || this.chat.currentUser.id
+    const pushBuilder = PubNub.notificationPayload(title, text)
+    const pushGateways = ["fcm"]
+    pushBuilder.sound = "default"
+    if (this.name) pushBuilder.subtitle = this.name
+    if (apnsTopic) {
+      pushBuilder.apns.configurations = [{ targets: [{ topic: apnsTopic }] }]
+      pushGateways.push("apns2")
+    }
+
+    return pushBuilder.buildPayload(pushGateways)
+  }
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
@@ -125,6 +142,7 @@ export class Channel {
       const message: TextMessageContent = {
         type: MessageType.TEXT,
         text,
+        ...this.getPushPayload(text),
       }
 
       return await this.chat.publish({
@@ -452,5 +470,13 @@ export class Channel {
 
   createMessageDraft(config?: Partial<MessageDraftConfig>) {
     return new MessageDraft(this.chat, this, config)
+  }
+
+  registerForPush() {
+    return this.chat.registerPushChannels([this.id])
+  }
+
+  unregisterFromPush() {
+    return this.chat.unregisterPushChannels([this.id])
   }
 }
