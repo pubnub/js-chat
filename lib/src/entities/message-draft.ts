@@ -397,7 +397,7 @@ export class MessageDraft {
     )
   }
 
-  async send(params: MessageDraftOptions) {
+  async send(params: MessageDraftOptions = {}) {
     return this.channel.sendText(this.value, {
       ...params,
       mentionedUsers: this.transformMentionedUsersToSend(),
