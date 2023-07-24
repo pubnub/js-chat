@@ -1,7 +1,7 @@
 import { Chat } from "./chat"
 import { User } from "./user"
 import { Channel } from "./channel"
-import { GetLinkedTextParams, MessageDraftConfig, MessageDraftOptions, TextLink } from "../types"
+import { MessageDraftConfig, SendTextOptionParams, TextLink } from "../types"
 import { Validator } from "../validator"
 import { MentionsUtils } from "../mentions-utils"
 import { Message } from "./message"
@@ -242,16 +242,8 @@ export class MessageDraft {
     }
   }
 
-  async onChange(text: string) {
-    this.previousValue = this.value
-    this.value = text
-
-    if (this.config.isTypingIndicatorTriggered) {
-      this.value ? this.channel.startTyping() : this.channel.stopTyping()
-    }
-
-    this.reindexTextLinks()
-
+  /** @internal */
+  private async parseTextToGetSuggestedUser() {
     const previousWordsStartingWithAt = this.previousValue
       .split(" ")
       .filter((word) => word.startsWith("@"))
@@ -342,6 +334,19 @@ export class MessageDraft {
     }
   }
 
+  async onChange(text: string) {
+    this.previousValue = this.value
+    this.value = text
+
+    if (this.config.isTypingIndicatorTriggered) {
+      this.value ? this.channel.startTyping() : this.channel.stopTyping()
+    }
+
+    this.reindexTextLinks()
+
+    return this.parseTextToGetSuggestedUser()
+  }
+
   addMentionedUser(user: User, nameOccurrenceIndex: number) {
     let counter = 0
     let result = ""
@@ -392,7 +397,7 @@ export class MessageDraft {
     )
   }
 
-  async send(params: MessageDraftOptions = {}) {
+  async send(params: Omit<SendTextOptionParams, "mentionedUsers"> = {}) {
     return this.channel.sendText(this.value, {
       ...params,
       mentionedUsers: this.transformMentionedUsersToSend(),
@@ -473,32 +478,11 @@ export class MessageDraft {
     this.textLinks = this.textLinks.filter((_, i) => i !== relevantTextLinkIndex)
   }
 
-  getMessagePreview(params?: Partial<GetLinkedTextParams>) {
-    let { mentionedUserRenderer, plainLinkRenderer, textLinkRenderer } = params || {}
-
-    mentionedUserRenderer ||= function (userId, mentionedName) {
-      return `<a href="https://pubnub.com/${userId}">@${mentionedName}</a> `
-    }
-
-    plainLinkRenderer ||= function (link) {
-      const linkWithProtocol = link.startsWith("www.") ? `https://${link}` : link
-
-      return `<a href="${linkWithProtocol}">${link}</a> `
-    }
-
-    textLinkRenderer ||= function (text, link) {
-      const linkWithProtocol = link.startsWith("www.") ? `https://${link}` : link
-
-      return `<a href="${linkWithProtocol}">${text}</a>`
-    }
-
+  getMessagePreview() {
     return MentionsUtils.getLinkedText({
       text: this.value,
       textLinks: this.textLinks,
       mentionedUsers: this.transformMentionedUsersToSend(),
-      mentionedUserRenderer,
-      plainLinkRenderer,
-      textLinkRenderer,
     })
   }
 

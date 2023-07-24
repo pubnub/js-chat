@@ -8,7 +8,6 @@ import {
   MessageType,
   TextMessageContent,
   ReportMessageContent,
-  GetLinkedTextParams,
 } from "../types"
 import { INTERNAL_ADMIN_CHANNEL } from "../constants"
 import { MentionsUtils } from "../mentions-utils"
@@ -168,32 +167,11 @@ export class Message {
     return lastEdit.value
   }
 
-  getLinkedText(params?: Partial<GetLinkedTextParams>) {
+  getLinkedText() {
     const text = this.text
-
-    let { mentionedUserRenderer, plainLinkRenderer, textLinkRenderer } = params || {}
-
-    mentionedUserRenderer ||= function (userId, mentionedName) {
-      return `<a href="https://pubnub.com/${userId}">@${mentionedName}</a> `
-    }
-
-    plainLinkRenderer ||= function (link) {
-      const linkWithProtocol = link.startsWith("www.") ? `https://${link}` : link
-
-      return `<a href="${linkWithProtocol}">${link}</a> `
-    }
-
-    textLinkRenderer ||= function (text, link) {
-      const linkWithProtocol = link.startsWith("www.") ? `https://${link}` : link
-
-      return `<a href="${linkWithProtocol}">${text}</a> `
-    }
 
     return MentionsUtils.getLinkedText({
       text,
-      mentionedUserRenderer,
-      plainLinkRenderer,
-      textLinkRenderer,
       textLinks: this.textLinks,
       mentionedUsers: this.mentionedUsers,
     })

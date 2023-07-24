@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { Channel, Chat, Message, TimetokenUtils, User } from "@pubnub/chat"
 import "./App.css"
 
@@ -31,6 +31,16 @@ export default function App() {
   }
 
   useEffect(() => {
+    if (!channel) {
+      return
+    }
+
+    channel.getHistory().then((messagesObject) => {
+      setMessages(messagesObject.messages)
+    })
+  }, [channel])
+
+  useEffect(() => {
     if (!messageListRef.current) return
     messageListRef.current.scrollTop = messageListRef.current.scrollHeight
   }, [messages])
@@ -43,10 +53,10 @@ export default function App() {
   useEffect(() => {
     async function initalizeChat() {
       const userId = Math.random() < 0.5 ? "support-agent" : "supported-user"
-      const channelId = "support-channel"
+      const channelId = "123"
       const chat = await Chat.init({
-        subscribeKey: "sub-c-2e5fa5c4-fd65-4ef8-9246-286dde521c20",
-        publishKey: "pub-c-58c29876-cff9-4f15-bb16-6bd785739fe4",
+        publishKey: "pub-c-0457cb83-0786-43df-bc70-723b16a6e816",
+        subscribeKey: "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de",
         userId,
       })
       const user = await chat.currentUser.update(userData[userId])
@@ -59,6 +69,23 @@ export default function App() {
     }
 
     initalizeChat()
+  }, [])
+
+  const renderMessagePart = useCallback((messagePart) => {
+    if (messagePart.type === "text") {
+      return messagePart.content.text
+    }
+    if (messagePart.type === "plainLink") {
+      return <a href={messagePart.content.link}>{messagePart.content.link}</a>
+    }
+    if (messagePart.type === "textLink") {
+      return <a href={messagePart.content.link}>{messagePart.content.text}</a>
+    }
+    if (messagePart.type === "mention") {
+      return <a href={`https://pubnub.com/${messagePart.content.id}`}>{messagePart.content.name}</a>
+    }
+
+    return ""
   }, [])
 
   if (!chat || !channel) return <p>Loading...</p>
@@ -88,7 +115,11 @@ export default function App() {
                       })}
                     </time>
                   </h3>
-                  <p>{message.text}</p>
+                  <p>
+                    {message.getLinkedText().map((messagePart, i) => (
+                      <span key={String(i)}>{renderMessagePart(messagePart)}</span>
+                    ))}
+                  </p>
                 </article>
               </li>
             )
