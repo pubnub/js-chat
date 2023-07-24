@@ -45,8 +45,8 @@ export default function App() {
       const userId = Math.random() < 0.5 ? "support-agent" : "supported-user"
       const channelId = "support-channel"
       const chat = await Chat.init({
-        publishKey: "pub-c-0457cb83-0786-43df-bc70-723b16a6e816",
-        subscribeKey: "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de",
+        subscribeKey: "sub-c-2e5fa5c4-fd65-4ef8-9246-286dde521c20",
+        publishKey: "pub-c-58c29876-cff9-4f15-bb16-6bd785739fe4",
         userId,
       })
       const user = await chat.currentUser.update(userData[userId])

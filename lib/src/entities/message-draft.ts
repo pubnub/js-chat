@@ -1,7 +1,7 @@
 import { Chat } from "./chat"
 import { User } from "./user"
 import { Channel } from "./channel"
-import { MessageDraftConfig, SendTextOptionParams, TextLink } from "../types"
+import { MessageDraftConfig, MessageDraftOptions, TextLink } from "../types"
 import { Validator } from "../validator"
 import { MentionsUtils } from "../mentions-utils"
 import { Message } from "./message"
@@ -397,7 +397,7 @@ export class MessageDraft {
     )
   }
 
-  async send(params: Omit<SendTextOptionParams, "mentionedUsers"> = {}) {
+  async send(params: MessageDraftOptions) {
     return this.channel.sendText(this.value, {
       ...params,
       mentionedUsers: this.transformMentionedUsersToSend(),
