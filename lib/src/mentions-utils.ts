@@ -179,21 +179,32 @@ export class MentionsUtils {
       if (acc && acc.length) {
         previousObject = acc[acc.length - 1]
       }
+      const additionalPunctuation = ["mention", "plainLink"].includes(
+        arrayOfTextElements[currentIndex + 1]?.type
+      )
+        ? " "
+        : ""
 
+      if (curr.type === "text" && !previousObject && additionalPunctuation) {
+        return [
+          ...acc,
+          {
+            type: "text",
+            content: {
+              text: `${curr.content.text}${additionalPunctuation}`,
+            },
+          } as TextTypeElement<"text">,
+        ]
+      }
       if (curr.type === "text" && previousObject?.type === "text") {
         acc = acc.slice(0, -1)
-        const optionalPunctuation = ["mention", "plainLink"].includes(
-          arrayOfTextElements[currentIndex + 1]?.type
-        )
-          ? " "
-          : ""
 
         return [
           ...acc,
           {
             type: "text",
             content: {
-              text: `${previousObject.content.text} ${curr.content.text}${optionalPunctuation}`,
+              text: `${previousObject.content.text} ${curr.content.text}${additionalPunctuation}`,
             },
           } as TextTypeElement<"text">,
         ]

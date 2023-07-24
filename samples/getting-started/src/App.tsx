@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import { Channel, Chat, Message, TimetokenUtils, User } from "@pubnub/chat"
+import { Channel, Chat, Message, MixedTextTypedElement, TimetokenUtils, User } from "@pubnub/chat"
 import "./App.css"
 
 const userData = {
@@ -31,16 +31,6 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (!channel) {
-      return
-    }
-
-    channel.getHistory().then((messagesObject) => {
-      setMessages(messagesObject.messages)
-    })
-  }, [channel])
-
-  useEffect(() => {
     if (!messageListRef.current) return
     messageListRef.current.scrollTop = messageListRef.current.scrollHeight
   }, [messages])
@@ -53,7 +43,7 @@ export default function App() {
   useEffect(() => {
     async function initalizeChat() {
       const userId = Math.random() < 0.5 ? "support-agent" : "supported-user"
-      const channelId = "123"
+      const channelId = "support-channel"
       const chat = await Chat.init({
         publishKey: "pub-c-0457cb83-0786-43df-bc70-723b16a6e816",
         subscribeKey: "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de",
@@ -71,7 +61,7 @@ export default function App() {
     initalizeChat()
   }, [])
 
-  const renderMessagePart = useCallback((messagePart) => {
+  const renderMessagePart = useCallback((messagePart: MixedTextTypedElement) => {
     if (messagePart.type === "text") {
       return messagePart.content.text
     }
@@ -116,9 +106,11 @@ export default function App() {
                     </time>
                   </h3>
                   <p>
-                    {message.getLinkedText().map((messagePart, i) => (
-                      <span key={String(i)}>{renderMessagePart(messagePart)}</span>
-                    ))}
+                    {message
+                      .getLinkedText()
+                      .map((messagePart: MixedTextTypedElement, i: number) => (
+                        <span key={String(i)}>{renderMessagePart(messagePart)}</span>
+                      ))}
                   </p>
                 </article>
               </li>

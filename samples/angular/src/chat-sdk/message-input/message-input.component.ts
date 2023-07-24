@@ -49,6 +49,7 @@ export class MessageInputComponentChat {
     this.suggestedUsers = response.suggestedUsers
     this.lastAffectedNameOccurrenceIndex = response.nameOccurrenceIndex
     this.messagePreview = this.newMessageDraft.getMessagePreview()
+    console.log("this.messagePreview", this.messagePreview)
   }
 
   toggleUserToNotify(user: User) {
@@ -120,7 +121,7 @@ export class MessageInputComponentChat {
       return messagePart.content.text
     }
     if (messagePart.type === "plainLink") {
-      return `<a href="${messagePart.content.link}">${messagePart.content.link}</a> `
+      return `<a href="${messagePart.content.link}">${messagePart.content.link}</a>`
     }
     if (messagePart.type === "textLink") {
       return `<a href="${messagePart.content.link}">${messagePart.content.text}</a>`
