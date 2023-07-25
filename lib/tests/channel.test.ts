@@ -5,6 +5,7 @@ import {
   createRandomUser,
   createRandomChannel,
   createChatInstance,
+  sendMessageAndWaitForHistory,
 } from "./utils"
 
 import { jest } from "@jest/globals"
@@ -317,13 +318,9 @@ describe("Channel test", () => {
     const messageText =
       "Hello, this is a test message with words that start with @ but are not user mentions: @test, @example, @check."
 
-    await channel.sendText(messageText)
-    await sleep(150) // history calls have around 130ms of cache time
-
-    const history = await channel.getHistory()
-
-    const messageInHistory = history.messages.find(
-      (message: any) => message.content.text === messageText
+    const messageInHistory = await sendMessageAndWaitForHistory(
+      channel.createMessageDraft(messageText),
+      channel
     )
 
     expect(messageInHistory).toBeDefined()
@@ -345,14 +342,7 @@ describe("Channel test", () => {
     const finalMessageTextToSend = `Hello, @${incorrectUserId}, I tried to mention you`
     await messageDraft.onChange(finalMessageTextToSend)
 
-    await messageDraft.send()
-    await sleep(150) // history calls have around 130ms of cache time
-
-    const history = await channel.getHistory()
-
-    const messageInHistory = history.messages.find(
-      (message: any) => message.content.text === finalMessageTextToSend
-    )
+    const messageInHistory = await sendMessageAndWaitForHistory(messageDraft, channel)
 
     expect(messageInHistory).toBeDefined()
 
@@ -409,14 +399,7 @@ describe("Channel test", () => {
     messageDraft.addMentionedUser(user1, 1)
     await messageDraft.onChange(messageText)
 
-    await messageDraft.send()
-    await sleep(150) // history calls have around 130ms of cache time
-
-    const history = await channel.getHistory()
-
-    const messageInHistory = history.messages.find(
-      (message: any) => message.content.text === messageText
-    )
+    const messageInHistory = await sendMessageAndWaitForHistory(messageDraft, channel)
 
     expect(messageInHistory).toBeDefined()
 
@@ -450,15 +433,7 @@ describe("Channel test", () => {
 
     messageDraft.removeMentionedUser(1)
 
-    //tbd ->utils
-    await messageDraft.send()
-    await sleep(150) // history calls have around 130ms of cache time
-
-    const history = await channel.getHistory()
-
-    const messageInHistory = history.messages.find(
-      (message: any) => message.content.text === expectedMessage
-    )
+    const messageInHistory = await sendMessageAndWaitForHistory(messageDraft, channel)
 
     expect(messageInHistory).toBeDefined()
 
@@ -495,15 +470,7 @@ describe("Channel test", () => {
 
     messageDraft.removeMentionedUser(1)
 
-    //tbd ->utils
-    await messageDraft.send()
-    await sleep(150) // history calls have around 130ms of cache time
-
-    const history = await channel.getHistory()
-
-    const messageInHistory = history.messages.find(
-      (message: any) => message.content.text === expectedMessage
-    )
+    const messageInHistory = await sendMessageAndWaitForHistory(messageDraft, channel)
 
     expect(messageInHistory).toBeDefined()
 
@@ -517,7 +484,6 @@ describe("Channel test", () => {
     await chat.deleteUser(user3.id)
   })
 
-  //have to be precised
   test("should mention user in a message and validate cache", async () => {
     jest.retryTimes(3)
 
