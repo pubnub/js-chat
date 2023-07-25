@@ -409,10 +409,20 @@ export class Channel {
   }
 
   async inviteMultiple(users: User[]) {
+    const uuids = users.map((u) => u.id)
+    const filter = uuids.map((uuid) => `uuid.id == '${uuid}'`).join(" || ")
+
     try {
       const response = await this.chat.sdk.objects.setChannelMembers({
         channel: this.id,
-        uuids: users.map((u) => u.id),
+        uuids,
+        include: {
+          totalCount: true,
+          customFields: true,
+          UUIDFields: true,
+          customUUIDFields: true,
+        },
+        filter,
       })
 
       return response.data.map((dataPoint) =>
