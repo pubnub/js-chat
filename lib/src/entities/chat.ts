@@ -561,6 +561,58 @@ export class Chat {
     }
   }
 
+  async createGroupConversation({
+    users,
+    channelId,
+    channelData,
+    membershipData = {},
+  }: {
+    users: User[]
+    channelId: string
+    channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
+    membershipData?: Omit<
+      PubNub.SetMembershipsParameters<PubNub.ObjectCustom>,
+      "channels" | "include" | "filter"
+    > & {
+      custom?: PubNub.ObjectCustom
+    }
+  }) {
+    try {
+      const channel =
+        (await this.getChannel(channelId)) || (await this.createChannel(channelId, channelData))
+
+      const { custom, ...rest } = membershipData
+      const hostMembershipPromise = this.sdk.objects.setMemberships({
+        ...rest,
+        channels: [{ id: channel.id, custom }],
+        include: {
+          totalCount: true,
+          customFields: true,
+          channelFields: true,
+          customChannelFields: true,
+        },
+        filter: `channel.id == '${channel.id}'`,
+      })
+
+      const [hostMembershipResponse, inviteesMemberships] = await Promise.all([
+        hostMembershipPromise,
+        channel.inviteMultiple(users),
+      ])
+
+      return {
+        channel,
+        hostMembership: Membership.fromMembershipDTO(
+          this,
+          hostMembershipResponse.data[0],
+          this.user
+        ),
+        inviteesMemberships,
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
   async getUserSuggestions(
     text: string,
     options: { limit: number } = { limit: 10 }

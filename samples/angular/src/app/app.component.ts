@@ -60,4 +60,8 @@ export class AppComponent {
   toggleCreateDirectConversationModalChatSDK() {
     this.stateService.toggleCreateDirectConversationModalChatSDK()
   }
+
+  toggleCreateGroupConversationModalChatSDK() {
+    this.stateService.toggleCreateGroupConversationModalChatSDK()
+  }
 }

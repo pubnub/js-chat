@@ -408,6 +408,21 @@ export class Channel {
     }
   }
 
+  async inviteMultiple(users: User[]) {
+    try {
+      const response = await this.chat.sdk.objects.setChannelMembers({
+        channel: this.id,
+        uuids: users.map((u) => u.id),
+      })
+
+      return response.data.map((dataPoint) =>
+        Membership.fromChannelMemberDTO(this.chat, dataPoint, this)
+      )
+    } catch (error) {
+      throw error
+    }
+  }
+
   async pinMessage(message: Message) {
     const response = await this.chat.pinMessageToChannel(message, this)
     return Channel.fromDTO(this.chat, response.data)
