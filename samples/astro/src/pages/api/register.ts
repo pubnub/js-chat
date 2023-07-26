@@ -7,9 +7,12 @@ export async function post({ request }) {
     if (!login || !name) throw "Missing parameters"
     const newUser = await chat.createUser(login, { name, profileUrl })
     if (!newUser) throw "Creating user failed"
-    const grantParams = getGrantParams(login)
-    const token = await chat.sdk.grantToken(grantParams)
-    if (!token) throw "Error granting auth token"
+    let token = ""
+    if (chat.sdk._config.secretKey) {
+      const grantParams = getGrantParams(login)
+      token = await chat.sdk.grantToken(grantParams)
+      if (!token) throw "Error granting auth token"
+    }
     return new Response(JSON.stringify({ token, userId: login }), { status: 200, headers })
   } catch (error) {
     const message = error.status ? error.status.errorData.error.message : error
