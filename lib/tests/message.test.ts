@@ -1,4 +1,4 @@
-import { Chat, Channel, Message, MessageType } from "../src"
+import { Chat, Channel, Message } from "../src"
 import {
   createChatInstance,
   createRandomChannel,
@@ -240,7 +240,7 @@ describe("Send message test", () => {
     const adminChannelHistory = await adminChannel.getHistory({ count: 1 })
     const reportMessage = adminChannelHistory.messages[0]
 
-    expect(reportMessage?.content.type).toBe(MessageType.REPORT)
+    expect(reportMessage?.content.type).toBe("report")
     expect(reportMessage?.content.text).toBe(messageText)
     expect(reportMessage?.content.reason).toBe(reportReason)
     expect(reportMessage?.content.reportedMessageChannelId).toBe(reportedMessage.channelId)

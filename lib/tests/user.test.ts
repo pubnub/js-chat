@@ -1,4 +1,4 @@
-import { Chat, User, MessageType } from "../src"
+import { Chat, User } from "../src"
 import { createChatInstance, createRandomUser, sleep } from "./utils"
 import { INTERNAL_ADMIN_CHANNEL } from "../src"
 
@@ -73,7 +73,7 @@ describe("User test", () => {
     const adminChannelHistory = await adminChannel.getHistory({ count: 1 })
     const reportMessage = adminChannelHistory.messages[0]
 
-    expect(reportMessage?.content.type).toBe(MessageType.REPORT)
+    expect(reportMessage?.content.type).toBe("report")
     expect(reportMessage?.content.reportedUserId).toBe(user.id)
     expect(reportMessage?.content.reason).toBe(reportReason)
   })

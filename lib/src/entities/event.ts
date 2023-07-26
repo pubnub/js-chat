@@ -8,7 +8,7 @@ export type EventFields<T extends EventType> = Pick<
 >
 
 export class Event<T extends EventType> {
-  protected chat: Chat
+  private chat: Chat
   readonly timetoken: string
   readonly type: T
   readonly payload: EventContent[T]
