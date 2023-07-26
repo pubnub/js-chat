@@ -9,12 +9,14 @@ export class StateService {
   createChannelModalJSSDKOpen = false
   createChannelModalChatSDKOpen = false
   createDirectConversationChatSDKOpen = false
+  createGroupConversationChatSDKOpen = false
   currentChannel: Channel | null = null
   pendingQuotes: { [channelId: string]: Message | null } = {}
 
   JSSDKModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
   chatSDKModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
   chatSDKCreateDirectConversationModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
+  chatSDKCreateGroupConversationModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
   currentChannelChange: Subject<Channel | null> = new Subject<Channel | null>()
   pendingQuotesChange: Subject<{ [channelId: string]: Message | null }> = new Subject<{
     [channelId: string]: Message | null
@@ -36,6 +38,9 @@ export class StateService {
     this.pendingQuotesChange.subscribe((value) => {
       this.pendingQuotes = { ...this.pendingQuotes, ...value }
     })
+    this.chatSDKCreateGroupConversationModalVisibilityChange.subscribe((value) => {
+      this.createGroupConversationChatSDKOpen = value
+    })
   }
 
   toggleCreateChannelModalChatSDK() {
@@ -45,6 +50,12 @@ export class StateService {
   toggleCreateDirectConversationModalChatSDK() {
     this.chatSDKCreateDirectConversationModalVisibilityChange.next(
       !this.createDirectConversationChatSDKOpen
+    )
+  }
+
+  toggleCreateGroupConversationModalChatSDK() {
+    this.chatSDKCreateGroupConversationModalVisibilityChange.next(
+      !this.createGroupConversationChatSDKOpen
     )
   }
 

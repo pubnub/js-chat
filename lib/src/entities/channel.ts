@@ -1,5 +1,4 @@
 import PubNub, {
-  SignalEvent,
   MessageEvent,
   ObjectCustom,
   GetChannelMembersParameters,
@@ -7,6 +6,7 @@ import PubNub, {
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
+import { Event } from "./event"
 import {
   SendTextOptionParams,
   DeleteParameters,
@@ -145,7 +145,7 @@ export class Channel {
         ...this.getPushPayload(text),
       }
 
-      return await this.chat.publish({
+      const publishResponse = await this.chat.publish({
         ...rest,
         channel: this.id,
         message,
@@ -162,6 +162,25 @@ export class Channel {
             : undefined,
         },
       })
+
+      if (mentionedUsers) {
+        Object.keys(mentionedUsers).forEach((key) => {
+          const userId = mentionedUsers[Number(key)].id
+          const payload = {
+            messageTimetoken: String(publishResponse.timetoken),
+            channel: this.id,
+            ...this.getPushPayload(text),
+          }
+          this.chat.emitEvent({
+            channel: userId,
+            type: "mention",
+            method: "publish",
+            payload,
+          })
+        })
+      }
+
+      return publishResponse
     } catch (error) {
       throw error
     }
@@ -176,12 +195,11 @@ export class Channel {
    */
   /* @internal */
   private async sendTypingSignal(value: boolean) {
-    return await this.chat.sdk.signal({
+    return await this.chat.emitEvent({
       channel: this.id,
-      message: {
-        type: MessageType.TYPING,
-        value,
-      },
+      method: "signal",
+      type: "typing",
+      payload: { value },
     })
   }
 
@@ -203,46 +221,39 @@ export class Channel {
   }
 
   getTyping(callback: (typingUserIds: string[]) => unknown) {
-    const listener = {
-      signal: (event: SignalEvent) => {
-        const { channel, message, publisher } = event
-        if (channel !== this.id) return
-        if (message.type !== MessageType.TYPING) return
-        const timer = this.typingIndicators.get(publisher)
-
-        if (!message.value && timer) {
-          clearTimeout(timer)
-          this.typingIndicators.delete(publisher)
-        }
-
-        if (message.value && timer) {
-          clearTimeout(timer)
-          const newTimer = setTimeout(() => {
-            this.typingIndicators.delete(publisher)
-            callback(Array.from(this.typingIndicators.keys()))
-          }, this.chat.config.typingTimeout)
-          this.typingIndicators.set(publisher, newTimer)
-        }
-
-        if (message.value && !timer) {
-          const newTimer = setTimeout(() => {
-            this.typingIndicators.delete(publisher)
-            callback(Array.from(this.typingIndicators.keys()))
-          }, this.chat.config.typingTimeout)
-          this.typingIndicators.set(publisher, newTimer)
-        }
-
-        callback(Array.from(this.typingIndicators.keys()))
-      },
+    const handler = (event: Event<"typing">) => {
+      const { channelId, payload, userId, type } = event
+      if (channelId !== this.id) return
+      if (type !== "typing") return
+      const timer = this.typingIndicators.get(userId)
+      if (!payload.value && timer) {
+        clearTimeout(timer)
+        this.typingIndicators.delete(userId)
+      }
+      if (payload.value && timer) {
+        clearTimeout(timer)
+        const newTimer = setTimeout(() => {
+          this.typingIndicators.delete(userId)
+          callback(Array.from(this.typingIndicators.keys()))
+        }, this.chat.config.typingTimeout)
+        this.typingIndicators.set(userId, newTimer)
+      }
+      if (payload.value && !timer) {
+        const newTimer = setTimeout(() => {
+          this.typingIndicators.delete(userId)
+          callback(Array.from(this.typingIndicators.keys()))
+        }, this.chat.config.typingTimeout)
+        this.typingIndicators.set(userId, newTimer)
+      }
+      callback(Array.from(this.typingIndicators.keys()))
     }
 
-    const removeListener = this.chat.addListener(listener)
-    const unsubscribe = this.chat.subscribe(this.id)
-
-    return () => {
-      removeListener()
-      unsubscribe()
-    }
+    return this.chat.listenForEvents({
+      channel: this.id,
+      method: "signal",
+      type: "typing",
+      callback: handler,
+    })
   }
 
   /*
@@ -252,6 +263,7 @@ export class Channel {
     const listener = {
       message: (event: MessageEvent) => {
         if (event.channel !== this.id) return
+        if (event.message.type !== "text") return
         callback(Message.fromDTO(this.chat, event))
       },
     }
@@ -408,6 +420,31 @@ export class Channel {
     }
   }
 
+  async inviteMultiple(users: User[]) {
+    const uuids = users.map((u) => u.id)
+    const filter = uuids.map((uuid) => `uuid.id == '${uuid}'`).join(" || ")
+
+    try {
+      const response = await this.chat.sdk.objects.setChannelMembers({
+        channel: this.id,
+        uuids,
+        include: {
+          totalCount: true,
+          customFields: true,
+          UUIDFields: true,
+          customUUIDFields: true,
+        },
+        filter,
+      })
+
+      return response.data.map((dataPoint) =>
+        Membership.fromChannelMemberDTO(this.chat, dataPoint, this)
+      )
+    } catch (error) {
+      throw error
+    }
+  }
+
   async pinMessage(message: Message) {
     const response = await this.chat.pinMessageToChannel(message, this)
     return Channel.fromDTO(this.chat, response.data)
@@ -478,5 +515,37 @@ export class Channel {
 
   unregisterFromPush() {
     return this.chat.unregisterPushChannels([this.id])
+  }
+
+  async streamReadReceipts(callback: (receipts: { [key: string]: string[] }) => unknown) {
+    const { members } = await this.getMembers()
+
+    const receipts = members.reduce((acc, m) => {
+      const token = m.custom?.lastReadMessageTimetoken
+      if (!token) return acc
+      acc[String(token)] ??= []
+      acc[String(token)].push(m.user.id)
+      return acc
+    }, {} as { [key: string]: string[] })
+
+    callback(receipts)
+
+    const unsubscribe = this.chat.listenForEvents({
+      channel: this.id,
+      type: "receipt",
+      method: "signal",
+      callback: (event) => {
+        const { userId, payload } = event
+        Object.entries(receipts).forEach(([timetoken, userIds]) => {
+          receipts[timetoken] = userIds.filter((id) => id !== userId)
+          if (!receipts[timetoken].length) delete receipts[timetoken]
+        })
+        receipts[payload.messageTimetoken] ??= []
+        receipts[payload.messageTimetoken].push(userId)
+        callback(receipts)
+      },
+    })
+
+    return unsubscribe
   }
 }
