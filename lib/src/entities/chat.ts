@@ -1,10 +1,11 @@
-import PubNub from "pubnub"
+import PubNub, { MessageEvent, SignalEvent } from "pubnub"
 import { Channel, ChannelFields } from "./channel"
 import { User, UserFields } from "./user"
-import { DeleteParameters, TextMessageContent, ReportMessageContent } from "../types"
+import { DeleteParameters, TextMessageContent, EventContent, EventType } from "../types"
 import { Message } from "./message"
+import { Event } from "./event"
 import { Membership } from "./membership"
-import { MESSAGE_THREAD_ID_PREFIX, INTERNAL_ADMIN_CHANNEL } from "../constants"
+import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadChannel } from "./thread-channel"
 import { MentionsUtils } from "../mentions-utils"
 
@@ -80,10 +81,6 @@ export class Chat {
       (await chat.getUser(chat.sdk.getUUID())) ||
       (await chat.createUser(chat.sdk.getUUID(), { name: chat.sdk.getUUID() }))
 
-    if (!(await chat.getChannel(INTERNAL_ADMIN_CHANNEL))) {
-      await chat.createChannel(INTERNAL_ADMIN_CHANNEL, {})
-    }
-
     if (params.storeUserActivityTimestamps) {
       chat.storeUserActivityTimestamp()
     }
@@ -115,10 +112,95 @@ export class Chat {
   }
 
   /* @internal */
-  publish(
-    params: PubNub.PublishParameters & { message: TextMessageContent | ReportMessageContent }
-  ) {
+  publish(params: PubNub.PublishParameters & { message: TextMessageContent }) {
     return this.sdk.publish(params)
+  }
+
+  /* @internal */
+  signal(params: { channel: string; message: any }) {
+    return this.sdk.signal(params)
+  }
+
+  /**
+   * Events
+   */
+  emitEvent<T extends EventType>({
+    channel,
+    type,
+    method,
+    payload,
+  }: {
+    channel: string
+    type?: T
+    method?: "signal" | "publish"
+    payload: EventContent[T]
+  }) {
+    const defType = type || "custom"
+    const defMethod = method || "signal"
+    const message = { ...payload, type: defType }
+    const params = { channel, message }
+    return defMethod === "signal" ? this.signal(params) : this.publish(params)
+  }
+
+  listenForEvents<T extends EventType>({
+    channel,
+    type,
+    method,
+    callback,
+  }: {
+    channel: string
+    type?: T
+    method?: "signal" | "publish"
+    callback: (event: Event<T>) => unknown
+  }) {
+    const defType = type || "custom"
+    const defMethod = method || "signal"
+    const handler = (event: MessageEvent | SignalEvent) => {
+      if (event.channel !== channel) return
+      if (event.message.type !== defType) return
+      const { channel: ch, timetoken, message, publisher } = event
+      callback(Event.fromDTO(this, { channel: ch, timetoken, message, publisher }))
+    }
+    const listener = {
+      ...(defMethod === "signal" ? { signal: handler } : { message: handler }),
+    }
+    const removeListener = this.addListener(listener)
+    const unsubscribe = this.subscribe(channel)
+
+    return () => {
+      removeListener()
+      unsubscribe()
+    }
+  }
+
+  async getEventsHistory(params: {
+    channel: string
+    startTimetoken?: string
+    endTimetoken?: string
+    count?: number
+  }) {
+    try {
+      const options = {
+        channels: [params.channel],
+        count: params.count || 100,
+        start: params.startTimetoken,
+        end: params.endTimetoken,
+        includeMessageActions: false,
+        includeMeta: false,
+      }
+
+      const response = await this.sdk.fetchMessages(options)
+
+      return {
+        events:
+          response.channels[params.channel]?.map((messageObject) =>
+            Event.fromDTO(this, messageObject)
+          ) || [],
+        isMore: response.channels[params.channel]?.length === (params.count || 100),
+      }
+    } catch (error) {
+      throw error
+    }
   }
 
   /**
