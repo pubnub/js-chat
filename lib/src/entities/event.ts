@@ -1,18 +1,22 @@
+import { MessageEvent, FetchMessagesResponse } from "pubnub"
 import { Chat } from "./chat"
 import { EventContent, EventType } from "../types"
 
-export type EventFields = Pick<Event, "timetoken" | "type" | "payload" | "channelId" | "userId">
+export type EventFields<T extends EventType> = Pick<
+  Event<T>,
+  "timetoken" | "type" | "payload" | "channelId" | "userId"
+>
 
-export class Event {
+export class Event<T extends EventType> {
   protected chat: Chat
   readonly timetoken: string
-  readonly type: EventType
-  readonly payload: EventContent
+  readonly type: T
+  readonly payload: EventContent[T]
   readonly channelId: string
   readonly userId: string
 
   /** @internal */
-  constructor(chat: Chat, params: EventFields) {
+  constructor(chat: Chat, params: EventFields<T>) {
     this.chat = chat
     this.timetoken = params.timetoken
     this.type = params.type
@@ -25,13 +29,12 @@ export class Event {
   /** @internal */
   static fromDTO(
     chat: Chat,
-    params: {
-      timetoken: string | number
-      message: any
-      channel: string
-      uuid?: string
-      publisher?: string
-    }
+    params:
+      | Pick<MessageEvent, "timetoken" | "message" | "channel" | "publisher">
+      | Pick<
+          FetchMessagesResponse["channels"][string][number],
+          "timetoken" | "message" | "channel" | "uuid"
+        >
   ) {
     const { type, ...payload } = params.message
     const data = {

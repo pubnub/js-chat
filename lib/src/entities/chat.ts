@@ -126,41 +126,44 @@ export class Chat {
    */
   emitEvent<T extends EventType>({
     channel,
-    type, // TODO: set default to custom without TS errors
-    method = "signal",
+    type,
+    method,
     payload,
   }: {
     channel: string
-    type: T
-    method: "signal" | "publish"
+    type?: T
+    method?: "signal" | "publish"
     payload: EventContent[T]
   }) {
-    const message = { ...payload, type }
-    if (method === "signal") return this.signal({ channel, message })
-    else return this.publish({ channel, message })
+    const defType = type || "custom"
+    const defMethod = method || "signal"
+    const message = { ...payload, type: defType }
+    const params = { channel, message }
+    return defMethod === "signal" ? this.signal(params) : this.publish(params)
   }
 
-  listenForEvents({
+  listenForEvents<T extends EventType>({
     channel,
-    type = "custom",
-    method = "signal",
+    type,
+    method,
     callback,
   }: {
     channel: string
-    type: EventType
-    method: "signal" | "publish"
-    callback: (event: Event) => unknown
+    type?: T
+    method?: "signal" | "publish"
+    callback: (event: Event<T>) => unknown
   }) {
+    const defType = type || "custom"
+    const defMethod = method || "signal"
     const handler = (event: MessageEvent | SignalEvent) => {
       if (event.channel !== channel) return
-      if (event.message.type !== type) return
+      if (event.message.type !== defType) return
       const { channel: ch, timetoken, message, publisher } = event
       callback(Event.fromDTO(this, { channel: ch, timetoken, message, publisher }))
     }
     const listener = {
-      ...(method === "signal" ? { signal: handler } : { message: handler }),
+      ...(defMethod === "signal" ? { signal: handler } : { message: handler }),
     }
-
     const removeListener = this.addListener(listener)
     const unsubscribe = this.subscribe(channel)
 

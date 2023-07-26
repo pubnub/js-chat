@@ -1,5 +1,4 @@
 import PubNub, {
-  SignalEvent,
   MessageEvent,
   ObjectCustom,
   GetChannelMembersParameters,
@@ -7,6 +6,7 @@ import PubNub, {
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
+import { Event } from "./event"
 import {
   SendTextOptionParams,
   DeleteParameters,
@@ -221,46 +221,39 @@ export class Channel {
   }
 
   getTyping(callback: (typingUserIds: string[]) => unknown) {
-    const listener = {
-      signal: (event: SignalEvent) => {
-        const { channel, message, publisher } = event
-        if (channel !== this.id) return
-        if (message.type !== "typing") return
-        const timer = this.typingIndicators.get(publisher)
-
-        if (!message.value && timer) {
-          clearTimeout(timer)
-          this.typingIndicators.delete(publisher)
-        }
-
-        if (message.value && timer) {
-          clearTimeout(timer)
-          const newTimer = setTimeout(() => {
-            this.typingIndicators.delete(publisher)
-            callback(Array.from(this.typingIndicators.keys()))
-          }, this.chat.config.typingTimeout)
-          this.typingIndicators.set(publisher, newTimer)
-        }
-
-        if (message.value && !timer) {
-          const newTimer = setTimeout(() => {
-            this.typingIndicators.delete(publisher)
-            callback(Array.from(this.typingIndicators.keys()))
-          }, this.chat.config.typingTimeout)
-          this.typingIndicators.set(publisher, newTimer)
-        }
-
-        callback(Array.from(this.typingIndicators.keys()))
-      },
+    const handler = (event: Event<"typing">) => {
+      const { channelId, payload, userId, type } = event
+      if (channelId !== this.id) return
+      if (type !== "typing") return
+      const timer = this.typingIndicators.get(userId)
+      if (!payload.value && timer) {
+        clearTimeout(timer)
+        this.typingIndicators.delete(userId)
+      }
+      if (payload.value && timer) {
+        clearTimeout(timer)
+        const newTimer = setTimeout(() => {
+          this.typingIndicators.delete(userId)
+          callback(Array.from(this.typingIndicators.keys()))
+        }, this.chat.config.typingTimeout)
+        this.typingIndicators.set(userId, newTimer)
+      }
+      if (payload.value && !timer) {
+        const newTimer = setTimeout(() => {
+          this.typingIndicators.delete(userId)
+          callback(Array.from(this.typingIndicators.keys()))
+        }, this.chat.config.typingTimeout)
+        this.typingIndicators.set(userId, newTimer)
+      }
+      callback(Array.from(this.typingIndicators.keys()))
     }
 
-    const removeListener = this.chat.addListener(listener)
-    const unsubscribe = this.chat.subscribe(this.id)
-
-    return () => {
-      removeListener()
-      unsubscribe()
-    }
+    return this.chat.listenForEvents({
+      channel: this.id,
+      method: "signal",
+      type: "typing",
+      callback: handler,
+    })
   }
 
   /*
@@ -270,6 +263,7 @@ export class Channel {
     const listener = {
       message: (event: MessageEvent) => {
         if (event.channel !== this.id) return
+        if (event.message.type !== "text") return
         callback(Message.fromDTO(this.chat, event))
       },
     }
@@ -496,5 +490,37 @@ export class Channel {
 
   unregisterFromPush() {
     return this.chat.unregisterPushChannels([this.id])
+  }
+
+  async streamReadReceipts(callback: (receipts: { [key: string]: string[] }) => unknown) {
+    const { members } = await this.getMembers()
+
+    const receipts = members.reduce((acc, m) => {
+      const token = m.custom?.lastReadMessageTimetoken
+      if (!token) return acc
+      acc[String(token)] ??= []
+      acc[String(token)].push(m.user.id)
+      return acc
+    }, {} as { [key: string]: string[] })
+
+    callback(receipts)
+
+    const unsubscribe = this.chat.listenForEvents({
+      channel: this.id,
+      type: "receipt",
+      method: "signal",
+      callback: (event) => {
+        const { userId, payload } = event
+        Object.entries(receipts).forEach(([timetoken, userIds]) => {
+          receipts[timetoken] = userIds.filter((id) => id !== userId)
+          if (!receipts[timetoken].length) delete receipts[timetoken]
+        })
+        receipts[payload.messageTimetoken] ??= []
+        receipts[payload.messageTimetoken].push(userId)
+        callback(receipts)
+      },
+    })
+
+    return unsubscribe
   }
 }
