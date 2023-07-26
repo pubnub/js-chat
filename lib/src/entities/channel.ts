@@ -408,6 +408,31 @@ export class Channel {
     }
   }
 
+  async inviteMultiple(users: User[]) {
+    const uuids = users.map((u) => u.id)
+    const filter = uuids.map((uuid) => `uuid.id == '${uuid}'`).join(" || ")
+
+    try {
+      const response = await this.chat.sdk.objects.setChannelMembers({
+        channel: this.id,
+        uuids,
+        include: {
+          totalCount: true,
+          customFields: true,
+          UUIDFields: true,
+          customUUIDFields: true,
+        },
+        filter,
+      })
+
+      return response.data.map((dataPoint) =>
+        Membership.fromChannelMemberDTO(this.chat, dataPoint, this)
+      )
+    } catch (error) {
+      throw error
+    }
+  }
+
   async pinMessage(message: Message) {
     const response = await this.chat.pinMessageToChannel(message, this)
     return Channel.fromDTO(this.chat, response.data)
