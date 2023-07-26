@@ -66,3 +66,12 @@ export const waitForAllMessagesToBeDelivered = async (
     resolveMainFunction()
   })
 }
+
+export const extractMentionedUserIds = (messageText: string): string[] => {
+  const regex = /@(\w+)(?!\.[^\s@])\b/g
+  const matches = messageText.match(regex)
+  if (matches) {
+    return matches.map((match) => match.slice(1))
+  }
+  return []
+}
