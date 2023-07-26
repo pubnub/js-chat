@@ -1,12 +1,13 @@
 import PubNub from "pubnub"
 import { Channel, ChannelFields } from "./channel"
 import { User, UserFields } from "./user"
-import { DeleteParameters, TextMessageContent, ReportMessageContent } from "../types"
+import { DeleteParameters, TextMessageContent, ReportMessageContent, ErrorLoggerImplementation } from "../types"
 import { Message } from "./message"
 import { Membership } from "./membership"
 import { MESSAGE_THREAD_ID_PREFIX, INTERNAL_ADMIN_CHANNEL } from "../constants"
 import { ThreadChannel } from "./thread-channel"
 import { MentionsUtils } from "../mentions-utils"
+import { ErrorLogger } from "../ErrorLogger";
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -20,6 +21,7 @@ type ChatConfig = {
     apnsTopic?: string
     apnsEnvironment: "development" | "production"
   }
+  errorLogger?: ErrorLoggerImplementation
 }
 
 type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
@@ -34,6 +36,8 @@ export class Chat {
   private suggestedNamesCache: Map<string, User[]>
   /* @internal */
   private subscriptions: { [channel: string]: Set<string> }
+  /** @internal */
+  errorLogger?: ErrorLogger
 
   /** @internal */
   private constructor(params: ChatConstructor) {
@@ -43,6 +47,7 @@ export class Chat {
       storeUserActivityInterval,
       storeUserActivityTimestamps,
       pushNotifications,
+      errorLogger,
       ...pubnubConfig
     } = params
 
@@ -60,6 +65,7 @@ export class Chat {
     })
     this.subscriptions = {}
     this.suggestedNamesCache = new Map<string, User[]>()
+    this.errorLogger = new ErrorLogger(errorLogger)
     this.config = {
       saveDebugLog: saveDebugLog || false,
       typingTimeout: typingTimeout || 5000,
