@@ -262,10 +262,6 @@ export default function () {
           </div>
 
           <h3 className="mt-10">Text messages</h3>
-          <p className="mb-3">
-            MR - Mark as read | RP - Report | OT - Open thread | ED - Edit | DS - Soft delete | DH -
-            hard delete
-          </p>
           <div className="grid lg:grid-cols-2 gap-8">
             <section>
               <MessageList channel={channel} handleOpenThread={handleOpenThread} />
