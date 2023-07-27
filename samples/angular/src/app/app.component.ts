@@ -35,6 +35,24 @@ export class AppComponent {
       subscribeKey: "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de",
       userId,
       typingTimeout: 2000,
+      errorLogger: {
+        setItem(key: string, value: string) {
+          localStorage.setItem(key, value)
+        },
+        removeItem(key: string) {
+          localStorage.removeItem(key)
+        },
+        download() {
+          console.log({ ...localStorage })
+          return []
+        },
+        clear() {
+          localStorage.clear()
+        },
+        getItem(key: string) {
+          return localStorage.getItem(key)
+        }
+      }
     })
 
     const channel =

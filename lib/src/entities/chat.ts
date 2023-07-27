@@ -297,6 +297,7 @@ export class Chat {
       })
       return Channel.fromDTO(this, response.data)
     } catch (error) {
+      this.errorLogger?.setItem("getChannel", error)
       const e = error as { status: { errorData: { status: number } } }
       if (e?.status?.errorData?.status === 404) return null
       else throw error

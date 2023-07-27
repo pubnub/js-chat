@@ -17,7 +17,7 @@ export class ErrorLogger {
 
   setItem(key: string, error: unknown) {
     if (typeof error !== "object") {
-      console.warn("parameter 'error' is not an object. It's a noop.")
+      console.warn("parameter 'error' is not an object.")
       console.warn("error is: ", error)
       return
     }
