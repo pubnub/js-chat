@@ -1,12 +1,6 @@
 import PubNub, { UUIDMetadataObject, ObjectCustom, GetMembershipsParametersv2 } from "pubnub"
 import { Chat } from "./chat"
-import {
-  DeleteParameters,
-  MessageType,
-  OptionalAllBut,
-  ReportMessageContent,
-  StatusTypeFields,
-} from "../types"
+import { DeleteParameters, OptionalAllBut, StatusTypeFields } from "../types"
 import { Membership } from "./membership"
 import { INTERNAL_ADMIN_CHANNEL } from "../constants"
 
@@ -132,16 +126,11 @@ export class User {
    * Other
    */
   async report(reason: string) {
-    try {
-      const channel = INTERNAL_ADMIN_CHANNEL
-      const message: ReportMessageContent = {
-        type: MessageType.REPORT,
-        reason,
-        reportedUserId: this.id,
-      }
-      return await this.chat.publish({ message, channel })
-    } catch (error) {
-      throw error
+    const channel = INTERNAL_ADMIN_CHANNEL
+    const payload = {
+      reason,
+      reportedUserId: this.id,
     }
+    return await this.chat.emitEvent({ channel, type: "report", method: "publish", payload })
   }
 }

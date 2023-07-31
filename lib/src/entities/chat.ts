@@ -1,13 +1,22 @@
-import PubNub from "pubnub"
+import PubNub, { MessageEvent, SignalEvent } from "pubnub"
 import { Channel, ChannelFields } from "./channel"
 import { User, UserFields } from "./user"
-import { DeleteParameters, TextMessageContent, ReportMessageContent, ErrorLoggerImplementation } from "../types"
+import {
+  DeleteParameters,
+  TextMessageContent,
+  EventContent,
+  EventType,
+  ErrorLoggerImplementation,
+  ErrorTypes
+} from "../types"
 import { Message } from "./message"
+import { Event } from "./event"
 import { Membership } from "./membership"
-import { MESSAGE_THREAD_ID_PREFIX, INTERNAL_ADMIN_CHANNEL } from "../constants"
+import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadChannel } from "./thread-channel"
 import { MentionsUtils } from "../mentions-utils"
 import { ErrorLogger } from "../ErrorLogger";
+import {getErrorProxiedEntity} from "../error-logging";
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -26,6 +35,33 @@ type ChatConfig = {
 
 type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
 
+function tryCatchProxy (superClass: Function) {
+  const prototype = superClass.prototype;
+
+  if (Object.getOwnPropertyNames(prototype).length < 2) {
+    return superClass;
+  }
+
+  const handler = (fn: Function) => () => {
+    try {
+      // Return is required for exposing result of execution
+      return fn.apply(this, arguments);
+    } catch (error) {
+      // Your catch logic. For example, log to database or send email.
+      console.log("error in tryCatchProxy", error);
+      throw error
+    }
+  };
+
+  for (const property in Object.getOwnPropertyDescriptors(prototype)) {
+    if (prototype.hasOwnProperty(property) && property !== 'constructor' && typeof prototype[property] === 'function') {
+      superClass.prototype[property] = handler(superClass.prototype[property]);
+    }
+  }
+
+  return superClass;
+}
+
 export class Chat {
   readonly sdk: PubNub
   readonly config: ChatConfig
@@ -37,7 +73,7 @@ export class Chat {
   /* @internal */
   private subscriptions: { [channel: string]: Set<string> }
   /** @internal */
-  errorLogger?: ErrorLogger
+  errorLogger: ErrorLogger
 
   /** @internal */
   private constructor(params: ChatConstructor) {
@@ -51,12 +87,19 @@ export class Chat {
       ...pubnubConfig
     } = params
 
-    if (storeUserActivityInterval && storeUserActivityInterval < 600000) {
-      throw "storeUserActivityInterval must be at least 600000ms"
-    }
+    this.errorLogger = new ErrorLogger(errorLogger)
 
-    if (pushNotifications?.deviceGateway === "apns2" && !pushNotifications?.apnsTopic) {
-      throw "apnsTopic has to be defined when deviceGateway is set to apns2"
+    try {
+      if (storeUserActivityInterval && storeUserActivityInterval < 600000) {
+        throw "storeUserActivityInterval must be at least 600000ms"
+      }
+
+      if (pushNotifications?.deviceGateway === "apns2" && !pushNotifications?.apnsTopic) {
+        throw "apnsTopic has to be defined when deviceGateway is set to apns2"
+      }
+    } catch (error) {
+      this.errorLogger.setItem(ErrorTypes.CHAT_INIT, error)
+      throw error
     }
 
     this.sdk = new PubNub(pubnubConfig)
@@ -65,7 +108,7 @@ export class Chat {
     })
     this.subscriptions = {}
     this.suggestedNamesCache = new Map<string, User[]>()
-    this.errorLogger = new ErrorLogger(errorLogger)
+
     this.config = {
       saveDebugLog: saveDebugLog || false,
       typingTimeout: typingTimeout || 5000,
@@ -82,19 +125,26 @@ export class Chat {
   static async init(params: ChatConstructor) {
     const chat = new Chat(params)
 
+    const proxedChat = getErrorProxiedEntity(chat, chat.errorLogger)
+
     chat.user =
       (await chat.getUser(chat.sdk.getUUID())) ||
       (await chat.createUser(chat.sdk.getUUID(), { name: chat.sdk.getUUID() }))
-
-    if (!(await chat.getChannel(INTERNAL_ADMIN_CHANNEL))) {
-      await chat.createChannel(INTERNAL_ADMIN_CHANNEL, {})
-    }
 
     if (params.storeUserActivityTimestamps) {
       chat.storeUserActivityTimestamp()
     }
 
-    return chat
+    const proxy = new Proxy(chat, errorLoggerHandler);
+    // proxy.dummyFunction()
+    // proxy.getChannel("error-channel")
+    // const enhancedChat = tryCatchProxy(chat)
+
+    return proxy
+  }
+
+  dummyFunction() {
+    throw "dummy error"
   }
 
   /* @internal */
@@ -121,10 +171,95 @@ export class Chat {
   }
 
   /* @internal */
-  publish(
-    params: PubNub.PublishParameters & { message: TextMessageContent | ReportMessageContent }
-  ) {
+  publish(params: PubNub.PublishParameters & { message: TextMessageContent }) {
     return this.sdk.publish(params)
+  }
+
+  /* @internal */
+  signal(params: { channel: string; message: any }) {
+    return this.sdk.signal(params)
+  }
+
+  /**
+   * Events
+   */
+  emitEvent<T extends EventType>({
+    channel,
+    type,
+    method,
+    payload,
+  }: {
+    channel: string
+    type?: T
+    method?: "signal" | "publish"
+    payload: EventContent[T]
+  }) {
+    const defType = type || "custom"
+    const defMethod = method || "signal"
+    const message = { ...payload, type: defType }
+    const params = { channel, message }
+    return defMethod === "signal" ? this.signal(params) : this.publish(params)
+  }
+
+  listenForEvents<T extends EventType>({
+    channel,
+    type,
+    method,
+    callback,
+  }: {
+    channel: string
+    type?: T
+    method?: "signal" | "publish"
+    callback: (event: Event<T>) => unknown
+  }) {
+    const defType = type || "custom"
+    const defMethod = method || "signal"
+    const handler = (event: MessageEvent | SignalEvent) => {
+      if (event.channel !== channel) return
+      if (event.message.type !== defType) return
+      const { channel: ch, timetoken, message, publisher } = event
+      callback(Event.fromDTO(this, { channel: ch, timetoken, message, publisher }))
+    }
+    const listener = {
+      ...(defMethod === "signal" ? { signal: handler } : { message: handler }),
+    }
+    const removeListener = this.addListener(listener)
+    const unsubscribe = this.subscribe(channel)
+
+    return () => {
+      removeListener()
+      unsubscribe()
+    }
+  }
+
+  async getEventsHistory(params: {
+    channel: string
+    startTimetoken?: string
+    endTimetoken?: string
+    count?: number
+  }) {
+    try {
+      const options = {
+        channels: [params.channel],
+        count: params.count || 100,
+        start: params.startTimetoken,
+        end: params.endTimetoken,
+        includeMessageActions: false,
+        includeMeta: false,
+      }
+
+      const response = await this.sdk.fetchMessages(options)
+
+      return {
+        events:
+          response.channels[params.channel]?.map((messageObject) =>
+            Event.fromDTO(this, messageObject)
+          ) || [],
+        isMore: response.channels[params.channel]?.length === (params.count || 100),
+      }
+    } catch (error) {
+      throw error
+    }
   }
 
   /**
@@ -290,14 +425,14 @@ export class Chat {
    *  Channels
    */
   async getChannel(id: string) {
-    if (!id.length) throw "ID is required"
     try {
+      if (!id || !id.length) throw "ID is required"
       const response = await this.sdk.objects.getChannelMetadata({
         channel: id,
       })
       return Channel.fromDTO(this, response.data)
     } catch (error) {
-      this.errorLogger?.setItem("getChannel", error)
+      this.errorLogger?.setItem(ErrorTypes.GET_CHANNEL, error)
       const e = error as { status: { errorData: { status: number } } }
       if (e?.status?.errorData?.status === 404) return null
       else throw error
@@ -568,6 +703,58 @@ export class Chat {
     }
   }
 
+  async createGroupConversation({
+    users,
+    channelId,
+    channelData,
+    membershipData = {},
+  }: {
+    users: User[]
+    channelId: string
+    channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
+    membershipData?: Omit<
+      PubNub.SetMembershipsParameters<PubNub.ObjectCustom>,
+      "channels" | "include" | "filter"
+    > & {
+      custom?: PubNub.ObjectCustom
+    }
+  }) {
+    try {
+      const channel =
+        (await this.getChannel(channelId)) || (await this.createChannel(channelId, channelData))
+
+      const { custom, ...rest } = membershipData
+      const hostMembershipPromise = this.sdk.objects.setMemberships({
+        ...rest,
+        channels: [{ id: channel.id, custom }],
+        include: {
+          totalCount: true,
+          customFields: true,
+          channelFields: true,
+          customChannelFields: true,
+        },
+        filter: `channel.id == '${channel.id}'`,
+      })
+
+      const [hostMembershipResponse, inviteesMemberships] = await Promise.all([
+        hostMembershipPromise,
+        channel.inviteMultiple(users),
+      ])
+
+      return {
+        channel,
+        hostMembership: Membership.fromMembershipDTO(
+          this,
+          hostMembershipResponse.data[0],
+          this.user
+        ),
+        inviteesMemberships,
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
   async getUserSuggestions(
     text: string,
     options: { limit: number } = { limit: 10 }
@@ -629,5 +816,9 @@ export class Chat {
   async getPushChannels() {
     const response = await this.sdk.push.listChannels(this.getCommonPushOptions())
     return response.channels
+  }
+
+  getLoggedErrors(allKeys: string[]) {
+    return this.errorLogger.download(allKeys)
   }
 }

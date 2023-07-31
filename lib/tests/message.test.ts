@@ -1,4 +1,4 @@
-import { Chat, Channel, Message, MessageType } from "../src"
+import { Chat, Channel, Message } from "../src"
 import {
   createChatInstance,
   createRandomChannel,
@@ -6,6 +6,7 @@ import {
   waitForAllMessagesToBeDelivered,
 } from "./utils"
 import { INTERNAL_ADMIN_CHANNEL } from "../src"
+import { jest } from "@jest/globals"
 
 describe("Send message test", () => {
   jest.retryTimes(3)
@@ -240,7 +241,7 @@ describe("Send message test", () => {
     const adminChannelHistory = await adminChannel.getHistory({ count: 1 })
     const reportMessage = adminChannelHistory.messages[0]
 
-    expect(reportMessage?.content.type).toBe(MessageType.REPORT)
+    expect(reportMessage?.content.type).toBe("report")
     expect(reportMessage?.content.text).toBe(messageText)
     expect(reportMessage?.content.reason).toBe(reportReason)
     expect(reportMessage?.content.reportedMessageChannelId).toBe(reportedMessage.channelId)

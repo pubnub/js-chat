@@ -5,9 +5,7 @@ import {
   MessageActions,
   DeleteParameters,
   MessageDTOParams,
-  MessageType,
   TextMessageContent,
-  ReportMessageContent,
   GetLinkedTextParams,
 } from "../types"
 import { INTERNAL_ADMIN_CHANNEL } from "../constants"
@@ -21,7 +19,7 @@ export type MessageFields = Pick<
 export class Message {
   protected chat: Chat
   readonly timetoken: string
-  readonly content: TextMessageContent | ReportMessageContent
+  readonly content: TextMessageContent
   readonly channelId: string
   readonly userId: string
   readonly actions?: MessageActions
@@ -306,20 +304,15 @@ export class Message {
   }
 
   async report(reason: string) {
-    try {
-      const channel = INTERNAL_ADMIN_CHANNEL
-      const message: ReportMessageContent = {
-        type: MessageType.REPORT,
-        text: this.text,
-        reason,
-        reportedMessageChannelId: this.channelId,
-        reportedMessageTimetoken: this.timetoken,
-        reportedUserId: this.userId,
-      }
-      return await this.chat.publish({ message, channel })
-    } catch (error) {
-      throw error
+    const channel = INTERNAL_ADMIN_CHANNEL
+    const payload = {
+      text: this.text,
+      reason,
+      reportedMessageChannelId: this.channelId,
+      reportedMessageTimetoken: this.timetoken,
+      reportedUserId: this.userId,
     }
+    return await this.chat.emitEvent({ channel, type: "report", method: "publish", payload })
   }
 
   /**

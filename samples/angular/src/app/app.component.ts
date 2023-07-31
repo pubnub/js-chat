@@ -42,10 +42,6 @@ export class AppComponent {
         removeItem(key: string) {
           localStorage.removeItem(key)
         },
-        download() {
-          console.log({ ...localStorage })
-          return []
-        },
         clear() {
           localStorage.clear()
         },
@@ -65,6 +61,12 @@ export class AppComponent {
     this.forwardChannel =
       (await this.chat.getChannel("forward-channel")) ||
       (await this.chat.createChannel("forward-channel", { name: "forward channel" }))
+
+    // channel.dummyFunction()
+
+    // @ts-ignore
+    // this.chat.getChannel();
+    // this.chat.dummyFunction()
   }
 
   toggleCreateChannelModalChatSDK() {
@@ -77,5 +79,9 @@ export class AppComponent {
 
   toggleCreateDirectConversationModalChatSDK() {
     this.stateService.toggleCreateDirectConversationModalChatSDK()
+  }
+
+  toggleCreateGroupConversationModalChatSDK() {
+    this.stateService.toggleCreateGroupConversationModalChatSDK()
   }
 }

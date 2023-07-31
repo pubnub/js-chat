@@ -1,5 +1,4 @@
 import PubNub, {
-  SignalEvent,
   MessageEvent,
   ObjectCustom,
   GetChannelMembersParameters,
@@ -7,13 +6,14 @@ import PubNub, {
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
+import { Event } from "./event"
 import {
   SendTextOptionParams,
   DeleteParameters,
   ChannelDTOParams,
   MessageDraftConfig,
   MessageType,
-  TextMessageContent,
+  TextMessageContent, ErrorTypes, ErrorLoggerImplementation,
 } from "../types"
 import { Membership } from "./membership"
 import { User } from "./user"
@@ -25,6 +25,102 @@ export type ChannelFields = Pick<
   "id" | "name" | "custom" | "description" | "updated" | "status" | "type"
 >
 
+let eachMethodErrorLogger = function(target: Function) {
+  // console.log("target", target)
+  let descriptors = Object.getOwnPropertyDescriptors(target.prototype);
+  // console.log("descriptors", descriptors)
+
+  for (const [propName, descriptor] of Object.entries(descriptors)) {
+    console.log("descriptor", descriptor.value)
+    // const isMethod =
+    //   typeof descriptor.value == 'function' &&
+    //   propName != 'constructor';
+    // if (!isMethod) continue;
+    const originalMethod = descriptor.value;
+
+    descriptor.value = function (...args: any[]) {
+      try {
+        // console.log("The method args are: " + JSON.stringify(args));
+
+        const result = originalMethod.apply(this, args);
+        // console.log("The return value is: " + result);
+        return result;
+      } catch (error) {
+        throw error
+      }
+    };
+
+    Object.defineProperty(target.prototype, propName, descriptor);
+  }
+}
+
+let errorLoggable = function (param: unknown) {
+  console.log("param", param)
+  return function(target: Function, property: string, descriptor: PropertyDescriptor) {
+    const original = descriptor.value;
+    console.log("descriptor.value", descriptor.value)
+    // @ts-ignore
+    descriptor.value = function(...args) {
+      console.log(`Arguments:`, args);
+      try {
+        const result = original.apply(this, args);
+        return result;
+      } catch (e) {
+        // args[0].errorLogger.setItem(errorKey, e)
+        console.log(`Error:`, e);
+        throw e;
+      }
+    }
+  }
+}
+
+function ClassDecorator<T extends { new(...args: any[]): {} }>(target: T) {
+  const EnhancedTarget = class extends target {
+    errorLogger = undefined
+
+    constructor(...args: any[]) {
+      // console.log(`Ctor arguments:`, args);
+      super(...args);
+      this.errorLogger = args[0].errorLogger
+      // console.log("this.errorLogger", this.errorLogger)
+    }
+
+    // dummyFunction() {
+    //   try {
+    //     // @ts-ignore
+    //     super.dummyFunction()
+    //   } catch(error) {
+    //     // @ts-ignore
+    //     this.errorLogger.setItem("text", error)
+    //     throw error
+    //   }
+    //   // console.log("dummyFunction??")
+    // }
+  }
+
+  let descriptors = Object.getOwnPropertyDescriptors(EnhancedTarget.prototype);
+
+  for (const [propName, descriptor] of Object.entries(descriptors)) {
+    console.log("descriptor", descriptor.value)
+    const originalMethod = descriptor.value;
+
+    descriptor.value = function (...args: any[]) {
+      try {
+        // console.log("The method args are: " + JSON.stringify(args));
+
+        const result = originalMethod.apply(this, args);
+        // console.log("The return value is: " + result);
+        return result;
+      } catch (error) {
+        throw error
+      }
+    };
+
+    Object.defineProperty(EnhancedTarget.prototype, propName, descriptor);
+  }
+}
+
+// @ClassDecorator
 export class Channel {
   protected chat: Chat
   readonly id: string
@@ -54,6 +150,7 @@ export class Channel {
   }
 
   /** @internal */
+  // @errorLoggable(1)
   static fromDTO(chat: Chat, params: ChannelDTOParams) {
     const data = {
       id: params.id,
@@ -131,6 +228,12 @@ export class Channel {
     return pushBuilder.buildPayload(pushGateways)
   }
 
+  // @errorLoggable("sendTextError")
+  dummyFunction() {
+    throw "dummy error"
+  }
+
+
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
       const { mentionedUsers, textLinks, quotedMessage, ...rest } = options
@@ -145,7 +248,7 @@ export class Channel {
         ...this.getPushPayload(text),
       }
 
-      return await this.chat.publish({
+      const publishResponse = await this.chat.publish({
         ...rest,
         channel: this.id,
         message,
@@ -162,6 +265,25 @@ export class Channel {
             : undefined,
         },
       })
+
+      if (mentionedUsers) {
+        Object.keys(mentionedUsers).forEach((key) => {
+          const userId = mentionedUsers[Number(key)].id
+          const payload = {
+            messageTimetoken: String(publishResponse.timetoken),
+            channel: this.id,
+            ...this.getPushPayload(text),
+          }
+          this.chat.emitEvent({
+            channel: userId,
+            type: "mention",
+            method: "publish",
+            payload,
+          })
+        })
+      }
+
+      return publishResponse
     } catch (error) {
       throw error
     }
@@ -176,12 +298,11 @@ export class Channel {
    */
   /* @internal */
   private async sendTypingSignal(value: boolean) {
-    return await this.chat.sdk.signal({
+    return await this.chat.emitEvent({
       channel: this.id,
-      message: {
-        type: MessageType.TYPING,
-        value,
-      },
+      method: "signal",
+      type: "typing",
+      payload: { value },
     })
   }
 
@@ -203,46 +324,39 @@ export class Channel {
   }
 
   getTyping(callback: (typingUserIds: string[]) => unknown) {
-    const listener = {
-      signal: (event: SignalEvent) => {
-        const { channel, message, publisher } = event
-        if (channel !== this.id) return
-        if (message.type !== MessageType.TYPING) return
-        const timer = this.typingIndicators.get(publisher)
-
-        if (!message.value && timer) {
-          clearTimeout(timer)
-          this.typingIndicators.delete(publisher)
-        }
-
-        if (message.value && timer) {
-          clearTimeout(timer)
-          const newTimer = setTimeout(() => {
-            this.typingIndicators.delete(publisher)
-            callback(Array.from(this.typingIndicators.keys()))
-          }, this.chat.config.typingTimeout)
-          this.typingIndicators.set(publisher, newTimer)
-        }
-
-        if (message.value && !timer) {
-          const newTimer = setTimeout(() => {
-            this.typingIndicators.delete(publisher)
-            callback(Array.from(this.typingIndicators.keys()))
-          }, this.chat.config.typingTimeout)
-          this.typingIndicators.set(publisher, newTimer)
-        }
-
-        callback(Array.from(this.typingIndicators.keys()))
-      },
+    const handler = (event: Event<"typing">) => {
+      const { channelId, payload, userId, type } = event
+      if (channelId !== this.id) return
+      if (type !== "typing") return
+      const timer = this.typingIndicators.get(userId)
+      if (!payload.value && timer) {
+        clearTimeout(timer)
+        this.typingIndicators.delete(userId)
+      }
+      if (payload.value && timer) {
+        clearTimeout(timer)
+        const newTimer = setTimeout(() => {
+          this.typingIndicators.delete(userId)
+          callback(Array.from(this.typingIndicators.keys()))
+        }, this.chat.config.typingTimeout)
+        this.typingIndicators.set(userId, newTimer)
+      }
+      if (payload.value && !timer) {
+        const newTimer = setTimeout(() => {
+          this.typingIndicators.delete(userId)
+          callback(Array.from(this.typingIndicators.keys()))
+        }, this.chat.config.typingTimeout)
+        this.typingIndicators.set(userId, newTimer)
+      }
+      callback(Array.from(this.typingIndicators.keys()))
     }
 
-    const removeListener = this.chat.addListener(listener)
-    const unsubscribe = this.chat.subscribe(this.id)
-
-    return () => {
-      removeListener()
-      unsubscribe()
-    }
+    return this.chat.listenForEvents({
+      channel: this.id,
+      method: "signal",
+      type: "typing",
+      callback: handler,
+    })
   }
 
   /*
@@ -252,6 +366,7 @@ export class Channel {
     const listener = {
       message: (event: MessageEvent) => {
         if (event.channel !== this.id) return
+        if (event.message.type !== "text") return
         callback(Message.fromDTO(this.chat, event))
       },
     }
@@ -299,6 +414,7 @@ export class Channel {
         isMore: response.channels[this.id]?.length === (params.count || 25),
       }
     } catch (error) {
+      this.chat.errorLogger?.setItem(ErrorTypes.CHANNEL_HISTORY, error)
       throw error
     }
   }
@@ -359,25 +475,29 @@ export class Channel {
   }
 
   async getMembers(params: Omit<GetChannelMembersParameters, "channel" | "include"> = {}) {
-    const membersResponse = await this.chat.sdk.objects.getChannelMembers({
-      ...params,
-      channel: this.id,
-      include: {
-        totalCount: true,
-        customFields: true,
-        UUIDFields: true,
-        customUUIDFields: true,
-      },
-    })
+    try {
+      const membersResponse = await this.chat.sdk.objects.getChannelMembers({
+        ...params,
+        channel: this.id,
+        include: {
+          totalCount: true,
+          customFields: true,
+          UUIDFields: true,
+          customUUIDFields: true,
+        },
+      })
 
-    return {
-      page: {
-        next: membersResponse.next,
-        prev: membersResponse.prev,
-      },
-      total: membersResponse.totalCount,
-      status: membersResponse.status,
-      members: membersResponse.data.map((m) => Membership.fromChannelMemberDTO(this.chat, m, this)),
+      return {
+        page: {
+          next: membersResponse.next,
+          prev: membersResponse.prev,
+        },
+        total: membersResponse.totalCount,
+        status: membersResponse.status,
+        members: membersResponse.data.map((m) => Membership.fromChannelMemberDTO(this.chat, m, this)),
+      }
+    } catch(error) {
+      throw error
     }
   }
 
@@ -403,6 +523,31 @@ export class Channel {
       })
 
       return Membership.fromMembershipDTO(this.chat, response.data[0], user)
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async inviteMultiple(users: User[]) {
+    const uuids = users.map((u) => u.id)
+    const filter = uuids.map((uuid) => `uuid.id == '${uuid}'`).join(" || ")
+
+    try {
+      const response = await this.chat.sdk.objects.setChannelMembers({
+        channel: this.id,
+        uuids,
+        include: {
+          totalCount: true,
+          customFields: true,
+          UUIDFields: true,
+          customUUIDFields: true,
+        },
+        filter,
+      })
+
+      return response.data.map((dataPoint) =>
+        Membership.fromChannelMemberDTO(this.chat, dataPoint, this)
+      )
     } catch (error) {
       throw error
     }
@@ -478,5 +623,41 @@ export class Channel {
 
   unregisterFromPush() {
     return this.chat.unregisterPushChannels([this.id])
+  }
+
+  async streamReadReceipts(callback: (receipts: { [key: string]: string[] }) => unknown) {
+    const { members } = await this.getMembers()
+
+    const receipts = members.reduce((acc, m) => {
+      const token = m.custom?.lastReadMessageTimetoken
+      if (!token) return acc
+      acc[String(token)] ??= []
+      acc[String(token)].push(m.user.id)
+      return acc
+    }, {} as { [key: string]: string[] })
+
+    callback(receipts)
+
+    const unsubscribe = this.chat.listenForEvents({
+      channel: this.id,
+      type: "receipt",
+      method: "signal",
+      callback: (event) => {
+        const { userId, payload } = event
+        Object.entries(receipts).forEach(([timetoken, userIds]) => {
+          receipts[timetoken] = userIds.filter((id) => id !== userId)
+          if (!receipts[timetoken].length) delete receipts[timetoken]
+        })
+        receipts[payload.messageTimetoken] ??= []
+        receipts[payload.messageTimetoken].push(userId)
+        callback(receipts)
+      },
+    })
+
+    return unsubscribe
+  }
+
+  private setErrorItem(key: string, value: string) {
+    return this.chat.errorLogger.setItem(key, value)
   }
 }
