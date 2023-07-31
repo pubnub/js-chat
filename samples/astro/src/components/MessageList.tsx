@@ -13,6 +13,7 @@ export default function MessageList(props: {
   const [messages, setMessages] = useState<Message[]>([])
   const [editedMessage, setEditedMessage] = useState<Message>()
   const [unreadCount, setUnreadCount] = useState(0)
+  const [readReceipts, setReadReceipts] = useState({})
 
   async function handleTextInput(e) {
     const newText = e.target.value
@@ -88,6 +89,10 @@ export default function MessageList(props: {
     setMessages([])
     setEditedMessage(null)
     setupMessages()
+    const stopReceipts = channel.streamReadReceipts(setReadReceipts)
+    return () => {
+      stopReceipts()
+    }
   }, [channel])
 
   useEffect(() => {
@@ -98,7 +103,6 @@ export default function MessageList(props: {
     if (!messages.length) return
     return ThreadMessage.streamUpdatesOn(messages, setMessages)
   }, [messages])
-
   useEffect(() => {
     if (!membership) return
     getUnreadCount()
@@ -124,11 +128,18 @@ export default function MessageList(props: {
       <ul>
         {messages.map((message) => (
           <li key={message.timetoken}>
-            <div className="flex items-center">
+            <div className="flex items-center mb-2">
               <span className="flex-1">
                 {message.userId}: {message.text}
-                {message.deleted ? "(soft deleted)" : ""}
               </span>
+              <span>
+                {message.deleted ? "(soft deleted)" : ""}
+                {readReceipts[message.timetoken]
+                  ? ` (read by: ${readReceipts[message.timetoken]?.join(", ")})`
+                  : ""}
+              </span>
+            </div>
+            <div>
               <nav>
                 <button
                   className={`py-0.5 px-2 ${
@@ -158,37 +169,37 @@ export default function MessageList(props: {
                   }`}
                   onClick={() => handleMarkRead(message)}
                 >
-                  MR
+                  read
                 </button>
                 <button className="py-0.5 px-2 ml-2" onClick={() => handleReportMessage(message)}>
-                  RP
+                  report
                 </button>
                 {props.handleOpenThread ? (
                   <button
                     className="py-0.5 px-2 ml-2"
                     onClick={() => props.handleOpenThread(message)}
                   >
-                    OT
+                    thread
                   </button>
                 ) : null}
                 <button className="py-0.5 px-2 ml-2" onClick={() => handleEditMessage(message)}>
-                  ED
+                  edit
                 </button>
                 <button
                   className="py-0.5 px-2 ml-2"
                   onClick={() => handleDeleteMessage(message, true)}
                 >
-                  DS
+                  soft del
                 </button>
                 <button
                   className="py-0.5 px-2 ml-2"
                   onClick={() => handleDeleteMessage(message, false)}
                 >
-                  DH
+                  hard del
                 </button>
               </nav>
             </div>
-            <hr className="my-1" />
+            <hr className="my-3" />
           </li>
         ))}
       </ul>

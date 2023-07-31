@@ -5,6 +5,7 @@ import {
   createRandomUser,
   createRandomChannel,
   createChatInstance,
+  sendMessageAndWaitForHistory,
 } from "./utils"
 
 import { jest } from "@jest/globals"
@@ -317,13 +318,9 @@ describe("Channel test", () => {
     const messageText =
       "Hello, this is a test message with words that start with @ but are not user mentions: @test, @example, @check."
 
-    await channel.sendText(messageText)
-    await sleep(150) // history calls have around 130ms of cache time
-
-    const history = await channel.getHistory()
-
-    const messageInHistory = history.messages.find(
-      (message: any) => message.content.text === messageText
+    const messageInHistory = await sendMessageAndWaitForHistory(
+      channel.createMessageDraft(messageText),
+      channel
     )
 
     expect(messageInHistory).toBeDefined()
@@ -345,14 +342,7 @@ describe("Channel test", () => {
     const finalMessageTextToSend = `Hello, @${incorrectUserId}, I tried to mention you`
     await messageDraft.onChange(finalMessageTextToSend)
 
-    await messageDraft.send()
-    await sleep(150) // history calls have around 130ms of cache time
-
-    const history = await channel.getHistory()
-
-    const messageInHistory = history.messages.find(
-      (message: any) => message.content.text === finalMessageTextToSend
-    )
+    const messageInHistory = await sendMessageAndWaitForHistory(messageDraft, channel)
 
     expect(messageInHistory).toBeDefined()
 
@@ -409,14 +399,7 @@ describe("Channel test", () => {
     messageDraft.addMentionedUser(user1, 1)
     await messageDraft.onChange(messageText)
 
-    await messageDraft.send()
-    await sleep(150) // history calls have around 130ms of cache time
-
-    const history = await channel.getHistory()
-
-    const messageInHistory = history.messages.find(
-      (message: any) => message.content.text === messageText
-    )
+    const messageInHistory = await sendMessageAndWaitForHistory(messageDraft, channel)
 
     expect(messageInHistory).toBeDefined()
 
@@ -450,15 +433,7 @@ describe("Channel test", () => {
 
     messageDraft.removeMentionedUser(1)
 
-    //tbd ->utils
-    await messageDraft.send()
-    await sleep(150) // history calls have around 130ms of cache time
-
-    const history = await channel.getHistory()
-
-    const messageInHistory = history.messages.find(
-      (message: any) => message.content.text === expectedMessage
-    )
+    const messageInHistory = await sendMessageAndWaitForHistory(messageDraft, channel)
 
     expect(messageInHistory).toBeDefined()
 
@@ -495,15 +470,7 @@ describe("Channel test", () => {
 
     messageDraft.removeMentionedUser(1)
 
-    //tbd ->utils
-    await messageDraft.send()
-    await sleep(150) // history calls have around 130ms of cache time
-
-    const history = await channel.getHistory()
-
-    const messageInHistory = history.messages.find(
-      (message: any) => message.content.text === expectedMessage
-    )
+    const messageInHistory = await sendMessageAndWaitForHistory(messageDraft, channel)
 
     expect(messageInHistory).toBeDefined()
 
@@ -517,7 +484,7 @@ describe("Channel test", () => {
     await chat.deleteUser(user3.id)
   })
 
-  //have to be precised
+  //still fix in progress
   test.skip("should mention user in a message and validate cache", async () => {
     jest.retryTimes(3)
 
@@ -537,5 +504,70 @@ describe("Channel test", () => {
     await chat.deleteUser(user1.id)
   })
 
+  test("should add and remove a quote", async () => {
+    jest.retryTimes(3)
+
+    const messageText = "Test message"
+    await channel.sendText(messageText)
+    await sleep(150) // history calls have around 130ms of cache time
+    const history = await channel.getHistory()
+    const sentMessage: Message = history.messages[0]
+
+    messageDraft.addQuote(sentMessage)
+
+    expect(messageDraft.quotedMessage).toEqual(sentMessage)
+
+    messageDraft.removeQuote()
+
+    expect(messageDraft.quotedMessage).toBeUndefined()
+  })
+
+  test("should throw an error when trying to quote a message from another channel", async () => {
+    jest.retryTimes(3)
+
+    const otherChannel = await createRandomChannel()
+
+    try {
+      const messageText = "Test message"
+      await otherChannel.sendText(messageText)
+      await sleep(150) // history calls have around 130ms of cache time
+      const history = await otherChannel.getHistory()
+      const otherMessage: Message = history.messages[0]
+
+      messageDraft.addQuote(otherMessage)
+
+      fail("Should have thrown an error")
+    } catch (error) {
+      expect(error).toEqual("You cannot quote messages from other channels")
+    } finally {
+      await otherChannel.delete()
+    }
+  })
+
+  test("should quote multiple messages", async () => {
+    const messageText1 = "Test message 1"
+    const messageText2 = "Test message 2"
+    const messageText3 = "Test message 3"
+
+    await channel.sendText(messageText1)
+    await channel.sendText(messageText2)
+    await channel.sendText(messageText3)
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const history = await channel.getHistory()
+
+    const messageDraft = channel.createMessageDraft()
+
+    messageDraft.addQuote(history.messages[0])
+
+    messageDraft.addQuote(history.messages[1])
+
+    messageDraft.addQuote(history.messages[2])
+
+    expect(messageDraft.quotedMessage).toEqual(history.messages[2])
+
+    messageDraft.removeQuote()
+    expect(messageDraft.quotedMessage).toBeUndefined()
+  })
   jest.retryTimes(3)
 })

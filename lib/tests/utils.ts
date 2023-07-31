@@ -1,5 +1,5 @@
 // lib/tests/testUtils.ts
-import { Chat } from "../src"
+import { Chat, MessageDraft, Channel, Message } from "../src"
 import * as dotenv from "dotenv"
 
 dotenv.config()
@@ -84,4 +84,19 @@ export const extractMentionedUserIds = (messageText: string): string[] => {
     return matches.map((match) => match.slice(1))
   }
   return []
+}
+
+export const sendMessageAndWaitForHistory = async (
+  messageDraft: MessageDraft,
+  channel: Channel,
+  waitTimeMs = 150
+): Promise<Message | undefined> => {
+  await messageDraft.send()
+  await sleep(waitTimeMs)
+
+  const history = await channel.getHistory()
+  const messageInHistory = history.messages.find(
+    (message: any) => message.content.text === messageDraft.value
+  )
+  return messageInHistory
 }
