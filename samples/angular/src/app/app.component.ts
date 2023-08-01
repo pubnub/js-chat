@@ -71,7 +71,7 @@ export class AppComponent {
     this.chat.getChannel("")
     // @ts-ignore
     // this.chat.createChannel(Symbol("symbol"), { name: "a" })
-    this.chat.createChannel('Lorem-ipsum-dolor-sit-amet,-consectetur-adipiscing-elit.-Donec-vitae-ligula-nec-urna-euismod-pretium.-Duis-placerat-volutpat-erat,-a-tincidunt-eros-ultricies-in.-Sed-sagittis-felis-ac-velit-euismod,-quis-imperdiet-felis-consectetur.-Aenean-fermentum-faucibus-dolor-in-iaculis.-Ut-venenatis-est-quis-lectus-malesuada-feugiat.-Pellentesque-habitant-morbi-tristique-senectus-et-netus-et-malesuada-fames-ac-turpis-egestas.-Quisque-elit-lorem,-molestie-et-mi-non,-consectetur-cursus-tellus.-Nullam-tempus-mattis-leo-ac-feugiat.-Phasellus-in-sem-ac-ligula-sagittis-cursus-eu-et-metus.-Vestibulum-pretium-eros-et-pretium-scelerisque.-Morbi-eu-luctus-est,-vel-hendrerit-neque.-Proin-sed-lobortis-mauris,-id-bibendum-leo.', { name: "hello" })
+    // this.chat.createChannel('Lorem-ipsum-dolor-sit-amet,-consectetur-adipiscing-elit.-Donec-vitae-ligula-nec-urna-euismod-pretium.-Duis-placerat-volutpat-erat,-a-tincidunt-eros-ultricies-in.-Sed-sagittis-felis-ac-velit-euismod,-quis-imperdiet-felis-consectetur.-Aenean-fermentum-faucibus-dolor-in-iaculis.-Ut-venenatis-est-quis-lectus-malesuada-feugiat.-Pellentesque-habitant-morbi-tristique-senectus-et-netus-et-malesuada-fames-ac-turpis-egestas.-Quisque-elit-lorem,-molestie-et-mi-non,-consectetur-cursus-tellus.-Nullam-tempus-mattis-leo-ac-feugiat.-Phasellus-in-sem-ac-ligula-sagittis-cursus-eu-et-metus.-Vestibulum-pretium-eros-et-pretium-scelerisque.-Morbi-eu-luctus-est,-vel-hendrerit-neque.-Proin-sed-lobortis-mauris,-id-bibendum-leo.', { name: "hello" })
 
     await this.stateService.toggleChannel(channel)
     this.channel = this.stateService.currentChannel
