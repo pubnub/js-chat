@@ -14,6 +14,7 @@ export type ChannelType = "direct" | "group" | "public"
 
 export enum MessageType {
   TEXT = "text",
+  DELTA = "delta",
 }
 
 export enum MessageActionType {
@@ -26,6 +27,11 @@ export type TextMessageContent = {
   type: MessageType.TEXT
   text: string
   files?: { name: string; id: string; url: string; type?: string }[]
+}
+
+export type DeltaMessageContent = {
+  type: MessageType.DELTA
+  delta: any
 }
 
 export type EventContent = {

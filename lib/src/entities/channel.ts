@@ -1,5 +1,6 @@
 import PubNub, {
   MessageEvent,
+  FileEvent,
   ObjectCustom,
   GetChannelMembersParameters,
   SetMembershipsParameters,
@@ -15,6 +16,7 @@ import {
   MessageType,
   TextMessageContent,
   ChannelType,
+  DeltaMessageContent,
 } from "../types"
 import { ExponentialRateLimiter } from "../rate-limiter"
 import { Membership } from "./membership"
@@ -161,6 +163,32 @@ export class Channel {
       method: "publish",
       payload,
     })
+  }
+
+  async sendDelta(delta: any) {
+    delta.forEach(async (d: any) => {
+      if (!d.insert.image) return
+      const { id, name } = await this.chat.sdk.sendFile({
+        channel: this.id,
+        file: {
+          data: d.insert.image,
+          name: "random-image.png",
+        },
+      })
+      const url = this.chat.sdk.getFileUrl({ channel: this.id, id, name })
+      console.log("found an image: ", d.insert.image)
+      console.log("uploaded to: ", url)
+    })
+    const message: DeltaMessageContent = {
+      type: MessageType.DELTA,
+      delta,
+    }
+
+    const publishResponse = await this.chat.publish({
+      channel: this.id,
+      message,
+    })
+    return publishResponse
   }
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
@@ -310,8 +338,13 @@ export class Channel {
     const listener = {
       message: (event: MessageEvent) => {
         if (event.channel !== this.id) return
-        if (event.message.type !== "text") return
+        if (![MessageType.TEXT, MessageType.DELTA].includes(event.message.type)) return
+        console.log("Received a message event: ", event)
         callback(Message.fromDTO(this.chat, event))
+      },
+      file: (event: FileEvent) => {
+        if (event.channel !== this.id) return
+        console.log("Received a file event: ", event)
       },
     }
 

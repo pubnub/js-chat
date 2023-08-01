@@ -9,6 +9,7 @@ import {
   ChannelType,
   ErrorLoggerImplementation,
   UserMentionData,
+  DeltaMessageContent,
 } from "../types"
 import { Message } from "./message"
 import { Event } from "./event"
@@ -150,7 +151,9 @@ export class Chat {
   }
 
   /* @internal */
-  publish(params: PubNub.PublishParameters & { message: TextMessageContent }) {
+  publish(
+    params: PubNub.PublishParameters & { message: TextMessageContent | DeltaMessageContent }
+  ) {
     return this.sdk.publish(params)
   }
 

@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "quill": "^1.3.7",
+    "quill-mention": "^3.4.0",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },

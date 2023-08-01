@@ -5,7 +5,7 @@
 }
 
 html {
-  font-family:Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   font-size: 13px;
   height: 100%;
 }
@@ -34,7 +34,7 @@ header {
   padding: 16px;
 }
 
-section{
+section {
   border: solid #d0dae5;
   border-width: 1px 0;
   display: flex;
@@ -77,7 +77,7 @@ p {
 
 form {
   display: flex;
-  padding: 16px;
+  padding: 8px 16px 16px;
 }
 
 input {
@@ -88,8 +88,54 @@ input {
   width: 100%;
 }
 
-input[type=submit] {
+input[type="submit"] {
   cursor: pointer;
   margin-left: 10px;
   width: auto;
+}
+
+.ql-container {
+  height: auto;
+}
+
+.ql-toolbar.ql-snow {
+  border: none;
+  padding: 0 0 8px;
+}
+
+.ql-container.ql-snow {
+  border: none;
+}
+
+.ql-mention-list-container {
+  background: #e4e9f0;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.ql-mention-list {
+  padding: 0;
+}
+
+.ql-mention-list-item {
+  margin: 0;
+  padding: 10px 15px;
+}
+
+.ql-mention-list-item.selected {
+  background: rgb(204, 213, 223);
+}
+
+article .ql-editor {
+  padding: 5px 0 0;
+  height: auto;
+}
+
+form .ql-editor {
+  background: #e4e9f0;
+  border-radius: 15px;
+}
+
+.mention {
+  background: rgb(204, 213, 223);
 }
