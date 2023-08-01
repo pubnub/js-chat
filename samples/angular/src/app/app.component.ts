@@ -32,10 +32,12 @@ export class AppComponent {
   async ngOnInit() {
     const storage = {}
     const setItem = (key: string, value: string) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       storage[key] = value
     }
     const getItem = (key: string) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       return storage[key]
     }
@@ -48,17 +50,16 @@ export class AppComponent {
       errorLogger: {
         setItem(key: string, value: string) {
           setItem(key, value)
-          // localStorage.setItem(key, value)
         },
         getItem(key: string) {
-          // return localStorage.getItem(key)
           return getItem(key)
         },
         getStorageObject() {
           return storage
-        }
-      }
+        },
+      },
     })
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     window.storage = storage
 
@@ -69,9 +70,10 @@ export class AppComponent {
     channel.update(Symbol("hello!"))
     this.chat.updateChannel(channel.id, Symbol("hello world!"))
     this.chat.getChannel("")
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     // this.chat.createChannel(Symbol("symbol"), { name: "a" })
-    // this.chat.createChannel('Lorem-ipsum-dolor-sit-amet,-consectetur-adipiscing-elit.-Donec-vitae-ligula-nec-urna-euismod-pretium.-Duis-placerat-volutpat-erat,-a-tincidunt-eros-ultricies-in.-Sed-sagittis-felis-ac-velit-euismod,-quis-imperdiet-felis-consectetur.-Aenean-fermentum-faucibus-dolor-in-iaculis.-Ut-venenatis-est-quis-lectus-malesuada-feugiat.-Pellentesque-habitant-morbi-tristique-senectus-et-netus-et-malesuada-fames-ac-turpis-egestas.-Quisque-elit-lorem,-molestie-et-mi-non,-consectetur-cursus-tellus.-Nullam-tempus-mattis-leo-ac-feugiat.-Phasellus-in-sem-ac-ligula-sagittis-cursus-eu-et-metus.-Vestibulum-pretium-eros-et-pretium-scelerisque.-Morbi-eu-luctus-est,-vel-hendrerit-neque.-Proin-sed-lobortis-mauris,-id-bibendum-leo.', { name: "hello" })
+    // this.chat.createChannel('Lorem-ipsum-dolor-sit-amet,-consectetur-adipiscing-elit.-Donec-vitae-ligula-nec-urna-euismod-pretium.-Duis-placerat-volutpat-erat,-a-tincidunt-eros-ultricies-in.-Sed-sagittis-felis-ac-velit-euismod,-quis-imperdiet-felis-consectetur.-Aenean-fermentum-faucibus-dolor-in-iaculis.-Ut-venenatis-est-quis-lectus-malesuada-feugiat.-Pellentesque-habitant-morbi-tristique-senectus-et-netus-et-malesuada-fames-ac-turpis-egestas.-Quisque-elit-lorem,-molestie-et-mi-non,-consectetur-cursus-tellus.-Nullam-tempus-mattis-leo-ac-feugiat.-Phasellus-in-sem-ac-ligula-sagittis-cursus-eu-et-metus.-Vestibulum-pretium-eros-et-pretium-scelerisque.-Morbi-eu-luctus-est,-vel-hendrerit-neque.-Proin-sed-lobortis-mauris,-id-bibendum-leo.', { name: "hello world" })
 
     await this.stateService.toggleChannel(channel)
     this.channel = this.stateService.currentChannel
@@ -81,7 +83,7 @@ export class AppComponent {
       (await this.chat.createChannel("forward-channel", { name: "forward channel" }))
 
     // channel.dummyFunction()
-
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     // this.chat.getChannel();
     // this.chat.dummyFunction()
