@@ -20,7 +20,7 @@ import { Membership } from "./membership"
 import { User } from "./user"
 import { MentionsUtils } from "../mentions-utils"
 import { MessageDraft } from "./message-draft"
-import {getErrorProxiedEntity} from "../error-logging";
+import { getErrorProxiedEntity } from "../error-logging"
 
 export type ChannelFields = Pick<
   Channel,
@@ -131,10 +131,6 @@ export class Channel {
     }
 
     return pushBuilder.buildPayload(pushGateways)
-  }
-
-  dummyFunction() {
-    throw "dummy error"
   }
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
@@ -377,29 +373,25 @@ export class Channel {
   }
 
   async getMembers(params: Omit<GetChannelMembersParameters, "channel" | "include"> = {}) {
-    try {
-      const membersResponse = await this.chat.sdk.objects.getChannelMembers({
-        ...params,
-        channel: this.id,
-        include: {
-          totalCount: true,
-          customFields: true,
-          UUIDFields: true,
-          customUUIDFields: true,
-        },
-      })
+    const membersResponse = await this.chat.sdk.objects.getChannelMembers({
+      ...params,
+      channel: this.id,
+      include: {
+        totalCount: true,
+        customFields: true,
+        UUIDFields: true,
+        customUUIDFields: true,
+      },
+    })
 
-      return {
-        page: {
-          next: membersResponse.next,
-          prev: membersResponse.prev,
-        },
-        total: membersResponse.totalCount,
-        status: membersResponse.status,
-        members: membersResponse.data.map((m) => Membership.fromChannelMemberDTO(this.chat, m, this)),
-      }
-    } catch(error) {
-      throw error
+    return {
+      page: {
+        next: membersResponse.next,
+        prev: membersResponse.prev,
+      },
+      total: membersResponse.totalCount,
+      status: membersResponse.status,
+      members: membersResponse.data.map((m) => Membership.fromChannelMemberDTO(this.chat, m, this)),
     }
   }
 

@@ -67,9 +67,9 @@ export class AppComponent {
       (await this.chat.getChannel("123")) ||
       (await this.chat.createChannel("123", { name: "Some channel" }))
 
-    channel.update(Symbol("hello!"))
-    this.chat.updateChannel(channel.id, Symbol("hello world!"))
-    this.chat.getChannel("")
+    // channel.update(Symbol("hello!"))
+    // this.chat.updateChannel(channel.id, Symbol("hello world!"))
+    // this.chat.getChannel("")
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     // this.chat.createChannel(Symbol("symbol"), { name: "a" })
@@ -82,11 +82,9 @@ export class AppComponent {
       (await this.chat.getChannel("forward-channel")) ||
       (await this.chat.createChannel("forward-channel", { name: "forward channel" }))
 
-    // channel.dummyFunction()
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     // this.chat.getChannel();
-    // this.chat.dummyFunction()
   }
 
   toggleCreateChannelModalChatSDK() {

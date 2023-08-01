@@ -1,17 +1,23 @@
-import { ErrorLoggerImplementation } from "./types";
-import { ERROR_LOGGER_KEY_PREFIX }  from "./constants";
-import { Chat } from "./entities/chat";
+import { ErrorLoggerImplementation } from "./types"
+import { ERROR_LOGGER_KEY_PREFIX } from "./constants"
 
 export class ErrorLogger {
   private errorLoggerImplementation: ErrorLoggerImplementation
   private creationDate: Date
 
   constructor(errorLoggerImplementation?: ErrorLoggerImplementation) {
-    this.errorLoggerImplementation = errorLoggerImplementation || new class {
-      setItem() {}
-      getItem() { return null }
-      getStorageObject() { return {} }
-    }
+    this.errorLoggerImplementation =
+      errorLoggerImplementation ||
+      new (class {
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        setItem() {}
+        getItem() {
+          return null
+        }
+        getStorageObject() {
+          return {}
+        }
+      })()
     this.creationDate = new Date()
   }
 
@@ -20,7 +26,8 @@ export class ErrorLogger {
       return
     }
     const timestampKey = String(this.creationDate.getTime())
-    const currentValue = this.errorLoggerImplementation.getItem(`${ERROR_LOGGER_KEY_PREFIX}_${timestampKey}`) || '[]'
+    const currentValue =
+      this.errorLoggerImplementation.getItem(`${ERROR_LOGGER_KEY_PREFIX}_${timestampKey}`) || "[]"
     let errorToSave = error
 
     if (typeof error === "string") {
@@ -30,6 +37,8 @@ export class ErrorLogger {
       errorToSave = {
         name: error.name,
         message: error.message,
+        // status comes from PubNub
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         status: error.status,
         // should we ignore "stack"?
@@ -37,7 +46,13 @@ export class ErrorLogger {
       }
     }
 
-    this.errorLoggerImplementation.setItem(`${ERROR_LOGGER_KEY_PREFIX}_${timestampKey}`, JSON.stringify([ ...JSON.parse(currentValue), { key, error: errorToSave, thrownFunctionArguments } ]))
+    this.errorLoggerImplementation.setItem(
+      `${ERROR_LOGGER_KEY_PREFIX}_${timestampKey}`,
+      JSON.stringify([
+        ...JSON.parse(currentValue),
+        { key, error: errorToSave, thrownFunctionArguments },
+      ])
+    )
   }
 
   getItem(key: string) {
@@ -53,41 +68,44 @@ export class ErrorLogger {
   getStorageObject() {
     const storageObject = this.errorLoggerImplementation.getStorageObject()
 
-    //create a file and put the content, name and type
-    const file = new File(["\ufeff" + JSON.stringify(storageObject)], 'pubnub_debug_log.txt', {type: "text/plain:charset=UTF-8"});
+    const file = new File(
+      ["\ufeff" + JSON.stringify(storageObject)],
+      `pubnub_debug_log_${this.creationDate}.txt`,
+      { type: "text/plain:charset=UTF-8" }
+    )
 
-    //create a ObjectURL in order to download the created file
-    const url = window.URL.createObjectURL(file);
+    const url = window.URL.createObjectURL(file)
 
-    //create a hidden link and set the href and click it
-    const a = document.createElement("a");
+    const a = document.createElement("a")
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    a.style = "display: none";
-    a.href = url;
-    a.download = file.name;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    a.style = "display: none"
+    a.href = url
+    a.download = file.name
+    a.click()
+    window.URL.revokeObjectURL(url)
   }
 }
 
 export function getErrorProxiedEntity<T extends object>(baseEntity: T, errorLogger: ErrorLogger) {
-  const  errorLoggerHandler = {
-    get(target: T, prop: keyof T) {
-      if (typeof target[prop] !== "function") {
-        return target[prop]
+  const errorLoggerHandler = {
+    get(target: T, prop: string) {
+      if (typeof target[prop as keyof T] !== "function") {
+        return target[prop as keyof T]
       }
 
       return function () {
         const errorKey = `${target.constructor.name}:${String(prop)}`
         try {
-          // @ts-ignore
-          const response = target[prop](...arguments)
+          const response = (target[prop as keyof T] as (...args: unknown[]) => unknown)(
+            ...arguments
+          )
 
           if (response.then) {
             return response
-              .then((resolved: any) => {
-              return resolved
-            })
+              .then((resolved: unknown) => {
+                return resolved
+              })
               .catch((error: unknown) => {
                 errorLogger.setItem(errorKey, error, arguments)
                 throw error
@@ -95,7 +113,7 @@ export function getErrorProxiedEntity<T extends object>(baseEntity: T, errorLogg
           }
 
           return response
-        } catch(error) {
+        } catch (error) {
           errorLogger.setItem(errorKey, error, arguments)
           throw error
         }
@@ -103,6 +121,5 @@ export function getErrorProxiedEntity<T extends object>(baseEntity: T, errorLogg
     },
   }
 
-  // @ts-ignore
-  return new Proxy(baseEntity, errorLoggerHandler);
+  return new Proxy(baseEntity, errorLoggerHandler)
 }

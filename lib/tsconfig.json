@@ -15,8 +15,7 @@
     "noImplicitThis": false,
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "stripInternal": true,
-    "experimentalDecorators": true
+    "stripInternal": true
   },
   "include": ["src/**/*"]
 }

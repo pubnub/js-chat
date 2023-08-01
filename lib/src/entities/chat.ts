@@ -7,7 +7,7 @@ import {
   EventContent,
   EventType,
   ErrorLoggerImplementation,
-  ErrorTypes
+  ErrorTypes,
 } from "../types"
 import { Message } from "./message"
 import { Event } from "./event"
@@ -15,7 +15,7 @@ import { Membership } from "./membership"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadChannel } from "./thread-channel"
 import { MentionsUtils } from "../mentions-utils"
-import { getErrorProxiedEntity, ErrorLogger } from "../error-logging";
+import { getErrorProxiedEntity, ErrorLogger } from "../error-logging"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -108,11 +108,6 @@ export class Chat {
     }
 
     return proxiedChat
-  }
-
-  dummyFunction() {
-    // throw new Error()
-    throw "dummy error"
   }
 
   /* @internal */
@@ -393,8 +388,8 @@ export class Chat {
    *  Channels
    */
   async getChannel(id: string) {
+    if (!id || !id.length) throw "ID is required"
     try {
-      if (!id || !id.length) throw "ID is required"
       const response = await this.sdk.objects.getChannelMetadata({
         channel: id,
       })
