@@ -13,7 +13,8 @@ import {
   ChannelDTOParams,
   MessageDraftConfig,
   MessageType,
-  TextMessageContent, ErrorTypes, ErrorLoggerImplementation,
+  TextMessageContent,
+  ErrorTypes,
 } from "../types"
 import { Membership } from "./membership"
 import { User } from "./user"
@@ -25,102 +26,6 @@ export type ChannelFields = Pick<
   "id" | "name" | "custom" | "description" | "updated" | "status" | "type"
 >
 
-let eachMethodErrorLogger = function(target: Function) {
-  // console.log("target", target)
-  let descriptors = Object.getOwnPropertyDescriptors(target.prototype);
-  // console.log("descriptors", descriptors)
-
-  for (const [propName, descriptor] of Object.entries(descriptors)) {
-    console.log("descriptor", descriptor.value)
-    // const isMethod =
-    //   typeof descriptor.value == 'function' &&
-    //   propName != 'constructor';
-    // if (!isMethod) continue;
-    const originalMethod = descriptor.value;
-
-    descriptor.value = function (...args: any[]) {
-      try {
-        // console.log("The method args are: " + JSON.stringify(args));
-
-        const result = originalMethod.apply(this, args);
-        // console.log("The return value is: " + result);
-        return result;
-      } catch (error) {
-        throw error
-      }
-    };
-
-    Object.defineProperty(target.prototype, propName, descriptor);
-  }
-}
-
-let errorLoggable = function (param: unknown) {
-  console.log("param", param)
-  return function(target: Function, property: string, descriptor: PropertyDescriptor) {
-    const original = descriptor.value;
-    console.log("descriptor.value", descriptor.value)
-    // @ts-ignore
-    descriptor.value = function(...args) {
-      console.log(`Arguments:`, args);
-      try {
-        const result = original.apply(this, args);
-        return result;
-      } catch (e) {
-        // args[0].errorLogger.setItem(errorKey, e)
-        console.log(`Error:`, e);
-        throw e;
-      }
-    }
-  }
-}
-
-function ClassDecorator<T extends { new(...args: any[]): {} }>(target: T) {
-  const EnhancedTarget = class extends target {
-    errorLogger = undefined
-
-    constructor(...args: any[]) {
-      // console.log(`Ctor arguments:`, args);
-      super(...args);
-      this.errorLogger = args[0].errorLogger
-      // console.log("this.errorLogger", this.errorLogger)
-    }
-
-    // dummyFunction() {
-    //   try {
-    //     // @ts-ignore
-    //     super.dummyFunction()
-    //   } catch(error) {
-    //     // @ts-ignore
-    //     this.errorLogger.setItem("text", error)
-    //     throw error
-    //   }
-    //   // console.log("dummyFunction??")
-    // }
-  }
-
-  let descriptors = Object.getOwnPropertyDescriptors(EnhancedTarget.prototype);
-
-  for (const [propName, descriptor] of Object.entries(descriptors)) {
-    console.log("descriptor", descriptor.value)
-    const originalMethod = descriptor.value;
-
-    descriptor.value = function (...args: any[]) {
-      try {
-        // console.log("The method args are: " + JSON.stringify(args));
-
-        const result = originalMethod.apply(this, args);
-        // console.log("The return value is: " + result);
-        return result;
-      } catch (error) {
-        throw error
-      }
-    };
-
-    Object.defineProperty(EnhancedTarget.prototype, propName, descriptor);
-  }
-}
-
-// @ClassDecorator
 export class Channel {
   protected chat: Chat
   readonly id: string
@@ -228,7 +133,6 @@ export class Channel {
     return pushBuilder.buildPayload(pushGateways)
   }
 
-  // @errorLoggable("sendTextError")
   dummyFunction() {
     throw "dummy error"
   }

@@ -15,8 +15,7 @@ import { Membership } from "./membership"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadChannel } from "./thread-channel"
 import { MentionsUtils } from "../mentions-utils"
-import { ErrorLogger } from "../ErrorLogger";
-import {getErrorProxiedEntity} from "../error-logging";
+import { getErrorProxiedEntity, ErrorLogger } from "../error-logging";
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -34,33 +33,6 @@ type ChatConfig = {
 }
 
 type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
-
-function tryCatchProxy (superClass: Function) {
-  const prototype = superClass.prototype;
-
-  if (Object.getOwnPropertyNames(prototype).length < 2) {
-    return superClass;
-  }
-
-  const handler = (fn: Function) => () => {
-    try {
-      // Return is required for exposing result of execution
-      return fn.apply(this, arguments);
-    } catch (error) {
-      // Your catch logic. For example, log to database or send email.
-      console.log("error in tryCatchProxy", error);
-      throw error
-    }
-  };
-
-  for (const property in Object.getOwnPropertyDescriptors(prototype)) {
-    if (prototype.hasOwnProperty(property) && property !== 'constructor' && typeof prototype[property] === 'function') {
-      superClass.prototype[property] = handler(superClass.prototype[property]);
-    }
-  }
-
-  return superClass;
-}
 
 export class Chat {
   readonly sdk: PubNub
@@ -125,7 +97,7 @@ export class Chat {
   static async init(params: ChatConstructor) {
     const chat = new Chat(params)
 
-    const proxedChat = getErrorProxiedEntity(chat, chat.errorLogger)
+    const proxiedChat = getErrorProxiedEntity(chat, chat.errorLogger)
 
     chat.user =
       (await chat.getUser(chat.sdk.getUUID())) ||
@@ -135,15 +107,11 @@ export class Chat {
       chat.storeUserActivityTimestamp()
     }
 
-    const proxy = new Proxy(chat, errorLoggerHandler);
-    // proxy.dummyFunction()
-    // proxy.getChannel("error-channel")
-    // const enhancedChat = tryCatchProxy(chat)
-
-    return proxy
+    return proxiedChat
   }
 
   dummyFunction() {
+    throw new Error()
     throw "dummy error"
   }
 

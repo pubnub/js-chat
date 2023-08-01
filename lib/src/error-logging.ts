@@ -1,5 +1,6 @@
 import { ErrorLoggerImplementation } from "./types";
 import { ERROR_LOGGER_KEY_PREFIX }  from "./constants";
+import { Chat } from "./entities/chat";
 
 export class ErrorLogger {
   private errorLoggerImplementation: ErrorLoggerImplementation
@@ -48,11 +49,11 @@ export class ErrorLogger {
   }
 }
 
-type ClassRef = new (...args: any[]) => any;
+// type ClassRef = new (...args: any[]) => any;
 
-export function getErrorProxiedEntity(baseEntity: ClassRef, errorLogger: ErrorLogger) {
+export function getErrorProxiedEntity(baseEntity: Chat, errorLogger: ErrorLogger) {
   const  errorLoggerHandler = {
-    get(target: ClassRef, prop: keyof ClassRef) {
+    get(target: Chat, prop: keyof Chat) {
       if (typeof target[prop] !== "function") {
         return target[prop]
       }

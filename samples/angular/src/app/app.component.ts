@@ -66,7 +66,7 @@ export class AppComponent {
 
     // @ts-ignore
     // this.chat.getChannel();
-    // this.chat.dummyFunction()
+    this.chat.dummyFunction()
   }
 
   toggleCreateChannelModalChatSDK() {
