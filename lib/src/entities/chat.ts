@@ -70,7 +70,7 @@ export class Chat {
         throw "apnsTopic has to be defined when deviceGateway is set to apns2"
       }
     } catch (error) {
-      this.errorLogger.setItem(ErrorTypes.CHAT_INIT, error)
+      this.errorLogger.setItem("PushNotificationError", error, arguments)
       throw error
     }
 
@@ -111,7 +111,7 @@ export class Chat {
   }
 
   dummyFunction() {
-    throw new Error()
+    // throw new Error()
     throw "dummy error"
   }
 
@@ -400,7 +400,6 @@ export class Chat {
       })
       return Channel.fromDTO(this, response.data)
     } catch (error) {
-      this.errorLogger?.setItem(ErrorTypes.GET_CHANNEL, error)
       const e = error as { status: { errorData: { status: number } } }
       if (e?.status?.errorData?.status === 404) return null
       else throw error
@@ -786,7 +785,7 @@ export class Chat {
     return response.channels
   }
 
-  getLoggedErrors(allKeys: string[]) {
-    return this.errorLogger.download(allKeys)
+  downloadDebugLog() {
+    return this.errorLogger.getStorageObject()
   }
 }

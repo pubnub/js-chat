@@ -20,6 +20,7 @@ import { Membership } from "./membership"
 import { User } from "./user"
 import { MentionsUtils } from "../mentions-utils"
 import { MessageDraft } from "./message-draft"
+import {getErrorProxiedEntity} from "../error-logging";
 
 export type ChannelFields = Pick<
   Channel,
@@ -55,7 +56,6 @@ export class Channel {
   }
 
   /** @internal */
-  // @errorLoggable(1)
   static fromDTO(chat: Chat, params: ChannelDTOParams) {
     const data = {
       id: params.id,
@@ -67,7 +67,7 @@ export class Channel {
       type: params.type || undefined,
     }
 
-    return new Channel(chat, data)
+    return getErrorProxiedEntity(new Channel(chat, data), chat.errorLogger)
   }
 
   /*
@@ -136,7 +136,6 @@ export class Channel {
   dummyFunction() {
     throw "dummy error"
   }
-
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
@@ -318,7 +317,6 @@ export class Channel {
         isMore: response.channels[this.id]?.length === (params.count || 25),
       }
     } catch (error) {
-      this.chat.errorLogger?.setItem(ErrorTypes.CHANNEL_HISTORY, error)
       throw error
     }
   }
@@ -559,9 +557,5 @@ export class Channel {
     })
 
     return unsubscribe
-  }
-
-  private setErrorItem(key: string, value: string) {
-    return this.chat.errorLogger.setItem(key, value)
   }
 }

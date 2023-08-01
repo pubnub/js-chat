@@ -10,20 +10,34 @@ export class ErrorLogger {
     this.errorLoggerImplementation = errorLoggerImplementation || new class {
       setItem() {}
       getItem() { return null }
-      removeItem() {}
-      clear() {}
+      getStorageObject() { return {} }
     }
     this.creationDate = new Date()
   }
 
-  setItem(key: string, error: unknown) {
+  setItem(key: string, error: unknown, thrownFunctionArguments: IArguments) {
     if (!error) {
       return
     }
     const timestampKey = String(this.creationDate.getTime())
-    const currentValue = this.errorLoggerImplementation.getItem(timestampKey) || '[]'
+    const currentValue = this.errorLoggerImplementation.getItem(`${ERROR_LOGGER_KEY_PREFIX}_${timestampKey}`) || '[]'
+    let errorToSave = error
 
-    this.errorLoggerImplementation.setItem(`${ERROR_LOGGER_KEY_PREFIX}_${timestampKey}`, JSON.stringify([ ...JSON.parse(currentValue), { key, error } ]))
+    if (typeof error === "string") {
+      errorToSave = error
+    }
+    if (error instanceof Error) {
+      errorToSave = {
+        name: error.name,
+        message: error.message,
+        // @ts-ignore
+        status: error.status,
+        // should we ignore "stack"?
+        // stack: error.stack
+      }
+    }
+
+    this.errorLoggerImplementation.setItem(`${ERROR_LOGGER_KEY_PREFIX}_${timestampKey}`, JSON.stringify([ ...JSON.parse(currentValue), { key, error: errorToSave, thrownFunctionArguments } ]))
   }
 
   getItem(key: string) {
@@ -36,40 +50,59 @@ export class ErrorLogger {
     return JSON.parse(item)
   }
 
-  removeItem(key: string) {
-    this.errorLoggerImplementation.removeItem(key)
-  }
+  getStorageObject() {
+    const storageObject = this.errorLoggerImplementation.getStorageObject()
 
-  clear() {
-    this.errorLoggerImplementation.clear()
-  }
+    //create a file and put the content, name and type
+    const file = new File(["\ufeff" + JSON.stringify(storageObject)], 'pubnub_debug_log.txt', {type: "text/plain:charset=UTF-8"});
 
-  download(allKeys: string[]) {
-    return allKeys.filter(key => key.startsWith(ERROR_LOGGER_KEY_PREFIX)).map(key => this.getItem(key))
+    //create a ObjectURL in order to download the created file
+    const url = window.URL.createObjectURL(file);
+
+    //create a hidden link and set the href and click it
+    const a = document.createElement("a");
+    // @ts-ignore
+    a.style = "display: none";
+    a.href = url;
+    a.download = file.name;
+    a.click();
+    window.URL.revokeObjectURL(url);
   }
 }
 
-// type ClassRef = new (...args: any[]) => any;
-
-export function getErrorProxiedEntity(baseEntity: Chat, errorLogger: ErrorLogger) {
+export function getErrorProxiedEntity<T extends object>(baseEntity: T, errorLogger: ErrorLogger) {
   const  errorLoggerHandler = {
-    get(target: Chat, prop: keyof Chat) {
+    get(target: T, prop: keyof T) {
       if (typeof target[prop] !== "function") {
         return target[prop]
       }
 
       return function () {
+        const errorKey = `${target.constructor.name}:${String(prop)}`
         try {
           // @ts-ignore
-          return target[prop](...arguments)
+          const response = target[prop](...arguments)
+
+          if (response.then) {
+            return response
+              .then((resolved: any) => {
+              return resolved
+            })
+              .catch((error: unknown) => {
+                errorLogger.setItem(errorKey, error, arguments)
+                throw error
+              })
+          }
+
+          return response
         } catch(error) {
-          console.log("error handler?")
-          errorLogger.setItem("proxyError", error)
+          errorLogger.setItem(errorKey, error, arguments)
           throw error
         }
       }
     },
   }
 
+  // @ts-ignore
   return new Proxy(baseEntity, errorLoggerHandler);
 }
