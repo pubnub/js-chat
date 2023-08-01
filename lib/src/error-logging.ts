@@ -97,11 +97,9 @@ export function getErrorProxiedEntity<T extends object>(baseEntity: T, errorLogg
       return function () {
         const errorKey = `${target.constructor.name}:${String(prop)}`
         try {
-          const response = (target[prop as keyof T] as (...args: unknown[]) => unknown)(
-            ...arguments
-          )
+          const response = (target[prop as keyof T] as (...args: unknown[]) => any)(...arguments)
 
-          if (response.then) {
+          if (response?.then) {
             return response
               .then((resolved: unknown) => {
                 return resolved
