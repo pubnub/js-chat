@@ -3,6 +3,7 @@ import { Chat } from "./chat"
 import { DeleteParameters, OptionalAllBut, StatusTypeFields } from "../types"
 import { Membership } from "./membership"
 import { INTERNAL_ADMIN_CHANNEL } from "../constants"
+import { getErrorProxiedEntity } from "../error-logging"
 
 export type UserFields = Pick<
   User,
@@ -45,7 +46,7 @@ export class User {
       type: params.type || undefined,
       lastActiveTimestamp: params.custom?.lastActiveTimestamp || undefined,
     }
-    return new User(chat, data)
+    return getErrorProxiedEntity(new User(chat, data), chat.errorLogger)
   }
 
   /*

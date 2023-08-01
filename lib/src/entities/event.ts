@@ -1,6 +1,7 @@
 import { MessageEvent, FetchMessagesResponse } from "pubnub"
 import { Chat } from "./chat"
 import { EventContent, EventType } from "../types"
+import { getErrorProxiedEntity } from "../error-logging"
 
 export type EventFields<T extends EventType> = Pick<
   Event<T>,
@@ -45,6 +46,6 @@ export class Event<T extends EventType> {
       userId: "publisher" in params ? (params.publisher as string) : params.uuid || "unknown-user",
     }
 
-    return new Event(chat, data)
+    return getErrorProxiedEntity(new Event(chat, data), chat.errorLogger)
   }
 }

@@ -14,7 +14,6 @@ import {
   MessageDraftConfig,
   MessageType,
   TextMessageContent,
-  ErrorTypes,
 } from "../types"
 import { Membership } from "./membership"
 import { User } from "./user"
@@ -508,7 +507,7 @@ export class Channel {
   }
 
   createMessageDraft(config?: Partial<MessageDraftConfig>) {
-    return new MessageDraft(this.chat, this, config)
+    return getErrorProxiedEntity(new MessageDraft(this.chat, this, config), this.chat.errorLogger)
   }
 
   registerForPush() {
