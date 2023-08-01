@@ -193,33 +193,49 @@ describe("Send message test", () => {
     await new Promise((resolve) => setTimeout(resolve, 2000))
   }, 30000)
 
-  test("should add linked text correctly", async () => {
+  test("should convert text with URLs into hyperlinks", async () => {
     const messageDraft = channel.createMessageDraft()
-    messageDraft.onChange("Click here")
-    messageDraft.addLinkedText({ text: "here", link: "https://pubnub.com", positionInInput: 6 })
+    messageDraft.onChange("Check out this website: www.example.com")
 
     const messagePreview = messageDraft.getMessagePreview()
 
-    expect(messagePreview).toContain('<a href="https://pubnub.com">here</a>')
+    const expectedLinkObject = {
+      type: "plainLink",
+      content: {
+        link: "www.example.com",
+      },
+    }
 
-    messageDraft.removeLinkedText(6)
+    expect(messagePreview).toEqual(expect.arrayContaining([expectedLinkObject]))
 
-    const updatedMessagePreview = messageDraft.getMessagePreview()
+    const linksInPreview = messagePreview.filter((part) => part.type === "plainLink")
+    const linkUrlsInPreview = linksInPreview.map((link) => link.content.link)
 
-    expect(updatedMessagePreview).not.toContain('<a href="https://pubnub.com">here</a>')
+    expect(linkUrlsInPreview).toContain("www.example.com")
   }, 30000)
 
   test("should convert text with URLs into hyperlinks", async () => {
     const messageDraft = channel.createMessageDraft()
     const inputText = "Check out this website: www.example.com"
-    const expectedHTML = '<a href="https://www.example.com">www.example.com</a>'
 
     messageDraft.onChange(inputText)
 
     const messagePreview = messageDraft.getMessagePreview()
 
-    expect(messagePreview).toContain(expectedHTML)
-    expect(messagePreview).toContain("https://www.example.com")
+    const expectedLinkObject = {
+      type: "plainLink",
+      content: {
+        link: "www.example.com",
+      },
+    }
+
+    expect(messagePreview).toEqual(expect.arrayContaining([expectedLinkObject]))
+
+    const linkUrlsInPreview = messagePreview
+      .filter((part) => part.type === "plainLink")
+      .map((linkPart) => linkPart.content.link)
+
+    expect(linkUrlsInPreview).toContain("www.example.com")
   }, 30000)
 
   test("should report a message", async () => {
