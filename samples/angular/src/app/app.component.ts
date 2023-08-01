@@ -82,6 +82,10 @@ export class AppComponent {
       (await this.chat.getChannel("forward-channel")) ||
       (await this.chat.createChannel("forward-channel", { name: "forward channel" }))
 
+    const messagesObj = await channel.getHistory()
+
+    this.forwardChannel.sendText("some text", { quotedMessage: messagesObj.messages[0] })
+
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     // this.chat.getChannel();

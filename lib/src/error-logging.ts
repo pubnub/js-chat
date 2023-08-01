@@ -46,11 +46,23 @@ export class ErrorLogger {
       }
     }
 
+    const serializedArguments: { [key: number]: string } = {}
+
+    for (let i = 0; i < arguments.length; ++i) {
+      if (typeof thrownFunctionArguments[i] === "function") {
+        serializedArguments[i] = thrownFunctionArguments[i].name
+      } else if (typeof thrownFunctionArguments[i] === "object") {
+        serializedArguments[i] = "object FIXME"
+      } else {
+        serializedArguments[i] = thrownFunctionArguments[i]
+      }
+    }
+
     this.errorLoggerImplementation.setItem(
       `${ERROR_LOGGER_KEY_PREFIX}_${timestampKey}`,
       JSON.stringify([
         ...JSON.parse(currentValue),
-        { key, error: errorToSave, thrownFunctionArguments },
+        { key, error: errorToSave, thrownFunctionArguments: serializedArguments },
       ])
     )
   }
