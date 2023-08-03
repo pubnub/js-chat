@@ -569,5 +569,26 @@ describe("Channel test", () => {
     messageDraft.removeQuote()
     expect(messageDraft.quotedMessage).toBeUndefined()
   })
+
+  test("should correctly stream read receipts", async () => {
+    const fakeMembers = [
+      { user: { id: "user1" }, custom: { lastReadMessageTimetoken: "timetoken1" } },
+      { user: { id: "user2" }, custom: { lastReadMessageTimetoken: "timetoken2" } },
+      { user: { id: "user3" }, custom: { lastReadMessageTimetoken: "timetoken1" } },
+    ]
+    const expectedReceipts = {
+      timetoken1: ["user1", "user3"],
+      timetoken2: ["user2"],
+    }
+
+    jest.spyOn(channel, "getMembers").mockResolvedValue({ members: fakeMembers })
+
+    const mockCallback = jest.fn()
+
+    await channel.streamReadReceipts(mockCallback)
+
+    expect(mockCallback).toHaveBeenCalledWith(expectedReceipts)
+  })
+
   jest.retryTimes(3)
 })
