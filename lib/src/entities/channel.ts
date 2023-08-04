@@ -133,15 +133,31 @@ export class Channel {
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
-      const { mentionedUsers, textLinks, quotedMessage, ...rest } = options
+      const { mentionedUsers, textLinks, quotedMessage, files, ...rest } = options
+      const filesData: TextMessageContent["files"] = []
 
       if (quotedMessage && quotedMessage.channelId !== this.id) {
         throw "You cannot quote messages from other channels"
       }
 
+      if (files) {
+        const filesArray = Array.isArray(files) ? files : Array.from(files)
+        for (const file of filesArray) {
+          const type = "type" in file ? file.type : file.mimeType
+          const { name, id } = await this.chat.sdk.sendFile({
+            channel: this.id,
+            file,
+            storeInHistory: false,
+          })
+          const url = this.chat.sdk.getFileUrl({ channel: this.id, id, name })
+          filesData.push({ url, name, id, type })
+        }
+      }
+
       const message: TextMessageContent = {
         type: MessageType.TEXT,
         text,
+        ...(filesData.length && { files: filesData }),
         ...this.getPushPayload(text),
       }
 
@@ -547,5 +563,24 @@ export class Channel {
     })
 
     return unsubscribe
+  }
+
+  async getFiles(params: Omit<PubNub.ListFilesParameters, "channel"> = {}) {
+    const response = await this.chat.sdk.listFiles({ channel: this.id, ...params })
+    const filesWithUrls = response.data.map((f) => {
+      const { name, id } = f
+      const url = this.chat.sdk.getFileUrl({ channel: this.id, id, name })
+      return { name, id, url }
+    })
+    return {
+      files: filesWithUrls,
+      next: response.next,
+      total: response.count,
+    }
+    return response
+  }
+
+  async deleteFile(params: { id: string; name: string }) {
+    return this.chat.sdk.deleteFile({ channel: this.id, ...params })
   }
 }
