@@ -721,7 +721,6 @@ export class Chat {
     text: string,
     options: { limit: number } = { limit: 10 }
   ): Promise<User[]> {
-    console.log("is it called?")
     const cacheKey = MentionsUtils.getPhraseToLookFor(text)
 
     if (!cacheKey) {
@@ -731,7 +730,6 @@ export class Chat {
     if (this.suggestedNamesCache.get(cacheKey)) {
       return this.suggestedNamesCache.get(cacheKey) as User[]
     }
-    console.log("111111")
 
     const usersResponse = await this.getUsers({
       filter: `name LIKE "${cacheKey}*"`,
