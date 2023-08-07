@@ -52,7 +52,9 @@ export class ErrorLogger {
       if (typeof thrownFunctionArguments[i] === "function") {
         serializedArguments[i] = thrownFunctionArguments[i].name
       } else if (typeof thrownFunctionArguments[i] === "object") {
-        serializedArguments[i] = "object FIXME"
+        serializedArguments[i] = thrownFunctionArguments[i].constructor.name
+      } else if (typeof thrownFunctionArguments[i] === "symbol") {
+        serializedArguments[i] = thrownFunctionArguments[i].toString()
       } else {
         serializedArguments[i] = thrownFunctionArguments[i]
       }
