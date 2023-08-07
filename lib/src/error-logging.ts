@@ -101,15 +101,19 @@ export class ErrorLogger {
 
 export function getErrorProxiedEntity<T extends object>(baseEntity: T, errorLogger: ErrorLogger) {
   const errorLoggerHandler = {
-    get(target: T, prop: string) {
-      if (typeof target[prop as keyof T] !== "function") {
+    get(target: T, prop: string, receiver: unknown) {
+      if (typeof target[prop as keyof T] !== "function" || prop === "getUserSuggestions") {
         return target[prop as keyof T]
       }
 
-      return function () {
+      return function proxifiedFunction(...args: any[]) {
         const errorKey = `${target.constructor.name}:${String(prop)}`
         try {
-          const response = (target[prop as keyof T] as (...args: unknown[]) => any)(...arguments)
+          const reflectObject = Reflect.get(target, prop as keyof T, receiver) as (
+            ...args: unknown[]
+          ) => any
+
+          const response = reflectObject.bind(target)(...args)
 
           if (response?.then) {
             return response
