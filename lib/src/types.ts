@@ -1,4 +1,9 @@
-import PubNub, { ChannelMetadataObject, ObjectCustom, PublishParameters } from "pubnub"
+import PubNub, {
+  ChannelMetadataObject,
+  ObjectCustom,
+  PublishParameters,
+  SendFileParameters,
+} from "pubnub"
 import { User } from "./entities/user"
 import { Message } from "./entities/message"
 
@@ -20,6 +25,7 @@ export enum MessageActionType {
 export type TextMessageContent = {
   type: MessageType.TEXT
   text: string
+  files?: { name: string; id: string; url: string; type?: string }[]
 }
 
 export type EventContent = {
@@ -71,6 +77,7 @@ export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel"
   mentionedUsers?: MessageMentionedUsers
   textLinks?: TextLink[]
   quotedMessage?: Message
+  files?: FileList | File[] | SendFileParameters["file"][]
 }
 
 export type EnhancedMessageEvent = PubNub.MessageEvent & {
