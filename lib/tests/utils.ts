@@ -1,7 +1,7 @@
 // lib/tests/testUtils.ts
 import { Chat, MessageDraft, Channel, Message } from "../src"
 import * as dotenv from "dotenv"
-import { User } from "../dist"
+import { User } from "../src"
 
 dotenv.config()
 
