@@ -16,8 +16,9 @@
                             Quote author: {{ message.quotedMessage.userId }}
                         </p>
                     </div>
-                    <p [innerHtml]="renderMessage(message) | byPassSecurity" class="linked-text">
-                    </p>
+                    <span *ngFor="let messagePart of message.getLinkedText()">
+                        <span class="linked-text" [innerHTML]="renderMessagePart(messagePart) | byPassSecurity"></span>
+                    </span>
                 </div>
                 <div class="message-row__toolbox">
                     <div class="message-row__forward-icon__container" (click)="forwardMessage(message)">

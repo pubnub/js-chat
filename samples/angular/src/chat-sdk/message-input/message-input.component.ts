@@ -1,5 +1,5 @@
 import { Component, Input, ViewChild, ElementRef } from "@angular/core"
-import { Channel, Chat, MessageDraft, User } from "@pubnub/chat"
+import { Channel, Chat, MessageDraft, MixedTextTypedElement, User } from "@pubnub/chat"
 import { StateService } from "../../app/state.service"
 
 @Component({
@@ -28,7 +28,7 @@ export class MessageInputComponentChat {
     mentionedUser: User | undefined | null
     nameOccurrenceIndex: number
   }
-  messagePreview = ""
+  messagePreview: MixedTextTypedElement[] = []
 
   @ViewChild("textAreaElement") userInput: ElementRef | undefined
 
@@ -46,10 +46,10 @@ export class MessageInputComponentChat {
 
   async handleInput(text: string) {
     const response = await this.newMessageDraft.onChange(text)
-    // console.log("response??", response)
     this.suggestedUsers = response.suggestedUsers
     this.lastAffectedNameOccurrenceIndex = response.nameOccurrenceIndex
     this.messagePreview = this.newMessageDraft.getMessagePreview()
+    console.log("this.messagePreview", this.messagePreview)
   }
 
   toggleUserToNotify(user: User) {
@@ -114,5 +114,22 @@ export class MessageInputComponentChat {
   removeTextLink() {
     this.newMessageDraft.removeLinkedText(this.userInput?.nativeElement.selectionStart)
     this.messagePreview = this.newMessageDraft.getMessagePreview()
+  }
+
+  renderMessagePart(messagePart: MixedTextTypedElement) {
+    if (messagePart.type === "text") {
+      return messagePart.content.text
+    }
+    if (messagePart.type === "plainLink") {
+      return `<a href="${messagePart.content.link}">${messagePart.content.link}</a>`
+    }
+    if (messagePart.type === "textLink") {
+      return `<a href="${messagePart.content.link}">${messagePart.content.text}</a>`
+    }
+    if (messagePart.type === "mention") {
+      return `<a href="https://pubnub.com/${messagePart.content.id}">@${messagePart.content.name}</a>`
+    }
+
+    return ""
   }
 }

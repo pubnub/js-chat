@@ -39,5 +39,7 @@
         Send
     </button>
     <h3>Message preview</h3>
-    <p [innerHTML]="messagePreview | byPassSecurity"></p>
+    <span *ngFor="let messagePart of messagePreview">
+        <span [innerHTML]="renderMessagePart(messagePart) | byPassSecurity"></span>
+    </span>
 </div>
