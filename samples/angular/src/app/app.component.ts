@@ -3,7 +3,10 @@ import PubNub from "pubnub"
 import { Channel, Chat } from "@pubnub/chat"
 import { StateService } from "./state.service"
 
-const userId = "test-user"
+const userId = (new URLSearchParams(window.location.search).get("userid") as string) || "test-user"
+
+const publishKey = "demo"
+const subscribeKey = "demo"
 
 @Component({
   selector: "app-root",
@@ -22,8 +25,8 @@ export class AppComponent {
   constructor(public stateService: StateService) {}
 
   pubnub = new PubNub({
-    publishKey: "demo",
-    subscribeKey: "demo",
+    publishKey,
+    subscribeKey,
     userId,
   })
 
@@ -31,15 +34,15 @@ export class AppComponent {
 
   async ngOnInit() {
     this.chat = await Chat.init({
-      publishKey: "demo",
-      subscribeKey: "demo",
+      publishKey,
+      subscribeKey,
       userId,
       typingTimeout: 2000,
     })
 
     const channel =
-      (await this.chat.getChannel("123")) ||
-      (await this.chat.createChannel("123", { name: "Some channel" }))
+      (await this.chat.getChannel("support-channel")) ||
+      (await this.chat.createChannel("support-channel", { name: "Some channel" }))
 
     channel.update(Symbol("hello!"))
     this.chat.updateChannel(channel.id, Symbol("hello world!"))

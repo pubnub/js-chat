@@ -6,7 +6,6 @@ import {
   DeleteParameters,
   MessageDTOParams,
   TextMessageContent,
-  GetLinkedTextParams,
 } from "../types"
 import { INTERNAL_ADMIN_CHANNEL } from "../constants"
 import { MentionsUtils } from "../mentions-utils"
@@ -62,6 +61,10 @@ export class Message {
     }
 
     return undefined
+  }
+
+  get files() {
+    return this.content.files || []
   }
 
   /** @internal */
@@ -167,32 +170,11 @@ export class Message {
     return lastEdit.value
   }
 
-  getLinkedText(params?: Partial<GetLinkedTextParams>) {
+  getLinkedText() {
     const text = this.text
-
-    let { mentionedUserRenderer, plainLinkRenderer, textLinkRenderer } = params || {}
-
-    mentionedUserRenderer ||= function (userId, mentionedName) {
-      return `<a href="https://pubnub.com/${userId}">@${mentionedName}</a> `
-    }
-
-    plainLinkRenderer ||= function (link) {
-      const linkWithProtocol = link.startsWith("www.") ? `https://${link}` : link
-
-      return `<a href="${linkWithProtocol}">${link}</a> `
-    }
-
-    textLinkRenderer ||= function (text, link) {
-      const linkWithProtocol = link.startsWith("www.") ? `https://${link}` : link
-
-      return `<a href="${linkWithProtocol}">${text}</a> `
-    }
 
     return MentionsUtils.getLinkedText({
       text,
-      mentionedUserRenderer,
-      plainLinkRenderer,
-      textLinkRenderer,
       textLinks: this.textLinks,
       mentionedUsers: this.mentionedUsers,
     })
@@ -221,7 +203,7 @@ export class Message {
     return !!this.actions?.[type]
   }
 
-  async delete(params: DeleteParameters = {}) {
+  async delete(params: DeleteParameters & { preserveFiles?: boolean } = {}) {
     const { soft } = params
     const type = MessageActionType.DELETED
     try {
@@ -243,6 +225,12 @@ export class Message {
           end: this.timetoken,
         })
         await this.deleteThread(params)
+        if (this.files.length && !params.preserveFiles) {
+          for (const file of this.files) {
+            const { id, name } = file
+            await this.chat.sdk.deleteFile({ channel: this.channelId, id, name })
+          }
+        }
 
         return true
       }

@@ -1,4 +1,9 @@
-import PubNub, { ChannelMetadataObject, ObjectCustom, PublishParameters } from "pubnub"
+import PubNub, {
+  ChannelMetadataObject,
+  ObjectCustom,
+  PublishParameters,
+  SendFileParameters,
+} from "pubnub"
 import { User } from "./entities/user"
 import { Message } from "./entities/message"
 
@@ -20,6 +25,7 @@ export enum MessageActionType {
 export type TextMessageContent = {
   type: MessageType.TEXT
   text: string
+  files?: { name: string; id: string; url: string; type?: string }[]
 }
 
 export type EventContent = {
@@ -71,6 +77,7 @@ export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel"
   mentionedUsers?: MessageMentionedUsers
   textLinks?: TextLink[]
   quotedMessage?: Message
+  files?: FileList | File[] | SendFileParameters["file"][]
 }
 
 export type EnhancedMessageEvent = PubNub.MessageEvent & {
@@ -111,6 +118,33 @@ export type GetLinkedTextParams = {
   plainLinkRenderer: (link: string) => any
   textLinkRenderer: (text: string, link: string) => any
 }
+
+export type PayloadForTextTypes = {
+  text: {
+    text: string
+  }
+  mention: {
+    name: string
+    id: string
+  }
+  plainLink: {
+    link: string
+  }
+  textLink: {
+    text: string
+    link: string
+  }
+}
+
+export type TextTypes = keyof PayloadForTextTypes
+
+export type TextTypeElement<T extends TextTypes> = { type: T; content: PayloadForTextTypes[T] }
+
+export type MixedTextTypedElement =
+  | TextTypeElement<"text">
+  | TextTypeElement<"mention">
+  | TextTypeElement<"plainLink">
+  | TextTypeElement<"textLink">
 
 export type ErrorLoggerSetParams = {
   key: string

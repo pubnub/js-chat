@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react"
-import { Channel, Chat, Message, TimetokenUtils, User } from "@pubnub/chat"
+import React, { useCallback, useEffect, useRef, useState } from "react"
+import { Channel, Chat, Message, MixedTextTypedElement, TimetokenUtils, User } from "@pubnub/chat"
 import "./App.css"
 
 const userData = {
@@ -61,6 +61,23 @@ export default function App() {
     initalizeChat()
   }, [])
 
+  const renderMessagePart = useCallback((messagePart: MixedTextTypedElement) => {
+    if (messagePart.type === "text") {
+      return messagePart.content.text
+    }
+    if (messagePart.type === "plainLink") {
+      return <a href={messagePart.content.link}>{messagePart.content.link}</a>
+    }
+    if (messagePart.type === "textLink") {
+      return <a href={messagePart.content.link}>{messagePart.content.text}</a>
+    }
+    if (messagePart.type === "mention") {
+      return <a href={`https://pubnub.com/${messagePart.content.id}`}>{messagePart.content.name}</a>
+    }
+
+    return ""
+  }, [])
+
   if (!chat || !channel) return <p>Loading...</p>
 
   return (
@@ -88,7 +105,13 @@ export default function App() {
                       })}
                     </time>
                   </h3>
-                  <p>{message.text}</p>
+                  <p>
+                    {message
+                      .getLinkedText()
+                      .map((messagePart: MixedTextTypedElement, i: number) => (
+                        <span key={String(i)}>{renderMessagePart(messagePart)}</span>
+                      ))}
+                  </p>
                 </article>
               </li>
             )

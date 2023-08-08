@@ -134,15 +134,31 @@ export class Channel {
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
     try {
-      const { mentionedUsers, textLinks, quotedMessage, ...rest } = options
+      const { mentionedUsers, textLinks, quotedMessage, files, ...rest } = options
+      const filesData: TextMessageContent["files"] = []
 
       if (quotedMessage && quotedMessage.channelId !== this.id) {
         throw "You cannot quote messages from other channels"
       }
 
+      if (files) {
+        const filesArray = Array.isArray(files) ? files : Array.from(files)
+        for (const file of filesArray) {
+          const type = "type" in file ? file.type : file.mimeType
+          const { name, id } = await this.chat.sdk.sendFile({
+            channel: this.id,
+            file,
+            storeInHistory: false,
+          })
+          const url = this.chat.sdk.getFileUrl({ channel: this.id, id, name })
+          filesData.push({ url, name, id, type })
+        }
+      }
+
       const message: TextMessageContent = {
         type: MessageType.TEXT,
         text,
+        ...(filesData.length && { files: filesData }),
         ...this.getPushPayload(text),
       }
 
@@ -519,17 +535,22 @@ export class Channel {
   }
 
   async streamReadReceipts(callback: (receipts: { [key: string]: string[] }) => unknown) {
+    function generateReceipts() {
+      const receipts: { [key: string]: string[] } = {}
+      timetokensPerUser.forEach((timetoken, userId) => {
+        receipts[timetoken] ??= []
+        receipts[timetoken].push(userId)
+      })
+      return receipts
+    }
+
     const { members } = await this.getMembers()
-
-    const receipts = members.reduce((acc, m) => {
-      const token = m.custom?.lastReadMessageTimetoken
-      if (!token) return acc
-      acc[String(token)] ??= []
-      acc[String(token)].push(m.user.id)
-      return acc
-    }, {} as { [key: string]: string[] })
-
-    callback(receipts)
+    const timetokensPerUser = new Map<string, string>()
+    members.forEach((m) => {
+      const lastTimetoken = m.custom?.lastReadMessageTimetoken
+      if (lastTimetoken) timetokensPerUser.set(m.user.id, String(lastTimetoken))
+    })
+    callback(generateReceipts())
 
     const unsubscribe = this.chat.listenForEvents({
       channel: this.id,
@@ -537,16 +558,30 @@ export class Channel {
       method: "signal",
       callback: (event) => {
         const { userId, payload } = event
-        Object.entries(receipts).forEach(([timetoken, userIds]) => {
-          receipts[timetoken] = userIds.filter((id) => id !== userId)
-          if (!receipts[timetoken].length) delete receipts[timetoken]
-        })
-        receipts[payload.messageTimetoken] ??= []
-        receipts[payload.messageTimetoken].push(userId)
-        callback(receipts)
+        timetokensPerUser.set(userId, payload.messageTimetoken)
+        callback(generateReceipts())
       },
     })
 
     return unsubscribe
+  }
+
+  async getFiles(params: Omit<PubNub.ListFilesParameters, "channel"> = {}) {
+    const response = await this.chat.sdk.listFiles({ channel: this.id, ...params })
+    const filesWithUrls = response.data.map((f) => {
+      const { name, id } = f
+      const url = this.chat.sdk.getFileUrl({ channel: this.id, id, name })
+      return { name, id, url }
+    })
+    return {
+      files: filesWithUrls,
+      next: response.next,
+      total: response.count,
+    }
+    return response
+  }
+
+  async deleteFile(params: { id: string; name: string }) {
+    return this.chat.sdk.deleteFile({ channel: this.id, ...params })
   }
 }
