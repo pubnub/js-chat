@@ -118,3 +118,30 @@ export type GetLinkedTextParams = {
   plainLinkRenderer: (link: string) => any
   textLinkRenderer: (text: string, link: string) => any
 }
+
+export type PayloadForTextTypes = {
+  text: {
+    text: string
+  }
+  mention: {
+    name: string
+    id: string
+  }
+  plainLink: {
+    link: string
+  }
+  textLink: {
+    text: string
+    link: string
+  }
+}
+
+export type TextTypes = keyof PayloadForTextTypes
+
+export type TextTypeElement<T extends TextTypes> = { type: T; content: PayloadForTextTypes[T] }
+
+export type MixedTextTypedElement =
+  | TextTypeElement<"text">
+  | TextTypeElement<"mention">
+  | TextTypeElement<"plainLink">
+  | TextTypeElement<"textLink">
