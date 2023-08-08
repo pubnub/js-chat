@@ -22,46 +22,20 @@ export class AppComponent {
   constructor(public stateService: StateService) {}
 
   pubnub = new PubNub({
-    publishKey: "pub-c-0457cb83-0786-43df-bc70-723b16a6e816",
-    subscribeKey: "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de",
+    publishKey: "demo",
+    subscribeKey: "demo",
     userId,
   })
 
   chat?: Chat
 
   async ngOnInit() {
-    const storage = {}
-    const setItem = (key: string, value: string) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      storage[key] = value
-    }
-    const getItem = (key: string) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      return storage[key]
-    }
-
     this.chat = await Chat.init({
-      publishKey: "pub-c-0457cb83-0786-43df-bc70-723b16a6e816",
-      subscribeKey: "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de",
+      publishKey: "demo",
+      subscribeKey: "demo",
       userId,
       typingTimeout: 2000,
-      errorLogger: {
-        setItem(key: string, value: string) {
-          setItem(key, value)
-        },
-        getItem(key: string) {
-          return getItem(key)
-        },
-        getStorageObject() {
-          return storage
-        },
-      },
     })
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    window.storage = storage
 
     const channel =
       (await this.chat.getChannel("123")) ||

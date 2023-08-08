@@ -1,33 +1,82 @@
-import { ErrorLoggerImplementation } from "./types"
+import { ErrorLoggerImplementation, ErrorLoggerSetParams } from "./types"
 import { ERROR_LOGGER_KEY_PREFIX } from "./constants"
 
 export class ErrorLogger {
   private errorLoggerImplementation: ErrorLoggerImplementation
-  private creationDate: Date
+  private timestampKey: string
 
   constructor(errorLoggerImplementation?: ErrorLoggerImplementation) {
+    this.timestampKey = String(`${ERROR_LOGGER_KEY_PREFIX}_${new Date().getTime()}`)
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this
+
     this.errorLoggerImplementation =
       errorLoggerImplementation ||
       new (class {
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        setItem() {}
-        getItem() {
-          return null
+        storage: { [timestamp: string]: ErrorLoggerSetParams[] } = {}
+
+        setItem(
+          key: string,
+          params: { key: string; error: unknown; thrownFunctionArguments: IArguments }
+        ) {
+          if (!Object.keys(this.storage).length) {
+            this.storage[self.timestampKey] = [
+              {
+                key: params.key,
+                error: params.error,
+                thrownFunctionArguments: params.thrownFunctionArguments,
+              },
+            ]
+          } else {
+            this.storage[self.timestampKey].push({
+              key: params.key,
+              error: params.error,
+              thrownFunctionArguments: params.thrownFunctionArguments,
+            })
+          }
         }
         getStorageObject() {
-          return {}
+          const serializedStorage: {
+            [timestamp: string]: {
+              key: string
+              error: unknown
+              thrownFunctionArguments: { [key: number]: string }
+            }[]
+          } = {}
+
+          for (const storageItem in this.storage) {
+            serializedStorage[storageItem] = this.storage[storageItem].map((errorLog) => {
+              const serializedArguments: { [key: number]: string } = {}
+
+              for (let i = 0; i < errorLog.thrownFunctionArguments.length; ++i) {
+                if (typeof errorLog.thrownFunctionArguments[i] === "function") {
+                  serializedArguments[i] = errorLog.thrownFunctionArguments[i].name
+                } else if (typeof errorLog.thrownFunctionArguments[i] === "object") {
+                  serializedArguments[i] = errorLog.thrownFunctionArguments[i].constructor.name
+                } else if (typeof errorLog.thrownFunctionArguments[i] === "symbol") {
+                  serializedArguments[i] = errorLog.thrownFunctionArguments[i].toString()
+                } else {
+                  serializedArguments[i] = errorLog.thrownFunctionArguments[i]
+                }
+              }
+
+              return {
+                key: errorLog.key,
+                error: errorLog.error,
+                thrownFunctionArguments: serializedArguments,
+              }
+            })
+          }
+
+          return serializedStorage
         }
       })()
-    this.creationDate = new Date()
   }
 
   setItem(key: string, error: unknown, thrownFunctionArguments: IArguments) {
     if (!error) {
       return
     }
-    const timestampKey = String(this.creationDate.getTime())
-    const currentValue =
-      this.errorLoggerImplementation.getItem(`${ERROR_LOGGER_KEY_PREFIX}_${timestampKey}`) || "[]"
     let errorToSave = error
 
     if (typeof error === "string") {
@@ -46,45 +95,20 @@ export class ErrorLogger {
       }
     }
 
-    const serializedArguments: { [key: number]: string } = {}
-
-    for (let i = 0; i < arguments.length; ++i) {
-      if (typeof thrownFunctionArguments[i] === "function") {
-        serializedArguments[i] = thrownFunctionArguments[i].name
-      } else if (typeof thrownFunctionArguments[i] === "object") {
-        serializedArguments[i] = thrownFunctionArguments[i].constructor.name
-      } else if (typeof thrownFunctionArguments[i] === "symbol") {
-        serializedArguments[i] = thrownFunctionArguments[i].toString()
-      } else {
-        serializedArguments[i] = thrownFunctionArguments[i]
-      }
-    }
-
-    this.errorLoggerImplementation.setItem(
-      `${ERROR_LOGGER_KEY_PREFIX}_${timestampKey}`,
-      JSON.stringify([
-        ...JSON.parse(currentValue),
-        { key, error: errorToSave, thrownFunctionArguments: serializedArguments },
-      ])
-    )
-  }
-
-  getItem(key: string) {
-    const item = this.errorLoggerImplementation.getItem(key)
-
-    if (!item) {
-      return null
-    }
-
-    return JSON.parse(item)
+    this.errorLoggerImplementation.setItem(this.timestampKey, {
+      key,
+      error: errorToSave,
+      thrownFunctionArguments,
+    })
   }
 
   getStorageObject() {
     const storageObject = this.errorLoggerImplementation.getStorageObject()
+    console.log("storageObject", storageObject)
 
     const file = new File(
       ["\ufeff" + JSON.stringify(storageObject)],
-      `pubnub_debug_log_${this.creationDate}.txt`,
+      `pubnub_debug_log_${this.timestampKey}.txt`,
       { type: "text/plain:charset=UTF-8" }
     )
 
@@ -103,19 +127,17 @@ export class ErrorLogger {
 
 export function getErrorProxiedEntity<T extends object>(baseEntity: T, errorLogger: ErrorLogger) {
   const errorLoggerHandler = {
-    get(target: T, prop: string, receiver: unknown) {
-      if (typeof target[prop as keyof T] !== "function" || prop === "getUserSuggestions") {
+    get(target: T, prop: string) {
+      if (typeof target[prop as keyof T] !== "function") {
         return target[prop as keyof T]
       }
+
+      const originalFunction = target[prop as keyof T] as (...args: any[]) => any
 
       return function proxifiedFunction(...args: any[]) {
         const errorKey = `${target.constructor.name}:${String(prop)}`
         try {
-          const reflectObject = Reflect.get(target, prop as keyof T, receiver) as (
-            ...args: unknown[]
-          ) => any
-
-          const response = reflectObject.bind(target)(...args)
+          const response = originalFunction.apply(this, args)
 
           if (response?.then) {
             return response

@@ -7,7 +7,6 @@ import {
   EventContent,
   EventType,
   ErrorLoggerImplementation,
-  ErrorTypes,
 } from "../types"
 import { Message } from "./message"
 import { Event } from "./event"
@@ -97,8 +96,6 @@ export class Chat {
   static async init(params: ChatConstructor) {
     const chat = new Chat(params)
 
-    const proxiedChat = getErrorProxiedEntity(chat, chat.errorLogger)
-
     chat.user =
       (await chat.getUser(chat.sdk.getUUID())) ||
       (await chat.createUser(chat.sdk.getUUID(), { name: chat.sdk.getUUID() }))
@@ -106,6 +103,8 @@ export class Chat {
     if (params.storeUserActivityTimestamps) {
       chat.storeUserActivityTimestamp()
     }
+
+    const proxiedChat = getErrorProxiedEntity(chat, chat.errorLogger)
 
     return proxiedChat
   }

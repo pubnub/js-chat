@@ -112,14 +112,13 @@ export type GetLinkedTextParams = {
   textLinkRenderer: (text: string, link: string) => any
 }
 
-export declare class ErrorLoggerImplementation {
-  setItem(key: string, value: string): void;
-  getItem(key: string): string | null;
-  getStorageObject(): Object
+export type ErrorLoggerSetParams = {
+  key: string
+  error: unknown
+  thrownFunctionArguments: IArguments
 }
 
-export enum ErrorTypes {
-  CHAT_INIT = "chatInit",
-  CHANNEL_HISTORY = "channelHistory",
-  GET_CHANNEL = "getChannel"
+export declare class ErrorLoggerImplementation {
+  setItem(key: string, params: ErrorLoggerSetParams): void
+  getStorageObject(): Record<string, unknown>
 }

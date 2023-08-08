@@ -363,18 +363,23 @@ describe("Channel test", () => {
     await channel.invite(user1)
 
     messageDraft = channel.createMessageDraft({ userSuggestionSource: "global", userLimit: 100 })
-    jest.spyOn(chat, "getUserSuggestions")
+
+    const originalGetUserSuggestions = Chat.prototype.getUserSuggestions // Step 1
+    const getUserSuggestionsSpy = jest.spyOn(Chat.prototype, "getUserSuggestions") // Step 2
+
+    getUserSuggestionsSpy.mockImplementation(originalGetUserSuggestions) // Step 3)
+
     const onChangeResponse = await messageDraft.onChange("Hello, @Use")
 
     // verification that users inside the keyset were suggested
-    expect(chat.getUserSuggestions).toHaveBeenCalledTimes(1)
+    expect(getUserSuggestionsSpy).toHaveBeenCalledTimes(1)
 
     const foundUser1AmongSuggestedUsers = onChangeResponse.suggestedUsers.find(
       (suggestedUser) => suggestedUser.id === user1.id
     )
 
     expect(foundUser1AmongSuggestedUsers).toBeTruthy()
-    // get members of the channel and verify if user that is memeber of channel exists in keyset
+    // get members of the channel and verify if user that is member of channel exists in keyset
     const membersResponse = await channel.getMembers()
     const members = membersResponse.members
     expect(
