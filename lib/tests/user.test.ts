@@ -50,7 +50,6 @@ describe("User test", () => {
     let updatedUser
     const name = "Updated User"
     const callback = jest.fn((user) => {
-      console.log("(updatedUser = user)")
       return (updatedUser = user)
     })
 

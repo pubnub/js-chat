@@ -325,7 +325,6 @@ export class MessageDraft {
         })
       ).map((membership) => membership.user)
     } else {
-      // console.log("this.chat.getUserSuggestions", this.chat.getUserSuggestions)
       suggestedUsers = await this.chat.getUserSuggestions(differentMentions[0], {
         limit: this.config.userLimit,
       })

@@ -364,10 +364,10 @@ describe("Channel test", () => {
 
     messageDraft = channel.createMessageDraft({ userSuggestionSource: "global", userLimit: 100 })
 
-    const originalGetUserSuggestions = Chat.prototype.getUserSuggestions // Step 1
-    const getUserSuggestionsSpy = jest.spyOn(Chat.prototype, "getUserSuggestions") // Step 2
+    const originalGetUserSuggestions = Chat.prototype.getUserSuggestions
+    const getUserSuggestionsSpy = jest.spyOn(Chat.prototype, "getUserSuggestions")
 
-    getUserSuggestionsSpy.mockImplementation(originalGetUserSuggestions) // Step 3)
+    getUserSuggestionsSpy.mockImplementation(originalGetUserSuggestions)
 
     const onChangeResponse = await messageDraft.onChange("Hello, @Use")
 
