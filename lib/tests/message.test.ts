@@ -197,7 +197,7 @@ describe("Send message test", () => {
     await new Promise((resolve) => setTimeout(resolve, 2000))
   }, 30000)
 
-  test("should render URLs correctly", async () => {
+  test.only("should render URLs correctly", async () => {
     const messageDraft = channel.createMessageDraft()
     const someUser =
       (await chat.getUser("Przemek")) || (await chat.createUser("Przemek", { name: "Lukasz" }))

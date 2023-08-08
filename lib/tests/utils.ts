@@ -1,6 +1,7 @@
 // lib/tests/testUtils.ts
 import { Chat, MessageDraft, Channel, Message } from "../src"
 import * as dotenv from "dotenv"
+import { User } from "../dist"
 
 dotenv.config()
 
@@ -88,8 +89,8 @@ export const extractMentionedUserIds = (messageText: string): string[] => {
 
 export function generateExpectedLinkedText(
   messageDraft: MessageDraft,
-  someUser: any,
-  someUser2: any
+  someUser: User,
+  someUser2: User
 ) {
   const expectedLinkedText = [
     {
