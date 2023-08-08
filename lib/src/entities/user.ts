@@ -1,6 +1,6 @@
 import PubNub, { UUIDMetadataObject, ObjectCustom, GetMembershipsParametersv2 } from "pubnub"
 import { Chat } from "./chat"
-import { DeleteParameters, OptionalAllBut, StatusTypeFields } from "../types"
+import { DeleteParameters, OptionalAllBut } from "../types"
 import { Membership } from "./membership"
 import { INTERNAL_ADMIN_CHANNEL } from "../constants"
 
@@ -31,7 +31,10 @@ export class User {
   /** @internal */
   static fromDTO(
     chat: Chat,
-    params: OptionalAllBut<UUIDMetadataObject<ObjectCustom>, "id"> & StatusTypeFields
+    params: OptionalAllBut<UUIDMetadataObject<ObjectCustom>, "id"> & {
+      status?: string
+      type?: string
+    }
   ) {
     const data = {
       id: params.id,

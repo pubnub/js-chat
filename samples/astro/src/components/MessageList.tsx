@@ -93,10 +93,9 @@ export default function MessageList(props: {
     setMessages([])
     setEditedMessage(null)
     setupMessages()
-    const stopReceipts = channel.streamReadReceipts(setReadReceipts)
-    return () => {
-      stopReceipts()
-    }
+    let stopReceipts
+    channel.streamReadReceipts(setReadReceipts).then((stop) => (stopReceipts = stop))
+    return stopReceipts
   }, [channel])
 
   useEffect(() => {
