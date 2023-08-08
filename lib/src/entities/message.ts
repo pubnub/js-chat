@@ -62,6 +62,10 @@ export class Message {
     return undefined
   }
 
+  get files() {
+    return this.content.files || []
+  }
+
   /** @internal */
   constructor(chat: Chat, params: MessageFields) {
     this.chat = chat
@@ -198,7 +202,7 @@ export class Message {
     return !!this.actions?.[type]
   }
 
-  async delete(params: DeleteParameters = {}) {
+  async delete(params: DeleteParameters & { preserveFiles?: boolean } = {}) {
     const { soft } = params
     const type = MessageActionType.DELETED
     try {
@@ -220,6 +224,12 @@ export class Message {
           end: this.timetoken,
         })
         await this.deleteThread(params)
+        if (this.files.length && !params.preserveFiles) {
+          for (const file of this.files) {
+            const { id, name } = file
+            await this.chat.sdk.deleteFile({ channel: this.channelId, id, name })
+          }
+        }
 
         return true
       }

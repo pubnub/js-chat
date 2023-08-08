@@ -7,6 +7,7 @@ import {
   generateExpectedLinkedText,
 } from "./utils"
 import { INTERNAL_ADMIN_CHANNEL } from "../src"
+import { jest } from "@jest/globals"
 
 describe("Send message test", () => {
   jest.retryTimes(3)

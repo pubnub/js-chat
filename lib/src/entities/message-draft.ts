@@ -1,3 +1,4 @@
+import { SendFileParameters } from "pubnub"
 import { Chat } from "./chat"
 import { User } from "./user"
 import { Channel } from "./channel"
@@ -37,6 +38,7 @@ export class MessageDraft {
   /** @internal */
   private quotedMessage: Message | undefined = undefined
   readonly config: MessageDraftConfig
+  files?: FileList | File[] | SendFileParameters["file"][] = undefined
 
   /** @internal */
   constructor(chat: Chat, channel: Channel, config?: Partial<MessageDraftConfig>) {
@@ -403,6 +405,7 @@ export class MessageDraft {
       mentionedUsers: this.transformMentionedUsersToSend(),
       textLinks: this.textLinks,
       quotedMessage: this.quotedMessage,
+      files: this.files,
     })
   }
 
