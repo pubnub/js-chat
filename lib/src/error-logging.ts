@@ -104,7 +104,6 @@ export class ErrorLogger {
 
   getStorageObject() {
     const storageObject = this.errorLoggerImplementation.getStorageObject()
-    console.log("storageObject", storageObject)
 
     const file = new File(
       ["\ufeff" + JSON.stringify(storageObject)],
