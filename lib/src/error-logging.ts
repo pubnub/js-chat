@@ -51,6 +51,8 @@ export class ErrorLogger {
               for (let i = 0; i < errorLog.thrownFunctionArguments.length; ++i) {
                 if (typeof errorLog.thrownFunctionArguments[i] === "function") {
                   serializedArguments[i] = errorLog.thrownFunctionArguments[i].name
+                } else if (errorLog.thrownFunctionArguments[i] === null) {
+                  serializedArguments[i] = "null"
                 } else if (typeof errorLog.thrownFunctionArguments[i] === "object") {
                   serializedArguments[i] = errorLog.thrownFunctionArguments[i].constructor.name
                 } else if (typeof errorLog.thrownFunctionArguments[i] === "symbol") {
