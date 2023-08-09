@@ -7,10 +7,7 @@ import PubNub, {
 import { User } from "./entities/user"
 import { Message } from "./entities/message"
 
-export type StatusTypeFields = {
-  status?: string
-  type?: string
-}
+export type ChannelType = "direct" | "group" | "public"
 
 export enum MessageType {
   TEXT = "text",
@@ -96,8 +93,10 @@ export type MembershipResponse = Awaited<ReturnType<User["getMemberships"]>>
 
 export type OptionalAllBut<T, K extends keyof T> = Partial<T> & Pick<T, K>
 
-export type ChannelDTOParams = OptionalAllBut<ChannelMetadataObject<ObjectCustom>, "id"> &
-  StatusTypeFields
+export type ChannelDTOParams = OptionalAllBut<ChannelMetadataObject<ObjectCustom>, "id"> & {
+  status?: string
+  type?: ChannelType
+}
 
 export type ThreadChannelDTOParams = ChannelDTOParams & { parentChannelId: string }
 

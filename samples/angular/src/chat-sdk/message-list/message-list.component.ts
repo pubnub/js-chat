@@ -88,7 +88,10 @@ export class MessageListComponentChat {
   async forwardMessage(message: Message) {
     const forwardChannel =
       (await this.chat.getChannel("forward-channel")) ||
-      (await this.chat.createChannel("forward-channel", { name: "forward channel" }))
+      (await this.chat.createPublicConversation({
+        channelId: "forward-channel",
+        channelData: { name: "forward channel" },
+      }))
 
     await forwardChannel.forwardMessage(message)
 
