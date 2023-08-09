@@ -14,6 +14,7 @@ import {
   MessageDraftConfig,
   MessageType,
   TextMessageContent,
+  ChannelType,
 } from "../types"
 import { Membership } from "./membership"
 import { User } from "./user"
@@ -33,7 +34,7 @@ export class Channel {
   readonly description?: string
   readonly updated?: string
   readonly status?: string
-  readonly type?: string
+  readonly type?: ChannelType
   /** @internal */
   private suggestedNames: Map<string, Membership[]>
   /** @internal */
@@ -220,6 +221,7 @@ export class Channel {
   }
 
   async startTyping() {
+    if (this.type === "public") throw "Typing indicators are not supported in Public chats."
     if (this.typingSent) return
     this.typingSent = true
     this.typingSentTimer = setTimeout(
@@ -230,6 +232,7 @@ export class Channel {
   }
 
   async stopTyping() {
+    if (this.type === "public") throw "Typing indicators are not supported in Public chats."
     clearTimeout(this.typingSentTimer)
     if (!this.typingSent) return
     this.typingSent = false
@@ -237,6 +240,7 @@ export class Channel {
   }
 
   getTyping(callback: (typingUserIds: string[]) => unknown) {
+    if (this.type === "public") throw "Typing indicators are not supported in Public chats."
     const handler = (event: Event<"typing">) => {
       const { channelId, payload, userId, type } = event
       if (channelId !== this.id) return
@@ -410,6 +414,7 @@ export class Channel {
   }
 
   async invite(user: User) {
+    if (this.type === "public") throw "Channel invites are not supported in Public chats."
     try {
       const channelMembers = await this.getMembers({ filter: `uuid.id == '${user.id}'` })
 
@@ -437,6 +442,7 @@ export class Channel {
   }
 
   async inviteMultiple(users: User[]) {
+    if (this.type === "public") throw "Channel invites are not supported in Public chats."
     const uuids = users.map((u) => u.id)
     const filter = uuids.map((uuid) => `uuid.id == '${uuid}'`).join(" || ")
 
@@ -534,6 +540,7 @@ export class Channel {
   }
 
   async streamReadReceipts(callback: (receipts: { [key: string]: string[] }) => unknown) {
+    if (this.type === "public") throw "Read receipts are not supported in Public chats."
     function generateReceipts() {
       const receipts: { [key: string]: string[] } = {}
       timetokensPerUser.forEach((timetoken, userId) => {
