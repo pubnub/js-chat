@@ -144,3 +144,14 @@ export type MixedTextTypedElement =
   | TextTypeElement<"mention">
   | TextTypeElement<"plainLink">
   | TextTypeElement<"textLink">
+
+export type ErrorLoggerSetParams = {
+  key: string
+  error: unknown
+  thrownFunctionArguments: IArguments
+}
+
+export declare class ErrorLoggerImplementation {
+  setItem(key: string, params: ErrorLoggerSetParams): void
+  getStorageObject(): Record<string, unknown>
+}

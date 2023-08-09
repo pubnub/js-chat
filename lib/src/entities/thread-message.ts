@@ -2,6 +2,7 @@ import { Message, MessageFields } from "./message"
 import { Chat } from "./chat"
 import { ThreadMessageDTOParams } from "../types"
 import { Channel } from "./channel"
+import { getErrorProxiedEntity } from "../error-logging"
 
 export class ThreadMessage extends Message {
   readonly parentChannelId: string
@@ -25,7 +26,7 @@ export class ThreadMessage extends Message {
         "meta" in params ? params.meta : "userMetadata" in params ? params.userMetadata : undefined,
     }
 
-    return new ThreadMessage(chat, data)
+    return getErrorProxiedEntity(new ThreadMessage(chat, data), chat.errorLogger)
   }
 
   async pinToParentChannel() {

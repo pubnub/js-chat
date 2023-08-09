@@ -7,6 +7,7 @@ import {
   EventContent,
   EventType,
   ChannelType,
+  ErrorLoggerImplementation,
 } from "../types"
 import { Message } from "./message"
 import { Event } from "./event"
@@ -14,6 +15,7 @@ import { Membership } from "./membership"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadChannel } from "./thread-channel"
 import { MentionsUtils } from "../mentions-utils"
+import { getErrorProxiedEntity, ErrorLogger } from "../error-logging"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -27,6 +29,7 @@ type ChatConfig = {
     apnsTopic?: string
     apnsEnvironment: "development" | "production"
   }
+  errorLogger?: ErrorLoggerImplementation
 }
 
 type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
@@ -41,6 +44,8 @@ export class Chat {
   private suggestedNamesCache: Map<string, User[]>
   /* @internal */
   private subscriptions: { [channel: string]: Set<string> }
+  /** @internal */
+  errorLogger: ErrorLogger
 
   /** @internal */
   private constructor(params: ChatConstructor) {
@@ -50,15 +55,23 @@ export class Chat {
       storeUserActivityInterval,
       storeUserActivityTimestamps,
       pushNotifications,
+      errorLogger,
       ...pubnubConfig
     } = params
 
-    if (storeUserActivityInterval && storeUserActivityInterval < 600000) {
-      throw "storeUserActivityInterval must be at least 600000ms"
-    }
+    this.errorLogger = new ErrorLogger(errorLogger)
 
-    if (pushNotifications?.deviceGateway === "apns2" && !pushNotifications?.apnsTopic) {
-      throw "apnsTopic has to be defined when deviceGateway is set to apns2"
+    try {
+      if (storeUserActivityInterval && storeUserActivityInterval < 600000) {
+        throw "storeUserActivityInterval must be at least 600000ms"
+      }
+
+      if (pushNotifications?.deviceGateway === "apns2" && !pushNotifications?.apnsTopic) {
+        throw "apnsTopic has to be defined when deviceGateway is set to apns2"
+      }
+    } catch (error) {
+      this.errorLogger.setItem("PushNotificationError", error, arguments)
+      throw error
     }
 
     this.sdk = new PubNub(pubnubConfig)
@@ -67,6 +80,7 @@ export class Chat {
     })
     this.subscriptions = {}
     this.suggestedNamesCache = new Map<string, User[]>()
+
     this.config = {
       saveDebugLog: saveDebugLog || false,
       typingTimeout: typingTimeout || 5000,
@@ -91,7 +105,9 @@ export class Chat {
       chat.storeUserActivityTimestamp()
     }
 
-    return chat
+    const proxiedChat = getErrorProxiedEntity(chat, chat.errorLogger)
+
+    return proxiedChat
   }
 
   /* @internal */
@@ -372,7 +388,7 @@ export class Chat {
    *  Channels
    */
   async getChannel(id: string) {
-    if (!id.length) throw "ID is required"
+    if (!id || !id.length) throw "ID is required"
     try {
       const response = await this.sdk.objects.getChannelMetadata({
         channel: id,
@@ -781,5 +797,9 @@ export class Chat {
   async getPushChannels() {
     const response = await this.sdk.push.listChannels(this.getCommonPushOptions())
     return response.channels
+  }
+
+  downloadDebugLog() {
+    return this.errorLogger.getStorageObject()
   }
 }
