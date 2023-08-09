@@ -155,6 +155,54 @@ describe("Channel test", () => {
     await user.delete()
   })
 
+  test("should create group conversation", async () => {
+    try {
+      const user1 = await createRandomUser()
+      const user2 = await createRandomUser()
+      const user3 = await createRandomUser()
+
+      const channelId = "group_channel_1234"
+      const channelData = {
+        name: "Test Group Channel",
+        description: "This is a test group channel.",
+        custom: {
+          groupInfo: "Additional group information",
+        },
+      }
+
+      const membershipData = {
+        custom: {
+          role: "member",
+        },
+      }
+
+      const result = await chat.createGroupConversation({
+        users: [user1, user2, user3],
+        channelId,
+        channelData,
+        membershipData,
+      })
+
+      const { channel, hostMembership, inviteesMemberships } = result
+
+      expect(channel).toBeDefined()
+      expect(hostMembership).toBeDefined()
+      expect(inviteesMemberships).toBeDefined()
+      expect(channel.name).toEqual("Test Group Channel")
+      expect(channel.description).toEqual("This is a test group channel.")
+      expect(channel.custom.groupInfo).toEqual("Additional group information")
+      expect(inviteesMemberships.length).toEqual(3)
+
+      await user1.delete()
+      await user2.delete()
+      await user3.delete()
+      await channel.delete()
+    } catch (error) {
+      console.error("Error in creating group conversation:", error)
+      throw error
+    }
+  })
+
   test("should create a thread", async () => {
     const messageText = "Test message"
     await channel.sendText(messageText)

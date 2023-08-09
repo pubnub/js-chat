@@ -662,7 +662,6 @@ export class Chat {
     try {
       const channel =
         (await this.getChannel(channelId)) || (await this.createChannel(channelId, channelData))
-
       const { custom, ...rest } = membershipData
       const hostMembershipPromise = this.sdk.objects.setMemberships({
         ...rest,
