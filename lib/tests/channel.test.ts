@@ -618,24 +618,28 @@ describe("Channel test", () => {
     expect(messageDraft.quotedMessage).toBeUndefined()
   })
 
-  test("should correctly stream read receipts", async () => {
-    const fakeMembers = [
-      { user: { id: "user1" }, custom: { lastReadMessageTimetoken: "timetoken1" } },
-      { user: { id: "user2" }, custom: { lastReadMessageTimetoken: "timetoken2" } },
-      { user: { id: "user3" }, custom: { lastReadMessageTimetoken: "timetoken1" } },
-    ]
-    const expectedReceipts = {
-      timetoken1: ["user1", "user3"],
-      timetoken2: ["user2"],
-    }
-
-    jest.spyOn(channel, "getMembers").mockResolvedValue({ members: fakeMembers })
+  test.only("should correctly stream read receipts", async () => {
+    const randomTimetoken = "123456789123456789"
+    const membership = await channel.join(undefined, {
+      custom: { lastReadMessageTimetoken: randomTimetoken },
+    })
+    channel.disconnect()
 
     const mockCallback = jest.fn()
+    const stopReceipts = await channel.streamReadReceipts(mockCallback)
+    expect(mockCallback).toHaveBeenCalledTimes(1)
+    expect(mockCallback).toHaveBeenCalledWith({ [randomTimetoken]: ["test-user"] })
 
-    await channel.streamReadReceipts(mockCallback)
+    const { timetoken } = await channel.sendText("New message")
+    await sleep(150) // history calls have around 130ms of cache time
+    const message = await channel.getMessage(timetoken)
+    await membership.setLastReadMessage(message)
+    await sleep(150) // history calls have around 130ms of cache time
 
-    expect(mockCallback).toHaveBeenCalledWith(expectedReceipts)
+    expect(mockCallback).toHaveBeenCalledTimes(2)
+    expect(mockCallback).toHaveBeenCalledWith({ [timetoken]: ["test-user"] })
+
+    stopReceipts()
   })
 
   jest.retryTimes(3)
