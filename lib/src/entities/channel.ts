@@ -212,18 +212,6 @@ export class Channel {
           const userId = mentionedUsers[Number(key)].id
 
           this.emitUserMention({ userId, timetoken: publishResponse.timetoken, text })
-
-          // const payload = {
-          //   messageTimetoken: String(publishResponse.timetoken),
-          //   channel: this.id,
-          //   ...this.getPushPayload(text),
-          // }
-          // this.chat.emitEvent({
-          //   channel: userId,
-          //   type: "mention",
-          //   method: "publish",
-          //   payload,
-          // })
         })
       }
 
