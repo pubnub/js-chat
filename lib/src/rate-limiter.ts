@@ -15,7 +15,7 @@ export class ExponentialRateLimiter {
     this.exponentialFactor = exponentialFactor
   }
 
-  private wait(timeout: number): Promise<void> {
+  private sleep(timeout: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, timeout))
   }
 
@@ -48,7 +48,7 @@ export class ExponentialRateLimiter {
       reject(error)
     }
 
-    await this.wait(this.baseInterval * Math.pow(this.exponentialFactor, penalty))
+    await this.sleep(this.baseInterval * Math.pow(this.exponentialFactor, penalty))
     this.processQueue()
   }
 }
