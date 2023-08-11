@@ -8,6 +8,7 @@ import {
   EventType,
   ChannelType,
   ErrorLoggerImplementation,
+  UserMentionData,
 } from "../types"
 import { Message } from "./message"
 import { Event } from "./event"
@@ -801,5 +802,61 @@ export class Chat {
 
   downloadDebugLog() {
     return this.errorLogger.getStorageObject()
+  }
+
+  async getCurrentUserMentions(
+    params: { startTimetoken?: string; endTimetoken?: string; count?: number } = {}
+  ): Promise<{ enhancedMentionsData: UserMentionData[]; isMore: boolean }> {
+    const mentionsHistoryObject = await this.getEventsHistory({
+      ...params,
+      channel: this.currentUser.id,
+    })
+
+    const enhancedMentionsData = await Promise.all(
+      mentionsHistoryObject.events
+        .filter((event) => event.type === "mention")
+        .map(async (event) => {
+          let maybeParentChannelPromise = null
+
+          if (event.payload.parentChannel) {
+            maybeParentChannelPromise = this.getChannel(event.payload.parentChannel)
+          }
+
+          const [channel, parentChannel] = await Promise.all([
+            this.getChannel(event.payload.channel),
+            maybeParentChannelPromise,
+          ])
+
+          const [message, user] = await Promise.all([
+            (channel as Channel).getMessage(event.payload.messageTimetoken),
+            this.getUser(event.userId),
+          ])
+
+          if (!parentChannel) {
+            return {
+              event: event as Event<"mention">,
+              channel: channel as Channel,
+              message: message as Message,
+              user: user as User,
+            }
+          }
+
+          return {
+            event: event as Event<"mention">,
+            parentChannel: parentChannel as Channel,
+            threadChannel: ThreadChannel.fromDTO(this, {
+              id: (channel as Channel).id,
+              parentChannelId: parentChannel.id,
+            }),
+            message: message as Message,
+            user: user as User,
+          }
+        })
+    )
+
+    return {
+      enhancedMentionsData,
+      isMore: mentionsHistoryObject.isMore,
+    }
   }
 }

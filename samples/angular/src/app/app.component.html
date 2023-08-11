@@ -16,7 +16,8 @@
     <div>
       <p>PubNub initialized with: {{ pubnub.getUUID() }}</p>
     </div>
-    <app-message-input-chat [typingSent]="typingSent" [channel]="stateService.currentChannel" [chat]="chat" />
+    <h1>Message Input</h1>
+    <app-message-input-chat [channel]="stateService.currentChannel" [chat]="chat" />
     <app-typing-indicator-chat [channel]="stateService.currentChannel" />
     <app-message-list-chat [channel]="stateService.currentChannel" [chat]="chat" />
     <app-create-channel-modal-chat [chat]="chat" />
@@ -30,5 +31,7 @@
     <button (click)="toggleCreateDirectConversationModalChatSDK()">Open create direct conversation modal</button>
     <button (click)="toggleCreateGroupConversationModalChatSDK()">Open create group conversation modal</button>
     <button (click)="downloadDebugLog()">Download debug log</button>
+    <button (click)="openChannelsRelevantToUser()">Open channels relevant to user</button>
+    <app-channels-relevant-to-user [chat]="chat" *ngIf="this.stateService.channelsRelevantToUserModalOpen" />
   </div>
 </div>

@@ -116,7 +116,7 @@ export class Channel {
    * Publishing
    */
   /** @internal */
-  private getPushPayload(text: string) {
+  protected getPushPayload(text: string) {
     const { sendPushes, apnsTopic } = this.chat.config.pushNotifications
     if (!sendPushes) return {}
 
@@ -131,6 +131,29 @@ export class Channel {
     }
 
     return pushBuilder.buildPayload(pushGateways)
+  }
+
+  /** @internal */
+  protected emitUserMention({
+    userId,
+    timetoken,
+    text,
+  }: {
+    userId: string
+    timetoken: number
+    text: string
+  }) {
+    const payload = {
+      messageTimetoken: String(timetoken),
+      channel: this.id,
+      ...this.getPushPayload(text),
+    }
+    this.chat.emitEvent({
+      channel: userId,
+      type: "mention",
+      method: "publish",
+      payload,
+    })
   }
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
@@ -187,17 +210,20 @@ export class Channel {
       if (mentionedUsers) {
         Object.keys(mentionedUsers).forEach((key) => {
           const userId = mentionedUsers[Number(key)].id
-          const payload = {
-            messageTimetoken: String(publishResponse.timetoken),
-            channel: this.id,
-            ...this.getPushPayload(text),
-          }
-          this.chat.emitEvent({
-            channel: userId,
-            type: "mention",
-            method: "publish",
-            payload,
-          })
+
+          this.emitUserMention({ userId, timetoken: publishResponse.timetoken, text })
+
+          // const payload = {
+          //   messageTimetoken: String(publishResponse.timetoken),
+          //   channel: this.id,
+          //   ...this.getPushPayload(text),
+          // }
+          // this.chat.emitEvent({
+          //   channel: userId,
+          //   type: "mention",
+          //   method: "publish",
+          //   payload,
+          // })
         })
       }
 

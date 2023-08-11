@@ -88,4 +88,28 @@ export class ThreadChannel extends Channel {
       isMore: messagesResponse.isMore,
     }
   }
+
+  /** @internal */
+  protected emitUserMention({
+    userId,
+    timetoken,
+    text,
+  }: {
+    userId: string
+    timetoken: number
+    text: string
+  }) {
+    const payload = {
+      messageTimetoken: String(timetoken),
+      channel: this.id,
+      parentChannel: this.parentChannelId,
+      ...this.getPushPayload(text),
+    }
+    this.chat.emitEvent({
+      channel: userId,
+      type: "mention",
+      method: "publish",
+      payload,
+    })
+  }
 }
