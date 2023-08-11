@@ -47,8 +47,6 @@ export class Channel {
   /** @internal */
   private typingIndicators: Map<string, ReturnType<typeof setTimeout>> = new Map()
   /** @internal */
-  private lastMessageSentTimestamp = 0
-  /** @internal */
   private sendTextRateLimiter: ExponentialRateLimiter
 
   /** @internal */
