@@ -16,6 +16,7 @@ import {
   TextMessageContent,
   ChannelType,
 } from "../types"
+import { sleep } from "../utils"
 import { Membership } from "./membership"
 import { User } from "./user"
 import { MentionsUtils } from "../mentions-utils"
@@ -45,6 +46,10 @@ export class Channel {
   private typingSentTimer?: ReturnType<typeof setTimeout>
   /** @internal */
   private typingIndicators: Map<string, ReturnType<typeof setTimeout>> = new Map()
+  /** @internal */
+  private lastMessageSentTimestamp = 0
+  /** @internal */
+  private messageSentRateLimitPenalty = 0
 
   /** @internal */
   constructor(chat: Chat, params: ChannelFields) {
@@ -133,7 +138,7 @@ export class Channel {
   }
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
-    try {
+    const implementation = async () => {
       const { mentionedUsers, textLinks, quotedMessage, files, ...rest } = options
       const filesData: TextMessageContent["files"] = []
 
@@ -198,9 +203,25 @@ export class Channel {
       }
 
       return publishResponse
-    } catch (error) {
-      throw error
     }
+
+    const channelRateLimit = this.type ? this.chat.config.rateLimitPerChannel[this.type] || 0 : 0
+    const rateLimitFactor = this.chat.config.rateLimitFactor
+    const expectedTimeout =
+      channelRateLimit * Math.pow(rateLimitFactor, this.messageSentRateLimitPenalty)
+    const timestampDifference = new Date().getTime() - this.lastMessageSentTimestamp
+
+    if (timestampDifference > expectedTimeout) {
+      this.messageSentRateLimitPenalty = 0
+    } else {
+      const delay = expectedTimeout - timestampDifference
+      await sleep(delay)
+      this.messageSentRateLimitPenalty += 1
+    }
+
+    const result = await implementation()
+    this.lastMessageSentTimestamp = new Date().getTime()
+    return result
   }
 
   async forwardMessage(message: Message) {
@@ -584,7 +605,6 @@ export class Channel {
       next: response.next,
       total: response.count,
     }
-    return response
   }
 
   async deleteFile(params: { id: string; name: string }) {

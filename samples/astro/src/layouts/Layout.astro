@@ -35,6 +35,10 @@ const { title } = Astro.props
     @apply border-2 rounded border-accent text-accent hover:bg-accent focus:bg-accent hover:text-white focus:text-white outline-none transition px-4 py-2;
   }
 
+  button[disabled] {
+    @apply border-gray-400 text-gray-400;
+  }
+
   label {
     @apply block font-bold mt-2 mb-1;
   }

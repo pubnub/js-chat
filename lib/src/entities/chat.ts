@@ -27,6 +27,10 @@ type ChatConfig = {
     apnsTopic?: string
     apnsEnvironment: "development" | "production"
   }
+  rateLimitFactor: number
+  rateLimitPerChannel: {
+    [key in ChannelType]: number
+  }
 }
 
 type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
@@ -50,6 +54,8 @@ export class Chat {
       storeUserActivityInterval,
       storeUserActivityTimestamps,
       pushNotifications,
+      rateLimitFactor,
+      rateLimitPerChannel,
       ...pubnubConfig
     } = params
 
@@ -76,6 +82,12 @@ export class Chat {
         sendPushes: false,
         apnsEnvironment: "development",
         deviceGateway: "gcm",
+      },
+      rateLimitFactor: rateLimitFactor || 2,
+      rateLimitPerChannel: rateLimitPerChannel || {
+        direct: 0,
+        group: 0,
+        public: 0,
       },
     }
   }

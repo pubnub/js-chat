@@ -19,6 +19,9 @@
           sendPushes: true,
           apnsTopic: "org.reactjs.native.example.PushTestNative",
         },
+        rateLimitPerChannel: {
+          public: 3000,
+        },
       })
       chatAtom.set(chat)
     }
