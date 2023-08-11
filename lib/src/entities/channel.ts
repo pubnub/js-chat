@@ -16,7 +16,7 @@ import {
   TextMessageContent,
   ChannelType,
 } from "../types"
-import { sleep } from "../utils"
+import { ExponentialRateLimiter } from "../rate-limiter"
 import { Membership } from "./membership"
 import { User } from "./user"
 import { MentionsUtils } from "../mentions-utils"
@@ -49,13 +49,17 @@ export class Channel {
   /** @internal */
   private lastMessageSentTimestamp = 0
   /** @internal */
-  private messageSentRateLimitPenalty = 0
+  private sendTextRateLimiter: ExponentialRateLimiter
 
   /** @internal */
   constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
     this.id = params.id
     this.suggestedNames = new Map()
+    this.sendTextRateLimiter = new ExponentialRateLimiter(
+      params.type ? chat.config.rateLimitPerChannel[params.type] || 0 : 0,
+      chat.config.rateLimitFactor
+    )
     Object.assign(this, params)
   }
 
@@ -205,23 +209,7 @@ export class Channel {
       return publishResponse
     }
 
-    const channelRateLimit = this.type ? this.chat.config.rateLimitPerChannel[this.type] || 0 : 0
-    const rateLimitFactor = this.chat.config.rateLimitFactor
-    const expectedTimeout =
-      channelRateLimit * Math.pow(rateLimitFactor, this.messageSentRateLimitPenalty)
-    const timestampDifference = new Date().getTime() - this.lastMessageSentTimestamp
-
-    if (timestampDifference > expectedTimeout) {
-      this.messageSentRateLimitPenalty = 0
-    } else {
-      const delay = expectedTimeout - timestampDifference
-      await sleep(delay)
-      this.messageSentRateLimitPenalty += 1
-    }
-
-    const result = await implementation()
-    this.lastMessageSentTimestamp = new Date().getTime()
-    return result
+    return this.sendTextRateLimiter.runWithinLimits(implementation)
   }
 
   async forwardMessage(message: Message) {
