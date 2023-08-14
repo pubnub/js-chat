@@ -25,8 +25,11 @@ export class CreateChannelModalComponentChat {
       return
     }
 
-    await this.chat.createChannel(this.channelNameInput.replaceAll(" ", "."), {
-      name: this.channelNameInput,
+    await this.chat.createPublicConversation({
+      channelId: this.channelNameInput.replaceAll(" ", "."),
+      channelData: {
+        name: this.channelNameInput,
+      },
     })
     this.toggleCreateChannelModal()
   }

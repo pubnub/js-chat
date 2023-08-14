@@ -21,6 +21,7 @@ import { Membership } from "./membership"
 import { User } from "./user"
 import { MentionsUtils } from "../mentions-utils"
 import { MessageDraft } from "./message-draft"
+import { getErrorProxiedEntity } from "../error-logging"
 
 export type ChannelFields = Pick<
   Channel,
@@ -73,7 +74,7 @@ export class Channel {
       type: params.type || undefined,
     }
 
-    return new Channel(chat, data)
+    return getErrorProxiedEntity(new Channel(chat, data), chat.errorLogger)
   }
 
   /*
@@ -146,6 +147,9 @@ export class Channel {
 
       if (quotedMessage && quotedMessage.channelId !== this.id) {
         throw "You cannot quote messages from other channels"
+      }
+      if (typeof text !== "string") {
+        throw "You can only send text messages using this method"
       }
 
       if (files) {
@@ -535,7 +539,7 @@ export class Channel {
   }
 
   createMessageDraft(config?: Partial<MessageDraftConfig>) {
-    return new MessageDraft(this.chat, this, config)
+    return getErrorProxiedEntity(new MessageDraft(this.chat, this, config), this.chat.errorLogger)
   }
 
   registerForPush() {
