@@ -618,7 +618,7 @@ describe("Channel test", () => {
     expect(messageDraft.quotedMessage).toBeUndefined()
   })
 
-  test.only("should correctly stream read receipts", async () => {
+  test("should correctly stream read receipts", async () => {
     const randomTimetoken = "123456789123456789"
     const membership = await channel.join(undefined, {
       custom: { lastReadMessageTimetoken: randomTimetoken },
