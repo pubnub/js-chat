@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react"
+import { extractErrorMessage } from "./helpers"
 import { Channel, Message, ThreadChannel, ThreadMessage } from "@pubnub/chat"
 
 export default function MessageList(props: {
@@ -15,18 +16,26 @@ export default function MessageList(props: {
   const [editedMessage, setEditedMessage] = useState<Message>()
   const [unreadCount, setUnreadCount] = useState(0)
   const [readReceipts, setReadReceipts] = useState({})
+  const [isSending, setIsSending] = useState(false)
+  const [error, setError] = useState("")
   const inputRef = useRef(null)
 
   async function handleTextInput(e) {
-    const newText = e.target.value
-    setText(newText)
-    if (channel) {
-      if (newText) await channel.startTyping()
-      else await channel.stopTyping()
+    try {
+      const newText = e.target.value
+      setText(newText)
+      if (channel) {
+        if (newText) await channel.startTyping()
+        else await channel.stopTyping()
+      }
+    } catch (e: any) {
+      setError(extractErrorMessage(e))
+      console.error(e)
     }
   }
 
   async function handleSend() {
+    setIsSending(true)
     if (editedMessage) {
       const edited = await editedMessage.editText(text)
       setMessages((ls) => ls.map((msg) => (msg.timetoken === edited.timetoken ? edited : msg)))
@@ -40,6 +49,7 @@ export default function MessageList(props: {
     } else {
       await props.channel.sendText(text, { files })
     }
+    setIsSending(false)
     setText("")
     setFiles(null)
     inputRef.current.value = null
@@ -117,12 +127,14 @@ export default function MessageList(props: {
 
   return (
     <>
+      {error ? <p className="error my-4">{error}</p> : null}
+
       <label htmlFor="sendText">
         {props.rootMessage ? `Responding to:  ${props.rootMessage.text}` : "Type a message"}
       </label>
       <div className="flex">
         <input type="text" name="sendText" value={text} onChange={handleTextInput} />
-        <button className="ml-2 flex-none" onClick={handleSend}>
+        <button className="ml-2 flex-none" onClick={handleSend} disabled={isSending}>
           {editedMessage ? "Update" : "Send"}
         </button>
       </div>

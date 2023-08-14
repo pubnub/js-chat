@@ -60,7 +60,7 @@ export default function () {
       console.log("Received channel: ", channel)
       setUpdateForm({ ...channel })
       setChannel(channel)
-      channel?.getTyping((userIds) => setTypingUserIds(userIds))
+      if (channel.type !== "public") channel?.getTyping((userIds) => setTypingUserIds(userIds))
     } catch (e: any) {
       setError(extractErrorMessage(e))
       console.error(e)

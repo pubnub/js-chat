@@ -16,6 +16,7 @@ import {
   TextMessageContent,
   ChannelType,
 } from "../types"
+import { ExponentialRateLimiter } from "../rate-limiter"
 import { Membership } from "./membership"
 import { User } from "./user"
 import { MentionsUtils } from "../mentions-utils"
@@ -46,12 +47,18 @@ export class Channel {
   private typingSentTimer?: ReturnType<typeof setTimeout>
   /** @internal */
   private typingIndicators: Map<string, ReturnType<typeof setTimeout>> = new Map()
+  /** @internal */
+  private sendTextRateLimiter: ExponentialRateLimiter
 
   /** @internal */
   constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
     this.id = params.id
     this.suggestedNames = new Map()
+    this.sendTextRateLimiter = new ExponentialRateLimiter(
+      params.type ? chat.config.rateLimitPerChannel[params.type] || 0 : 0,
+      chat.config.rateLimitFactor
+    )
     Object.assign(this, params)
   }
 
@@ -157,7 +164,7 @@ export class Channel {
   }
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
-    try {
+    const implementation = async () => {
       const { mentionedUsers, textLinks, quotedMessage, files, ...rest } = options
       const filesData: TextMessageContent["files"] = []
 
@@ -216,9 +223,9 @@ export class Channel {
       }
 
       return publishResponse
-    } catch (error) {
-      throw error
     }
+
+    return this.sendTextRateLimiter.runWithinLimits(implementation)
   }
 
   async forwardMessage(message: Message) {
@@ -602,7 +609,6 @@ export class Channel {
       next: response.next,
       total: response.count,
     }
-    return response
   }
 
   async deleteFile(params: { id: string; name: string }) {

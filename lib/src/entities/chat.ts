@@ -30,6 +30,10 @@ type ChatConfig = {
     apnsTopic?: string
     apnsEnvironment: "development" | "production"
   }
+  rateLimitFactor: number
+  rateLimitPerChannel: {
+    [key in ChannelType]: number
+  }
   errorLogger?: ErrorLoggerImplementation
 }
 
@@ -56,6 +60,8 @@ export class Chat {
       storeUserActivityInterval,
       storeUserActivityTimestamps,
       pushNotifications,
+      rateLimitFactor,
+      rateLimitPerChannel,
       errorLogger,
       ...pubnubConfig
     } = params
@@ -91,6 +97,12 @@ export class Chat {
         sendPushes: false,
         apnsEnvironment: "development",
         deviceGateway: "gcm",
+      },
+      rateLimitFactor: rateLimitFactor || 2,
+      rateLimitPerChannel: rateLimitPerChannel || {
+        direct: 0,
+        group: 0,
+        public: 0,
       },
     }
   }
