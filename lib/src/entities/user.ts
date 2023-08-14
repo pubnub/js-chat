@@ -102,6 +102,9 @@ export class User {
     return this.chat.isPresent(this.id, channelId)
   }
 
+  /*
+   * Memberships
+   */
   async getMemberships(params: Omit<GetMembershipsParametersv2, "include"> = {}) {
     const membershipsResponse = await this.chat.sdk.objects.getMemberships({
       ...params,

@@ -127,7 +127,7 @@ export class Chat {
   subscribe(channel: string) {
     const subscriptionId = Math.floor(Math.random() * Date.now()).toString(36)
     const channelSubIds = (this.subscriptions[channel] ||= new Set())
-    if (!channelSubIds.size) this.sdk.subscribe({ channels: [channel] })
+    if (!channelSubIds.size) this.sdk.subscribe({ channels: [channel], withPresence: true })
     channelSubIds.add(subscriptionId)
 
     return () => {
