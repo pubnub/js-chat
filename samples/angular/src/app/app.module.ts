@@ -18,6 +18,7 @@ import { ChannelListComponentSDK } from "../js-sdk/channel-list/channel-list.com
 import { CreateChannelModalComponentSDK } from "../js-sdk/create-channel-modal/create-channel-modal.component"
 import { CreateDirectConversationModalChat } from "../chat-sdk/create-direct-conversation-modal/create-direct-conversation-modal"
 import { CreateGroupConversationModalChat } from "../chat-sdk/create-group-conversation-modal/create-group-conversation-modal"
+import { ChannelsRelevantToUserComponent } from "../chat-sdk/channels-relevant-to-user/channels-relevant-to-user.component"
 
 @NgModule({
   declarations: [
@@ -35,6 +36,7 @@ import { CreateGroupConversationModalChat } from "../chat-sdk/create-group-conve
     CreateDirectConversationModalChat,
     ByPassSecurityPipe,
     CreateGroupConversationModalChat,
+    ChannelsRelevantToUserComponent,
   ],
   imports: [BrowserModule, ReactiveFormsModule, FormsModule],
   providers: [],

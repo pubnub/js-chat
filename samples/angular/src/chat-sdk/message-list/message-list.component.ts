@@ -1,6 +1,13 @@
 import { Component, Input, SimpleChanges, Pipe, PipeTransform } from "@angular/core"
 import { DomSanitizer, SafeHtml } from "@angular/platform-browser"
-import { Channel, Chat, Message, ThreadMessage } from "@pubnub/chat"
+import {
+  Channel,
+  Chat,
+  Message,
+  MixedTextTypedElement,
+  ThreadChannel,
+  ThreadMessage,
+} from "@pubnub/chat"
 import { StateService } from "../../app/state.service"
 
 @Pipe({
@@ -31,6 +38,8 @@ export class MessageListComponentChat {
   pinnedMessages: {
     [key: string]: string
   }
+  threadInputOpen = "0"
+  threadChannelOpen: ThreadChannel | null = null
 
   constructor(private sanitizer: DomSanitizer, private stateService: StateService) {
     this.messages = []
@@ -72,14 +81,13 @@ export class MessageListComponentChat {
     const things = ["Rock", "Paper", "Scissor"]
     const thing = things[Math.floor(Math.random() * things.length)]
 
-    if (msg.hasThread) {
-      const thread = await msg.getThread()
-      this.getPinnedMessage(thread)
-      thread.sendText(thing)
-    } else {
-      const thread = await msg.createThread()
-      thread.sendText(thing)
-    }
+    // if (msg.hasThread) {
+    //   const thread = await msg.getThread()
+    //   thread.sendText(thing)
+    // } else {
+    //   const thread = await msg.createThread()
+    //   thread.sendText(thing)
+    // }
 
     this.isPaginationEnd = !historicalMessagesObject.isMore
 
@@ -89,7 +97,10 @@ export class MessageListComponentChat {
   async forwardMessage(message: Message) {
     const forwardChannel =
       (await this.chat.getChannel("forward-channel")) ||
-      (await this.chat.createChannel("forward-channel", { name: "forward channel" }))
+      (await this.chat.createPublicConversation({
+        channelId: "forward-channel",
+        channelData: { name: "forward channel" },
+      }))
 
     await forwardChannel.forwardMessage(message)
 
@@ -123,19 +134,37 @@ export class MessageListComponentChat {
     this.threadMessages[message.timetoken] = threadMessages.messages
   }
 
-  renderMessage(message: Message) {
-    const plainLinkRenderer = (link: string) => {
-      if (link.includes("youtube")) {
-        return "[Link was cut]"
-      }
-
-      return `<a href="${link}">${link}</a>`
+  renderMessagePart(messagePart: MixedTextTypedElement) {
+    if (messagePart.type === "text") {
+      return messagePart.content.text
+    }
+    if (messagePart.type === "plainLink") {
+      return `<a href="${messagePart.content.link}">${messagePart.content.link}</a>`
+    }
+    if (messagePart.type === "textLink") {
+      return `<a href="${messagePart.content.link}">${messagePart.content.text}</a>`
+    }
+    if (messagePart.type === "mention") {
+      return `<a href="https://pubnub.com/${messagePart.content.id}">@${messagePart.content.name}</a>`
     }
 
-    return message.getLinkedText({ plainLinkRenderer })
+    return ""
   }
 
   quoteMessage(message: Message) {
     this.stateService.changeChannelQuote({ [message.channelId]: message })
+  }
+
+  async openThread(message: Message) {
+    if (message.hasThread) {
+      const thread = await message.getThread()
+      await this.loadThreadMessages(message)
+      this.threadChannelOpen = thread
+    } else {
+      const thread = await message.createThread()
+      this.threadChannelOpen = thread
+    }
+
+    this.threadInputOpen = message.timetoken
   }
 }

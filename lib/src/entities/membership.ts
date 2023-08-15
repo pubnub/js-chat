@@ -3,6 +3,7 @@ import PubNub, { ChannelMembershipObject, ObjectCustom, UUIDMembershipObject } f
 import { Channel } from "./channel"
 import { Message } from "./message"
 import { User } from "./user"
+import { getErrorProxiedEntity } from "../error-logging"
 
 export type MembershipFields = Pick<Membership, "channel" | "user" | "custom">
 
@@ -32,7 +33,7 @@ export class Membership {
       custom: channelMembershipObject.custom,
     }
 
-    return new Membership(chat, data)
+    return getErrorProxiedEntity(new Membership(chat, data), chat.errorLogger)
   }
 
   /** @internal */
@@ -47,7 +48,7 @@ export class Membership {
       custom: userMembershipObject.custom,
     }
 
-    return new Membership(chat, data)
+    return getErrorProxiedEntity(new Membership(chat, data), chat.errorLogger)
   }
 
   /** @internal */

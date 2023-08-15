@@ -1,9 +1,10 @@
-import { Chat, Channel, Message } from "../src"
+import { Chat, Channel, Message, MessageDraft } from "../src"
 import {
   createChatInstance,
   createRandomChannel,
   sleep,
   waitForAllMessagesToBeDelivered,
+  generateExpectedLinkedText,
 } from "./utils"
 import { INTERNAL_ADMIN_CHANNEL } from "../src"
 import { jest } from "@jest/globals"
@@ -13,6 +14,7 @@ describe("Send message test", () => {
 
   let chat: Chat
   let channel: Channel
+  let messageDraft
 
   beforeAll(async () => {
     chat = await createChatInstance()
@@ -20,6 +22,7 @@ describe("Send message test", () => {
 
   beforeEach(async () => {
     channel = await createRandomChannel()
+    messageDraft = new MessageDraft(chat, channel)
   })
 
   test("should send and receive unicode messages correctly", async () => {
@@ -194,34 +197,130 @@ describe("Send message test", () => {
     await new Promise((resolve) => setTimeout(resolve, 2000))
   }, 30000)
 
-  test("should add linked text correctly", async () => {
+  test.only("should render URLs correctly", async () => {
     const messageDraft = channel.createMessageDraft()
-    messageDraft.onChange("Click here")
-    messageDraft.addLinkedText({ text: "here", link: "https://pubnub.com", positionInInput: 6 })
+    const someUser =
+      (await chat.getUser("Przemek")) || (await chat.createUser("Przemek", { name: "Lukasz" }))
+    const someUser2 =
+      (await chat.getUser("whatever")) || (await chat.createUser("whatever", { name: "Anton" }))
+
+    const expectedLinkedText = generateExpectedLinkedText(messageDraft, someUser, someUser2)
 
     const messagePreview = messageDraft.getMessagePreview()
 
-    expect(messagePreview).toContain('<a href="https://pubnub.com">here</a>')
+    expectedLinkedText.forEach((expectedElement) => {
+      expect(messagePreview).toEqual(expect.arrayContaining([expectedElement]))
+    })
+  })
 
-    messageDraft.removeLinkedText(6)
+  test("should add linked text correctly", () => {
+    const initialText = "Check out this link: "
+    messageDraft.onChange(initialText)
 
-    const updatedMessagePreview = messageDraft.getMessagePreview()
+    const textToAdd = "example link"
+    const linkToAdd = "https://www.example.com"
 
-    expect(updatedMessagePreview).not.toContain('<a href="https://pubnub.com">here</a>')
-  }, 30000)
+    messageDraft.addLinkedText({
+      text: textToAdd,
+      link: linkToAdd,
+      positionInInput: initialText.length,
+    })
 
-  test("should convert text with URLs into hyperlinks", async () => {
-    const messageDraft = channel.createMessageDraft()
-    const inputText = "Check out this website: www.example.com"
-    const expectedHTML = '<a href="https://www.example.com">www.example.com</a>'
+    const expectedText = `${initialText}${textToAdd}`
+    expect(messageDraft.value).toBe(expectedText)
+    expect(messageDraft.textLinks).toHaveLength(1)
+    expect(messageDraft.textLinks[0]).toEqual({
+      startIndex: initialText.length,
+      endIndex: initialText.length + textToAdd.length,
+      link: linkToAdd,
+    })
+  })
 
-    messageDraft.onChange(inputText)
+  test("should throw an error for invalid link format", () => {
+    const initialText = "Check out this link: "
+    messageDraft.onChange(initialText)
+
+    const invalidLinkToAdd = "invalid-link"
+
+    expect(() => {
+      messageDraft.addLinkedText({
+        text: "invalid link",
+        link: invalidLinkToAdd,
+        positionInInput: initialText.length,
+      })
+    }).toThrow("You need to insert a URL")
+
+    expect(messageDraft.value).toBe(initialText)
+    expect(messageDraft.textLinks).toHaveLength(0)
+  })
+
+  test("should throw an error if adding a link inside another link", () => {
+    const initialText = "Check out this link: "
+    messageDraft.onChange(initialText)
+
+    const textToAdd1 = "example link1"
+    const linkToAdd1 = "https://www.example1.com"
+    const textToAdd2 = "example link2"
+    const linkToAdd2 = "https://www.example2.com"
+
+    messageDraft.addLinkedText({
+      text: textToAdd1,
+      link: linkToAdd1,
+      positionInInput: initialText.length,
+    })
+
+    expect(() => {
+      messageDraft.addLinkedText({
+        text: textToAdd2,
+        link: linkToAdd2,
+        positionInInput: initialText.length + textToAdd1.length - 2,
+      })
+    }).toThrow("You cannot insert a link inside another link")
+
+    expect(messageDraft.value).toBe(initialText + textToAdd1)
+    expect(messageDraft.textLinks).toHaveLength(1)
+    expect(messageDraft.textLinks[0]).toEqual({
+      startIndex: initialText.length,
+      endIndex: initialText.length + textToAdd1.length,
+      link: linkToAdd1,
+    })
+  })
+
+  test("should remove a linked URL correctly", () => {
+    const initialText = "Check out this link: "
+    messageDraft.onChange(initialText)
+
+    const textToAdd = "example link"
+    const linkToAdd = "https://www.example.com"
+
+    messageDraft.addLinkedText({
+      text: textToAdd,
+      link: linkToAdd,
+      positionInInput: initialText.length,
+    })
+
+    expect(messageDraft.value).toBe(initialText + textToAdd)
+
+    const positionInLinkedText = initialText.length
+
+    messageDraft.removeLinkedText(positionInLinkedText)
+
+    const expectedValue = "Check out this link: example link"
+    expect(messageDraft.value).toBe(expectedValue)
 
     const messagePreview = messageDraft.getMessagePreview()
 
-    expect(messagePreview).toContain(expectedHTML)
-    expect(messagePreview).toContain("https://www.example.com")
-  }, 30000)
+    const expectedMessagePreview = [
+      {
+        type: "text",
+        content: {
+          text: "Check out this link: example link",
+        },
+      },
+    ]
+
+    expect(messagePreview).toEqual(expectedMessagePreview)
+  })
 
   test("should report a message", async () => {
     const messageText = "Test message to be reported"

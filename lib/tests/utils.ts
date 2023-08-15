@@ -1,6 +1,7 @@
 // lib/tests/testUtils.ts
 import { Chat, MessageDraft, Channel, Message } from "../src"
 import * as dotenv from "dotenv"
+import { User } from "../src"
 
 dotenv.config()
 
@@ -84,6 +85,93 @@ export const extractMentionedUserIds = (messageText: string): string[] => {
     return matches.map((match) => match.slice(1))
   }
   return []
+}
+
+export function generateExpectedLinkedText(
+  messageDraft: MessageDraft,
+  someUser: User,
+  someUser2: User
+) {
+  const expectedLinkedText = [
+    {
+      type: "text",
+      content: {
+        text: "Hello world!! This is a mention to ",
+      },
+    },
+    {
+      type: "mention",
+      content: {
+        name: "Lukasz",
+        id: "Przemek",
+      },
+    },
+    {
+      type: "text",
+      content: {
+        text: " and this is a ",
+      },
+    },
+    {
+      type: "textLink",
+      content: {
+        link: "https://pubnub.com",
+        text: "text link",
+      },
+    },
+    {
+      type: "text",
+      content: {
+        text: " that leads to ",
+      },
+    },
+    {
+      type: "plainLink",
+      content: {
+        link: "https://pubnub.com",
+      },
+    },
+    {
+      type: "text",
+      content: {
+        text: ". Isn't it great? ",
+      },
+    },
+    {
+      type: "mention",
+      content: {
+        name: "Anton",
+        id: "whatever",
+      },
+    },
+  ]
+
+  let mentionCounter = 0
+
+  for (const element of expectedLinkedText) {
+    if (element.type === "text") {
+      messageDraft.onChange(messageDraft.value + element.content.text)
+    } else if (element.type === "textLink") {
+      messageDraft.addLinkedText({
+        text: element.content.text,
+        link: element.content.link,
+        positionInInput: messageDraft.value.length,
+      })
+    } else if (element.type === "plainLink") {
+      messageDraft.onChange(messageDraft.value + element.content.link)
+    } else if (element.type === "mention") {
+      if (mentionCounter === 0) {
+        messageDraft.onChange(messageDraft.value + `@${someUser.name.substring(0, 3)}`)
+        messageDraft.addMentionedUser(someUser, 0)
+      } else if (mentionCounter === 1) {
+        messageDraft.onChange(messageDraft.value + `@${someUser2.name.substring(0, 3)}`)
+        messageDraft.addMentionedUser(someUser2, 1)
+      }
+      mentionCounter++
+    }
+  }
+
+  return expectedLinkedText
 }
 
 export const sendMessageAndWaitForHistory = async (

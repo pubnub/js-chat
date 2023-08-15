@@ -1,13 +1,22 @@
 import PubNub, { MessageEvent, SignalEvent } from "pubnub"
 import { Channel, ChannelFields } from "./channel"
 import { User, UserFields } from "./user"
-import { DeleteParameters, TextMessageContent, EventContent, EventType } from "../types"
+import {
+  DeleteParameters,
+  TextMessageContent,
+  EventContent,
+  EventType,
+  ChannelType,
+  ErrorLoggerImplementation,
+  UserMentionData,
+} from "../types"
 import { Message } from "./message"
 import { Event } from "./event"
 import { Membership } from "./membership"
 import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadChannel } from "./thread-channel"
 import { MentionsUtils } from "../mentions-utils"
+import { getErrorProxiedEntity, ErrorLogger } from "../error-logging"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -21,6 +30,11 @@ type ChatConfig = {
     apnsTopic?: string
     apnsEnvironment: "development" | "production"
   }
+  rateLimitFactor: number
+  rateLimitPerChannel: {
+    [key in ChannelType]: number
+  }
+  errorLogger?: ErrorLoggerImplementation
 }
 
 type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
@@ -35,6 +49,8 @@ export class Chat {
   private suggestedNamesCache: Map<string, User[]>
   /* @internal */
   private subscriptions: { [channel: string]: Set<string> }
+  /** @internal */
+  errorLogger: ErrorLogger
 
   /** @internal */
   private constructor(params: ChatConstructor) {
@@ -44,15 +60,25 @@ export class Chat {
       storeUserActivityInterval,
       storeUserActivityTimestamps,
       pushNotifications,
+      rateLimitFactor,
+      rateLimitPerChannel,
+      errorLogger,
       ...pubnubConfig
     } = params
 
-    if (storeUserActivityInterval && storeUserActivityInterval < 600000) {
-      throw "storeUserActivityInterval must be at least 600000ms"
-    }
+    this.errorLogger = new ErrorLogger(errorLogger)
 
-    if (pushNotifications?.deviceGateway === "apns2" && !pushNotifications?.apnsTopic) {
-      throw "apnsTopic has to be defined when deviceGateway is set to apns2"
+    try {
+      if (storeUserActivityInterval && storeUserActivityInterval < 600000) {
+        throw "storeUserActivityInterval must be at least 600000ms"
+      }
+
+      if (pushNotifications?.deviceGateway === "apns2" && !pushNotifications?.apnsTopic) {
+        throw "apnsTopic has to be defined when deviceGateway is set to apns2"
+      }
+    } catch (error) {
+      this.errorLogger.setItem("PushNotificationError", error, arguments)
+      throw error
     }
 
     this.sdk = new PubNub(pubnubConfig)
@@ -61,6 +87,7 @@ export class Chat {
     })
     this.subscriptions = {}
     this.suggestedNamesCache = new Map<string, User[]>()
+
     this.config = {
       saveDebugLog: saveDebugLog || false,
       typingTimeout: typingTimeout || 5000,
@@ -70,6 +97,12 @@ export class Chat {
         sendPushes: false,
         apnsEnvironment: "development",
         deviceGateway: "gcm",
+      },
+      rateLimitFactor: rateLimitFactor || 2,
+      rateLimitPerChannel: rateLimitPerChannel || {
+        direct: 0,
+        group: 0,
+        public: 0,
       },
     }
   }
@@ -85,7 +118,9 @@ export class Chat {
       chat.storeUserActivityTimestamp()
     }
 
-    return chat
+    const proxiedChat = getErrorProxiedEntity(chat, chat.errorLogger)
+
+    return proxiedChat
   }
 
   /* @internal */
@@ -366,7 +401,7 @@ export class Chat {
    *  Channels
    */
   async getChannel(id: string) {
-    if (!id.length) throw "ID is required"
+    if (!id || !id.length) throw "ID is required"
     try {
       const response = await this.sdk.objects.getChannelMetadata({
         channel: id,
@@ -395,7 +430,11 @@ export class Chat {
     }
   }
 
-  async createChannel(id: string, data: PubNub.ChannelMetadata<PubNub.ObjectCustom>) {
+  /* @internal */
+  async createChannel(
+    id: string,
+    data: PubNub.ChannelMetadata<PubNub.ObjectCustom> & { type: ChannelType }
+  ) {
     if (!id.length) throw "ID is required"
     try {
       const existingChannel = await this.getChannel(id)
@@ -447,6 +486,131 @@ export class Chat {
       } else {
         await this.sdk.objects.removeChannelMetadata({ channel: id })
         return true
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  /**
+   * Channel types
+   */
+  async createPublicConversation({
+    channelId,
+    channelData,
+  }: {
+    channelId: string
+    channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
+  }) {
+    return this.createChannel(channelId, { ...channelData, type: "public" })
+  }
+
+  async createDirectConversation({
+    user,
+    channelData,
+    membershipData = {},
+  }: {
+    user: User
+    channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
+    membershipData?: Omit<
+      PubNub.SetMembershipsParameters<PubNub.ObjectCustom>,
+      "channels" | "include" | "filter"
+    > & {
+      custom?: PubNub.ObjectCustom
+    }
+  }) {
+    try {
+      if (!this.user) {
+        throw "Chat user is not set. Set them by calling setChatUser on the Chat instance."
+      }
+
+      const sortedUsers = [this.user.id, user.id].sort()
+
+      const channelName = `direct.${sortedUsers[0]}&${sortedUsers[1]}`
+
+      const channel =
+        (await this.getChannel(channelName)) ||
+        (await this.createChannel(channelName, { ...channelData, type: "direct" }))
+
+      const { custom, ...rest } = membershipData
+      const hostMembershipPromise = this.sdk.objects.setMemberships({
+        ...rest,
+        channels: [{ id: channel.id, custom }],
+        include: {
+          totalCount: true,
+          customFields: true,
+          channelFields: true,
+          customChannelFields: true,
+        },
+        filter: `channel.id == '${channel.id}'`,
+      })
+
+      const [hostMembershipResponse, inviteeMembership] = await Promise.all([
+        hostMembershipPromise,
+        channel.invite(user),
+      ])
+
+      return {
+        channel,
+        hostMembership: Membership.fromMembershipDTO(
+          this,
+          hostMembershipResponse.data[0],
+          this.user
+        ),
+        inviteeMembership,
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async createGroupConversation({
+    users,
+    channelId,
+    channelData,
+    membershipData = {},
+  }: {
+    users: User[]
+    channelId: string
+    channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
+    membershipData?: Omit<
+      PubNub.SetMembershipsParameters<PubNub.ObjectCustom>,
+      "channels" | "include" | "filter"
+    > & {
+      custom?: PubNub.ObjectCustom
+    }
+  }) {
+    try {
+      const channel =
+        (await this.getChannel(channelId)) ||
+        (await this.createChannel(channelId, { ...channelData, type: "group" }))
+
+      const { custom, ...rest } = membershipData
+      const hostMembershipPromise = this.sdk.objects.setMemberships({
+        ...rest,
+        channels: [{ id: channel.id, custom }],
+        include: {
+          totalCount: true,
+          customFields: true,
+          channelFields: true,
+          customChannelFields: true,
+        },
+        filter: `channel.id == '${channel.id}'`,
+      })
+
+      const [hostMembershipResponse, inviteesMemberships] = await Promise.all([
+        hostMembershipPromise,
+        channel.inviteMultiple(users),
+      ])
+
+      return {
+        channel,
+        hostMembership: Membership.fromMembershipDTO(
+          this,
+          hostMembershipResponse.data[0],
+          this.user
+        ),
+        inviteesMemberships,
       }
     } catch (error) {
       throw error
@@ -755,5 +919,65 @@ export class Chat {
   async getPushChannels() {
     const response = await this.sdk.push.listChannels(this.getCommonPushOptions())
     return response.channels
+  }
+
+  downloadDebugLog() {
+    return this.errorLogger.getStorageObject()
+  }
+
+  async getCurrentUserMentions(
+    params: { startTimetoken?: string; endTimetoken?: string; count?: number } = {}
+  ): Promise<{ enhancedMentionsData: UserMentionData[]; isMore: boolean }> {
+    const mentionsHistoryObject = await this.getEventsHistory({
+      ...params,
+      channel: this.currentUser.id,
+    })
+
+    const enhancedMentionsData = await Promise.all(
+      mentionsHistoryObject.events
+        .filter((event) => event.type === "mention")
+        .map(async (event) => {
+          let maybeParentChannelPromise = null
+
+          if (event.payload.parentChannel) {
+            maybeParentChannelPromise = this.getChannel(event.payload.parentChannel)
+          }
+
+          const [channel, parentChannel] = await Promise.all([
+            this.getChannel(event.payload.channel),
+            maybeParentChannelPromise,
+          ])
+
+          const [message, user] = await Promise.all([
+            (channel as Channel).getMessage(event.payload.messageTimetoken),
+            this.getUser(event.userId),
+          ])
+
+          if (!parentChannel) {
+            return {
+              event: event as Event<"mention">,
+              channel: channel as Channel,
+              message: message as Message,
+              user: user as User,
+            }
+          }
+
+          return {
+            event: event as Event<"mention">,
+            parentChannel: parentChannel as Channel,
+            threadChannel: ThreadChannel.fromDTO(this, {
+              id: (channel as Channel).id,
+              parentChannelId: parentChannel.id,
+            }),
+            message: message as Message,
+            user: user as User,
+          }
+        })
+    )
+
+    return {
+      enhancedMentionsData,
+      isMore: mentionsHistoryObject.isMore,
+    }
   }
 }

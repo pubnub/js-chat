@@ -3,7 +3,10 @@ import PubNub from "pubnub"
 import { Channel, Chat } from "@pubnub/chat"
 import { StateService } from "./state.service"
 
-const userId = "test-user"
+const userId = (new URLSearchParams(window.location.search).get("userid") as string) || "test-user"
+
+const publishKey = "demo"
+const subscribeKey = "demo"
 
 @Component({
   selector: "app-root",
@@ -22,8 +25,8 @@ export class AppComponent {
   constructor(public stateService: StateService) {}
 
   pubnub = new PubNub({
-    publishKey: "demo",
-    subscribeKey: "demo",
+    publishKey,
+    subscribeKey,
     userId,
   })
 
@@ -31,22 +34,28 @@ export class AppComponent {
 
   async ngOnInit() {
     this.chat = await Chat.init({
-      publishKey: "demo",
-      subscribeKey: "demo",
+      publishKey,
+      subscribeKey,
       userId,
       typingTimeout: 2000,
     })
 
     const channel =
-      (await this.chat.getChannel("123")) ||
-      (await this.chat.createChannel("123", { name: "Some channel" }))
+      (await this.chat.getChannel("test-channel")) ||
+      (await this.chat.createPublicConversation({
+        channelId: "test-channel",
+        channelData: { name: "test channel" },
+      }))
 
     await this.stateService.toggleChannel(channel)
     this.channel = this.stateService.currentChannel
 
     this.forwardChannel =
       (await this.chat.getChannel("forward-channel")) ||
-      (await this.chat.createChannel("forward-channel", { name: "forward channel" }))
+      (await this.chat.createPublicConversation({
+        channelId: "forward-channel",
+        channelData: { name: "forward channel" },
+      }))
   }
 
   toggleCreateChannelModalChatSDK() {
@@ -63,5 +72,13 @@ export class AppComponent {
 
   toggleCreateGroupConversationModalChatSDK() {
     this.stateService.toggleCreateGroupConversationModalChatSDK()
+  }
+
+  downloadDebugLog() {
+    this.chat?.downloadDebugLog()
+  }
+
+  openChannelsRelevantToUser() {
+    this.stateService.toggleChannelsRelevantToUser()
   }
 }

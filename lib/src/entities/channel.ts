@@ -14,11 +14,14 @@ import {
   MessageDraftConfig,
   MessageType,
   TextMessageContent,
+  ChannelType,
 } from "../types"
+import { ExponentialRateLimiter } from "../rate-limiter"
 import { Membership } from "./membership"
 import { User } from "./user"
 import { MentionsUtils } from "../mentions-utils"
 import { MessageDraft } from "./message-draft"
+import { getErrorProxiedEntity } from "../error-logging"
 
 export type ChannelFields = Pick<
   Channel,
@@ -33,7 +36,7 @@ export class Channel {
   readonly description?: string
   readonly updated?: string
   readonly status?: string
-  readonly type?: string
+  readonly type?: ChannelType
   /** @internal */
   private suggestedNames: Map<string, Membership[]>
   /** @internal */
@@ -44,12 +47,18 @@ export class Channel {
   private typingSentTimer?: ReturnType<typeof setTimeout>
   /** @internal */
   private typingIndicators: Map<string, ReturnType<typeof setTimeout>> = new Map()
+  /** @internal */
+  private sendTextRateLimiter: ExponentialRateLimiter
 
   /** @internal */
   constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
     this.id = params.id
     this.suggestedNames = new Map()
+    this.sendTextRateLimiter = new ExponentialRateLimiter(
+      params.type ? chat.config.rateLimitPerChannel[params.type] || 0 : 0,
+      chat.config.rateLimitFactor
+    )
     Object.assign(this, params)
   }
 
@@ -65,7 +74,7 @@ export class Channel {
       type: params.type || undefined,
     }
 
-    return new Channel(chat, data)
+    return getErrorProxiedEntity(new Channel(chat, data), chat.errorLogger)
   }
 
   /*
@@ -114,7 +123,7 @@ export class Channel {
    * Publishing
    */
   /** @internal */
-  private getPushPayload(text: string) {
+  protected getPushPayload(text: string) {
     const { sendPushes, apnsTopic } = this.chat.config.pushNotifications
     if (!sendPushes) return {}
 
@@ -131,17 +140,59 @@ export class Channel {
     return pushBuilder.buildPayload(pushGateways)
   }
 
+  /** @internal */
+  protected emitUserMention({
+    userId,
+    timetoken,
+    text,
+  }: {
+    userId: string
+    timetoken: number
+    text: string
+  }) {
+    const payload = {
+      messageTimetoken: String(timetoken),
+      channel: this.id,
+      ...this.getPushPayload(text),
+    }
+    this.chat.emitEvent({
+      channel: userId,
+      type: "mention",
+      method: "publish",
+      payload,
+    })
+  }
+
   async sendText(text: string, options: SendTextOptionParams = {}) {
-    try {
-      const { mentionedUsers, textLinks, quotedMessage, ...rest } = options
+    const implementation = async () => {
+      const { mentionedUsers, textLinks, quotedMessage, files, ...rest } = options
+      const filesData: TextMessageContent["files"] = []
 
       if (quotedMessage && quotedMessage.channelId !== this.id) {
         throw "You cannot quote messages from other channels"
+      }
+      if (typeof text !== "string") {
+        throw "You can only send text messages using this method"
+      }
+
+      if (files) {
+        const filesArray = Array.isArray(files) ? files : Array.from(files)
+        for (const file of filesArray) {
+          const type = "type" in file ? file.type : file.mimeType
+          const { name, id } = await this.chat.sdk.sendFile({
+            channel: this.id,
+            file,
+            storeInHistory: false,
+          })
+          const url = this.chat.sdk.getFileUrl({ channel: this.id, id, name })
+          filesData.push({ url, name, id, type })
+        }
       }
 
       const message: TextMessageContent = {
         type: MessageType.TEXT,
         text,
+        ...(filesData.length && { files: filesData }),
         ...this.getPushPayload(text),
       }
 
@@ -166,24 +217,15 @@ export class Channel {
       if (mentionedUsers) {
         Object.keys(mentionedUsers).forEach((key) => {
           const userId = mentionedUsers[Number(key)].id
-          const payload = {
-            messageTimetoken: String(publishResponse.timetoken),
-            channel: this.id,
-            ...this.getPushPayload(text),
-          }
-          this.chat.emitEvent({
-            channel: userId,
-            type: "mention",
-            method: "publish",
-            payload,
-          })
+
+          this.emitUserMention({ userId, timetoken: publishResponse.timetoken, text })
         })
       }
 
       return publishResponse
-    } catch (error) {
-      throw error
     }
+
+    return this.sendTextRateLimiter.runWithinLimits(implementation)
   }
 
   async forwardMessage(message: Message) {
@@ -204,6 +246,7 @@ export class Channel {
   }
 
   async startTyping() {
+    if (this.type === "public") throw "Typing indicators are not supported in Public chats."
     if (this.typingSent) return
     this.typingSent = true
     this.typingSentTimer = setTimeout(
@@ -214,6 +257,7 @@ export class Channel {
   }
 
   async stopTyping() {
+    if (this.type === "public") throw "Typing indicators are not supported in Public chats."
     clearTimeout(this.typingSentTimer)
     if (!this.typingSent) return
     this.typingSent = false
@@ -221,6 +265,7 @@ export class Channel {
   }
 
   getTyping(callback: (typingUserIds: string[]) => unknown) {
+    if (this.type === "public") throw "Typing indicators are not supported in Public chats."
     const handler = (event: Event<"typing">) => {
       const { channelId, payload, userId, type } = event
       if (channelId !== this.id) return
@@ -394,6 +439,7 @@ export class Channel {
   }
 
   async invite(user: User) {
+    if (this.type === "public") throw "Channel invites are not supported in Public chats."
     try {
       const channelMembers = await this.getMembers({ filter: `uuid.id == '${user.id}'` })
 
@@ -421,6 +467,7 @@ export class Channel {
   }
 
   async inviteMultiple(users: User[]) {
+    if (this.type === "public") throw "Channel invites are not supported in Public chats."
     const uuids = users.map((u) => u.id)
     const filter = uuids.map((uuid) => `uuid.id == '${uuid}'`).join(" || ")
 
@@ -506,7 +553,7 @@ export class Channel {
   }
 
   createMessageDraft(config?: Partial<MessageDraftConfig>) {
-    return new MessageDraft(this.chat, this, config)
+    return getErrorProxiedEntity(new MessageDraft(this.chat, this, config), this.chat.errorLogger)
   }
 
   registerForPush() {
@@ -518,6 +565,7 @@ export class Channel {
   }
 
   async streamReadReceipts(callback: (receipts: { [key: string]: string[] }) => unknown) {
+    if (this.type === "public") throw "Read receipts are not supported in Public chats."
     function generateReceipts() {
       const receipts: { [key: string]: string[] } = {}
       timetokensPerUser.forEach((timetoken, userId) => {
@@ -547,5 +595,23 @@ export class Channel {
     })
 
     return unsubscribe
+  }
+
+  async getFiles(params: Omit<PubNub.ListFilesParameters, "channel"> = {}) {
+    const response = await this.chat.sdk.listFiles({ channel: this.id, ...params })
+    const filesWithUrls = response.data.map((f) => {
+      const { name, id } = f
+      const url = this.chat.sdk.getFileUrl({ channel: this.id, id, name })
+      return { name, id, url }
+    })
+    return {
+      files: filesWithUrls,
+      next: response.next,
+      total: response.count,
+    }
+  }
+
+  async deleteFile(params: { id: string; name: string }) {
+    return this.chat.sdk.deleteFile({ channel: this.id, ...params })
   }
 }

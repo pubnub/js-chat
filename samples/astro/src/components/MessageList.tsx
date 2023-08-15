@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
+import { extractErrorMessage } from "./helpers"
 import { Channel, Message, ThreadChannel, ThreadMessage } from "@pubnub/chat"
 
 export default function MessageList(props: {
@@ -10,35 +11,48 @@ export default function MessageList(props: {
   const [channel, setChannel] = useState<undefined | Channel>(props.channel)
   const [membership, setMembership] = useState<undefined | Membership>()
   const [text, setText] = useState("")
+  const [files, setFiles] = useState<FileList>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [editedMessage, setEditedMessage] = useState<Message>()
   const [unreadCount, setUnreadCount] = useState(0)
   const [readReceipts, setReadReceipts] = useState({})
+  const [isSending, setIsSending] = useState(false)
+  const [error, setError] = useState("")
+  const inputRef = useRef(null)
 
   async function handleTextInput(e) {
-    const newText = e.target.value
-    setText(newText)
-    if (channel) {
-      if (newText) await channel.startTyping()
-      else await channel.stopTyping()
+    try {
+      const newText = e.target.value
+      setText(newText)
+      if (channel) {
+        if (newText) await channel.startTyping()
+        else await channel.stopTyping()
+      }
+    } catch (e: any) {
+      setError(extractErrorMessage(e))
+      console.error(e)
     }
   }
 
   async function handleSend() {
+    setIsSending(true)
     if (editedMessage) {
       const edited = await editedMessage.editText(text)
       setMessages((ls) => ls.map((msg) => (msg.timetoken === edited.timetoken ? edited : msg)))
       setEditedMessage(null)
     } else if (props.rootMessage) {
       const { rootMessage, rootChannel } = props
-      await rootChannel.sendText(text, { rootMessage })
+      await rootChannel.sendText(text, { rootMessage, files })
       if (channel) return
       const thread = await rootMessage.getThread()
       setChannel(thread)
     } else {
-      await props.channel.sendText(text)
+      await props.channel.sendText(text, { files })
     }
+    setIsSending(false)
     setText("")
+    setFiles(null)
+    inputRef.current.value = null
   }
 
   async function handleMarkRead(message: Message) {
@@ -89,10 +103,9 @@ export default function MessageList(props: {
     setMessages([])
     setEditedMessage(null)
     setupMessages()
-    const stopReceipts = channel.streamReadReceipts(setReadReceipts)
-    return () => {
-      stopReceipts()
-    }
+    let stopReceipts
+    channel.streamReadReceipts(setReadReceipts).then((stop) => (stopReceipts = stop))
+    return stopReceipts
   }, [channel])
 
   useEffect(() => {
@@ -114,15 +127,25 @@ export default function MessageList(props: {
 
   return (
     <>
+      {error ? <p className="error my-4">{error}</p> : null}
+
       <label htmlFor="sendText">
         {props.rootMessage ? `Responding to:  ${props.rootMessage.text}` : "Type a message"}
       </label>
       <div className="flex">
         <input type="text" name="sendText" value={text} onChange={handleTextInput} />
-        <button className="ml-2 flex-none" onClick={handleSend}>
+        <button className="ml-2 flex-none" onClick={handleSend} disabled={isSending}>
           {editedMessage ? "Update" : "Send"}
         </button>
       </div>
+      <input
+        type="file"
+        ref={inputRef}
+        multiple={true}
+        onChange={(ev) => setFiles(ev.target.files)}
+        className="p-0 mt-2 border-0"
+      />
+
       <p className="my-3">Unread count: {unreadCount}</p>
 
       <ul>
@@ -130,7 +153,7 @@ export default function MessageList(props: {
           <li key={message.timetoken}>
             <div className="flex items-center mb-2">
               <span className="flex-1">
-                {message.userId}: {message.text}
+                <b>{message.userId}:</b> {message.text}
               </span>
               <span>
                 {message.deleted ? "(soft deleted)" : ""}
@@ -139,7 +162,25 @@ export default function MessageList(props: {
                   : ""}
               </span>
             </div>
-            <div>
+
+            <div className="mt-1">
+              {message.files.map((file) =>
+                file.type.startsWith("image") ? (
+                  <img key={file.id} src={file.url} alt={file.name} />
+                ) : (
+                  <a
+                    className="text-sky-700 pr-3 underline"
+                    key={file.id}
+                    href={file.url}
+                    target="_blank"
+                  >
+                    {file.name}
+                  </a>
+                )
+              )}
+            </div>
+
+            <div className="mt-2">
               <nav>
                 <button
                   className={`py-0.5 px-2 ${
@@ -203,6 +244,9 @@ export default function MessageList(props: {
           </li>
         ))}
       </ul>
+      {/* <button onClick={() => channel?.getFiles().then(console.log)} className="ml-2">
+        Files
+      </button> */}
     </>
   )
 }
