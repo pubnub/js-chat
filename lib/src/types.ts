@@ -6,11 +6,11 @@ import PubNub, {
 } from "pubnub"
 import { User } from "./entities/user"
 import { Message } from "./entities/message"
+import { Event } from "./entities/event"
+import { Channel } from "./entities/channel"
+import { ThreadChannel } from "./entities/thread-channel"
 
-export type StatusTypeFields = {
-  status?: string
-  type?: string
-}
+export type ChannelType = "direct" | "group" | "public"
 
 export enum MessageType {
   TEXT = "text",
@@ -96,8 +96,10 @@ export type MembershipResponse = Awaited<ReturnType<User["getMemberships"]>>
 
 export type OptionalAllBut<T, K extends keyof T> = Partial<T> & Pick<T, K>
 
-export type ChannelDTOParams = OptionalAllBut<ChannelMetadataObject<ObjectCustom>, "id"> &
-  StatusTypeFields
+export type ChannelDTOParams = OptionalAllBut<ChannelMetadataObject<ObjectCustom>, "id"> & {
+  status?: string
+  type?: ChannelType
+}
 
 export type ThreadChannelDTOParams = ChannelDTOParams & { parentChannelId: string }
 
@@ -145,3 +147,29 @@ export type MixedTextTypedElement =
   | TextTypeElement<"mention">
   | TextTypeElement<"plainLink">
   | TextTypeElement<"textLink">
+
+export type ErrorLoggerSetParams = {
+  key: string
+  error: unknown
+  thrownFunctionArguments: IArguments
+}
+
+export declare class ErrorLoggerImplementation {
+  setItem(key: string, params: ErrorLoggerSetParams): void
+  getStorageObject(): Record<string, unknown>
+}
+
+export type UserMentionData =
+  | {
+      event: Event<"mention">
+      channel: Channel
+      message: Message
+      user: User
+    }
+  | {
+      event: Event<"mention">
+      threadChannel: ThreadChannel
+      parentChannel: Channel
+      message: Message
+      user: User
+    }

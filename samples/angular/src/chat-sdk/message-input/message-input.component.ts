@@ -21,7 +21,6 @@ export class MessageInputComponentChat {
   }
   @Input() channel!: Channel
   @Input() chat!: Chat
-  @Input() typingSent!: boolean
   newMessageDraft: MessageDraft
   lastAffectedNameOccurrenceIndex = -1
   currentlyHighlightedMention: {
@@ -41,7 +40,10 @@ export class MessageInputComponentChat {
   }
 
   ngOnInit() {
-    this.newMessageDraft = this.channel.createMessageDraft({ userSuggestionSource: "global" })
+    this.newMessageDraft = this.channel.createMessageDraft({
+      userSuggestionSource: "global",
+      userLimit: 100,
+    })
   }
 
   async handleInput(text: string) {
@@ -49,7 +51,6 @@ export class MessageInputComponentChat {
     this.suggestedUsers = response.suggestedUsers
     this.lastAffectedNameOccurrenceIndex = response.nameOccurrenceIndex
     this.messagePreview = this.newMessageDraft.getMessagePreview()
-    console.log("this.messagePreview", this.messagePreview)
   }
 
   toggleUserToNotify(user: User) {

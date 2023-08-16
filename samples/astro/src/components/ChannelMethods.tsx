@@ -14,7 +14,13 @@ const defaultGetAllState = {
 export default function () {
   const chat = useStore(chatAtom)
   const [createForm, setCreateForm] = useState({ id: "", name: "" })
-  const [updateForm, setUpdateForm] = useState({ id: "", name: "", description: "", status: "" })
+  const [updateForm, setUpdateForm] = useState({
+    id: "",
+    name: "",
+    description: "",
+    status: "",
+    type: "",
+  })
   const [presence, setPresence] = useState<string[]>([])
   const [channel, setChannel] = useState<Channel>()
   const [respondingToMessage, setRespondingToMessage] = useState<Message>()
@@ -38,9 +44,9 @@ export default function () {
 
   async function handleUpdate() {
     try {
-      const { name, description, status } = updateForm
-      const channel = await chat.updateChannel(updateForm.id, { name, description, status })
-      setUpdateForm({ id: "", name: "", description: "", status: "" })
+      const { name, description, status, type } = updateForm
+      const channel = await chat.updateChannel(updateForm.id, { name, description, status, type })
+      setUpdateForm({ id: "", name: "", description: "", status: "", type: "" })
       setChannel(channel)
     } catch (e: any) {
       setError(extractErrorMessage(e))
@@ -51,9 +57,10 @@ export default function () {
   async function handleGet() {
     try {
       const channel = await chat.getChannel(input)
+      console.log("Received channel: ", channel)
       setUpdateForm({ ...channel })
-      channel?.getTyping((userIds) => setTypingUserIds(userIds))
       setChannel(channel)
+      if (channel.type !== "public") channel?.getTyping((userIds) => setTypingUserIds(userIds))
     } catch (e: any) {
       setError(extractErrorMessage(e))
       console.error(e)
@@ -225,6 +232,17 @@ export default function () {
               value={updateForm.status}
               onChange={(e) => setUpdateForm((f) => ({ ...f, status: e.target.value }))}
             />
+            <label htmlFor="update-status">Type</label>
+            <select
+              name="update-type"
+              value={updateForm.type}
+              onChange={(e) => setUpdateForm((f) => ({ ...f, type: e.target.value }))}
+            >
+              <option value="">-- SELECT --</option>
+              <option value="direct">Direct</option>
+              <option value="group">Group</option>
+              <option value="public">Public</option>
+            </select>
             <nav className="float-right mt-3">
               <button className="mr-2" onClick={handleHardDelete}>
                 Hard delete channel

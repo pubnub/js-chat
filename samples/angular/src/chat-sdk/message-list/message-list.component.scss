@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  //max-width: 250px;
 }
 
 .message-row__forward-icon {
@@ -31,4 +30,8 @@
 
 .linked-text {
   word-break: break-all;
+}
+
+.thread-input__container {
+  padding: 16px 0 16px 80px;
 }

@@ -3,6 +3,7 @@ import { Channel, ChannelFields } from "./channel"
 import { Chat } from "./chat"
 import { ThreadChannelDTOParams } from "../types"
 import { ThreadMessage } from "./thread-message"
+import { getErrorProxiedEntity } from "../error-logging"
 
 export class ThreadChannel extends Channel {
   readonly parentChannelId: string
@@ -26,7 +27,7 @@ export class ThreadChannel extends Channel {
       type: params.type || undefined,
     }
 
-    return new ThreadChannel(chat, data)
+    return getErrorProxiedEntity(new ThreadChannel(chat, data), chat.errorLogger)
   }
 
   override async pinMessage(message: ThreadMessage) {
@@ -86,5 +87,29 @@ export class ThreadChannel extends Channel {
       ),
       isMore: messagesResponse.isMore,
     }
+  }
+
+  /** @internal */
+  protected emitUserMention({
+    userId,
+    timetoken,
+    text,
+  }: {
+    userId: string
+    timetoken: number
+    text: string
+  }) {
+    const payload = {
+      messageTimetoken: String(timetoken),
+      channel: this.id,
+      parentChannel: this.parentChannelId,
+      ...this.getPushPayload(text),
+    }
+    this.chat.emitEvent({
+      channel: userId,
+      type: "mention",
+      method: "publish",
+      payload,
+    })
   }
 }
