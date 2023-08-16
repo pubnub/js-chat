@@ -646,5 +646,6 @@ describe("Channel test", () => {
 
     stopReceipts()
   })
+
   jest.retryTimes(3)
 })
