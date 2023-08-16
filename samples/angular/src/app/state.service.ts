@@ -12,6 +12,7 @@ export class StateService {
   createGroupConversationChatSDKOpen = false
   currentChannel: Channel | null = null
   pendingQuotes: { [channelId: string]: Message | null } = {}
+  channelsRelevantToUserModalOpen = false
 
   JSSDKModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
   chatSDKModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
@@ -21,6 +22,7 @@ export class StateService {
   pendingQuotesChange: Subject<{ [channelId: string]: Message | null }> = new Subject<{
     [channelId: string]: Message | null
   }>()
+  channelsRelevantToUserModalVisibilityChange: Subject<boolean> = new Subject<boolean>()
 
   constructor() {
     this.JSSDKModalVisibilityChange.subscribe((value) => {
@@ -40,6 +42,9 @@ export class StateService {
     })
     this.chatSDKCreateGroupConversationModalVisibilityChange.subscribe((value) => {
       this.createGroupConversationChatSDKOpen = value
+    })
+    this.channelsRelevantToUserModalVisibilityChange.subscribe((value) => {
+      this.channelsRelevantToUserModalOpen = value
     })
   }
 
@@ -77,5 +82,9 @@ export class StateService {
 
   changeChannelQuote(channelQuote: { [channelId: string]: Message | null }) {
     this.pendingQuotesChange.next(channelQuote)
+  }
+
+  toggleChannelsRelevantToUser() {
+    this.channelsRelevantToUserModalVisibilityChange.next(!this.channelsRelevantToUserModalOpen)
   }
 }

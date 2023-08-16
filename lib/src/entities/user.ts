@@ -1,8 +1,9 @@
 import PubNub, { UUIDMetadataObject, ObjectCustom, GetMembershipsParametersv2 } from "pubnub"
 import { Chat } from "./chat"
-import { DeleteParameters, OptionalAllBut, StatusTypeFields } from "../types"
+import { DeleteParameters, OptionalAllBut } from "../types"
 import { Membership } from "./membership"
 import { INTERNAL_ADMIN_CHANNEL } from "../constants"
+import { getErrorProxiedEntity } from "../error-logging"
 
 export type UserFields = Pick<
   User,
@@ -31,7 +32,10 @@ export class User {
   /** @internal */
   static fromDTO(
     chat: Chat,
-    params: OptionalAllBut<UUIDMetadataObject<ObjectCustom>, "id"> & StatusTypeFields
+    params: OptionalAllBut<UUIDMetadataObject<ObjectCustom>, "id"> & {
+      status?: string
+      type?: string
+    }
   ) {
     const data = {
       id: params.id,
@@ -45,7 +49,7 @@ export class User {
       type: params.type || undefined,
       lastActiveTimestamp: params.custom?.lastActiveTimestamp || undefined,
     }
-    return new User(chat, data)
+    return getErrorProxiedEntity(new User(chat, data), chat.errorLogger)
   }
 
   /*

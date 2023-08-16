@@ -49,7 +49,9 @@ describe("User test", () => {
   test("Should stream user updates and invoke the callback", async () => {
     let updatedUser
     const name = "Updated User"
-    const callback = jest.fn((user) => (updatedUser = user))
+    const callback = jest.fn((user) => {
+      return (updatedUser = user)
+    })
 
     const stopUpdates = user.streamUpdates(callback)
     await user.update({ name })

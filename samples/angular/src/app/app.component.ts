@@ -41,15 +41,21 @@ export class AppComponent {
     })
 
     const channel =
-      (await this.chat.getChannel("support-channel")) ||
-      (await this.chat.createChannel("support-channel", { name: "Some channel" }))
+      (await this.chat.getChannel("test-channel")) ||
+      (await this.chat.createPublicConversation({
+        channelId: "test-channel",
+        channelData: { name: "test channel" },
+      }))
 
     await this.stateService.toggleChannel(channel)
     this.channel = this.stateService.currentChannel
 
     this.forwardChannel =
       (await this.chat.getChannel("forward-channel")) ||
-      (await this.chat.createChannel("forward-channel", { name: "forward channel" }))
+      (await this.chat.createPublicConversation({
+        channelId: "forward-channel",
+        channelData: { name: "forward channel" },
+      }))
   }
 
   toggleCreateChannelModalChatSDK() {
@@ -66,5 +72,13 @@ export class AppComponent {
 
   toggleCreateGroupConversationModalChatSDK() {
     this.stateService.toggleCreateGroupConversationModalChatSDK()
+  }
+
+  downloadDebugLog() {
+    this.chat?.downloadDebugLog()
+  }
+
+  openChannelsRelevantToUser() {
+    this.stateService.toggleChannelsRelevantToUser()
   }
 }

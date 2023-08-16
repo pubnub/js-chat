@@ -9,6 +9,7 @@ import {
 } from "../types"
 import { INTERNAL_ADMIN_CHANNEL } from "../constants"
 import { MentionsUtils } from "../mentions-utils"
+import { getErrorProxiedEntity } from "../error-logging"
 
 export type MessageFields = Pick<
   Message,
@@ -88,7 +89,7 @@ export class Message {
         "meta" in params ? params.meta : "userMetadata" in params ? params.userMetadata : undefined,
     }
 
-    return new Message(chat, data)
+    return getErrorProxiedEntity(new Message(chat, data), chat.errorLogger)
   }
 
   /** @internal */

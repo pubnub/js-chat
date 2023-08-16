@@ -1,6 +1,13 @@
 import { Component, Input, SimpleChanges, Pipe, PipeTransform } from "@angular/core"
 import { DomSanitizer, SafeHtml } from "@angular/platform-browser"
-import { Channel, Chat, Message, MixedTextTypedElement, ThreadMessage } from "@pubnub/chat"
+import {
+  Channel,
+  Chat,
+  Message,
+  MixedTextTypedElement,
+  ThreadChannel,
+  ThreadMessage,
+} from "@pubnub/chat"
 import { StateService } from "../../app/state.service"
 
 @Pipe({
@@ -31,6 +38,8 @@ export class MessageListComponentChat {
   pinnedMessages: {
     [key: string]: string
   }
+  threadInputOpen = "0"
+  threadChannelOpen: ThreadChannel | null = null
 
   constructor(private sanitizer: DomSanitizer, private stateService: StateService) {
     this.messages = []
@@ -88,7 +97,10 @@ export class MessageListComponentChat {
   async forwardMessage(message: Message) {
     const forwardChannel =
       (await this.chat.getChannel("forward-channel")) ||
-      (await this.chat.createChannel("forward-channel", { name: "forward channel" }))
+      (await this.chat.createPublicConversation({
+        channelId: "forward-channel",
+        channelData: { name: "forward channel" },
+      }))
 
     await forwardChannel.forwardMessage(message)
 
@@ -141,5 +153,18 @@ export class MessageListComponentChat {
 
   quoteMessage(message: Message) {
     this.stateService.changeChannelQuote({ [message.channelId]: message })
+  }
+
+  async openThread(message: Message) {
+    if (message.hasThread) {
+      const thread = await message.getThread()
+      await this.loadThreadMessages(message)
+      this.threadChannelOpen = thread
+    } else {
+      const thread = await message.createThread()
+      this.threadChannelOpen = thread
+    }
+
+    this.threadInputOpen = message.timetoken
   }
 }
