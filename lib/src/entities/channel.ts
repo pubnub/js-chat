@@ -333,6 +333,31 @@ export class Channel {
     return this.chat.isPresent(userId, this.id)
   }
 
+  async streamPresence(callback: (userIds: string[]) => unknown) {
+    let ids = await this.whoIsPresent()
+    callback(ids)
+
+    const listener = {
+      presence: (event: PubNub.PresenceEvent) => {
+        if (event.channel !== this.id) return
+        if ("join" === event.action && !ids.includes(event.uuid)) ids.push(event.uuid)
+        if (["leave", "timeout"].includes(event.action)) ids = ids.filter((id) => id !== event.uuid)
+        callback([...ids])
+      },
+    }
+
+    const removeListener = this.chat.addListener(listener)
+    const unsubscribe = this.chat.subscribe(this.id)
+
+    return () => {
+      removeListener()
+      unsubscribe()
+    }
+  }
+
+  /*
+   * Messages
+   */
   async getHistory(
     params: { startTimetoken?: string; endTimetoken?: string; count?: number } = {}
   ) {
