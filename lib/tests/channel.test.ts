@@ -6,6 +6,7 @@ import {
   createRandomChannel,
   createChatInstance,
   sendMessageAndWaitForHistory,
+  makeid,
 } from "./utils"
 
 import { jest } from "@jest/globals"
@@ -645,6 +646,77 @@ describe("Channel test", () => {
     expect(mockCallback).toHaveBeenCalledWith({ [timetoken]: ["test-user"] })
 
     stopReceipts()
+  })
+
+  test("should invite a user to the channel", async () => {
+    const userToInvite = await createRandomUser()
+    const membership = await channel.invite(userToInvite)
+
+    expect(membership).toBeDefined()
+    expect(membership.user.id).toEqual(userToInvite.id)
+    expect(membership.channel.id).toEqual(channel.id)
+
+    await userToInvite.delete()
+  })
+
+  test("should invite multiple users to the channel", async () => {
+    const usersToInvite = await Promise.all([createRandomUser(), createRandomUser()])
+
+    const invitedMemberships = await channel.inviteMultiple(usersToInvite)
+
+    expect(invitedMemberships).toBeDefined()
+
+    invitedMemberships.forEach((membership, index) => {
+      const invitedUser = usersToInvite[index]
+      expect(membership.user.id).toEqual(invitedUser.id)
+      expect(membership.channel.id).toEqual(channel.id)
+    })
+
+    await Promise.all(usersToInvite.map((user) => user.delete()))
+  })
+
+  test("should verify if user is a member of a channel", async () => {
+    const user = await createRandomUser()
+    const channel = await createRandomChannel()
+
+    const membership = await channel.invite(user)
+
+    const membersData = await channel.getMembers()
+
+    expect(membership).toBeDefined()
+    expect(membersData.members.find((member) => member.user.id === user.id)).toBeTruthy()
+
+    await user.delete()
+  })
+
+  test("should verify if user is online on a channel", async () => {
+    const chat2 = await createChatInstance({
+      userId: "user-one",
+      shouldCreateNewInstance: true,
+    })
+
+    const channel = await chat2.createChannel(`channel_${makeid()}`, {
+      name: "Test Channel",
+      description: "This is a test channel",
+    })
+    const disconnect = channel.connect(() => null)
+    // wait till PN decides this user is online
+    await sleep(2000)
+
+    expect(await chat2.currentUser.isPresentOn(channel.id)).toBe(true)
+    expect(await channel.isPresent(chat2.currentUser.id)).toBe(true)
+    expect(await chat2.isPresent(chat2.currentUser.id, channel.id)).toBe(true)
+    expect(await chat2.whoIsPresent(channel.id)).toContain(chat2.currentUser.id)
+
+    disconnect()
+    await sleep(2000)
+    expect(await chat2.currentUser.isPresentOn(channel.id)).toBe(false)
+
+    const usedUser = await chat2.getUser("user-one")
+
+    if (usedUser) {
+      await usedUser.delete()
+    }
   })
 
   jest.retryTimes(3)
