@@ -371,11 +371,14 @@ export class Channel {
 
       this.disconnect = this.connect(callback)
 
-      return Membership.fromMembershipDTO(
-        this.chat,
-        membershipsResponse.data[0],
-        this.chat.currentUser as User
-      )
+      return {
+        membership: Membership.fromMembershipDTO(
+          this.chat,
+          membershipsResponse.data[0],
+          this.chat.currentUser as User
+        ),
+        disconnect: this.disconnect,
+      }
     } catch (error) {
       throw error
     }

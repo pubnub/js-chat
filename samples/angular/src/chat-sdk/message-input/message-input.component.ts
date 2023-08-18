@@ -52,7 +52,6 @@ export class MessageInputComponentChat {
     this.suggestedUsers = response.suggestedUsers
     this.lastAffectedNameOccurrenceIndex = response.nameOccurrenceIndex
     this.messagePreview = this.newMessageDraft.getMessagePreview()
-    console.log("this.messagePreview", this.messagePreview)
   }
 
   toggleUserToNotify(user: User) {

@@ -1,0 +1,22 @@
+.autosuggestion-box-container {
+    position: absolute;
+    bottom: 0;
+    border: 1px solid black;
+    border-radius: 8px;
+    z-index: 1;
+    background-color: white;
+    overflow: hidden;
+}
+
+.autosuggestion-box-container__list-container {
+    list-style-type: none;
+}
+
+.autosuggestion-box-container__list-container li {
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.autosuggestion-box-container__list-container li:hover {
+    background-color: aqua;
+}

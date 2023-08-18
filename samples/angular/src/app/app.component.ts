@@ -38,12 +38,13 @@ export class AppComponent {
       subscribeKey,
       userId,
       typingTimeout: 2000,
+      storeUserActivityTimestamps: true,
     })
 
     const channel =
-      (await this.chat.getChannel("support-channel")) ||
+      (await this.chat.getChannel("test-channel")) ||
       (await this.chat.createPublicConversation({
-        channelId: "support-channel",
+        channelId: "test-channel",
         channelData: { name: "Some channel" },
       }))
 
