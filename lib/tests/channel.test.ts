@@ -625,7 +625,7 @@ describe("Channel test", () => {
 
   test("should correctly stream read receipts", async () => {
     const randomTimetoken = "123456789123456789"
-    const membership = await channel.join(undefined, {
+    const { membership } = await channel.join(undefined, {
       custom: { lastReadMessageTimetoken: randomTimetoken },
     })
     channel.disconnect()

@@ -661,7 +661,8 @@ export class Chat {
       const channelName = `direct.${sortedUsers[0]}&${sortedUsers[1]}`
 
       const channel =
-        (await this.getChannel(channelName)) || (await this.createChannel(channelName, channelData))
+        (await this.getChannel(channelName)) ||
+        (await this.createChannel(channelName, { ...channelData, type: "direct" }))
 
       const { custom, ...rest } = membershipData
       const hostMembershipPromise = this.sdk.objects.setMemberships({
@@ -713,7 +714,8 @@ export class Chat {
   }) {
     try {
       const channel =
-        (await this.getChannel(channelId)) || (await this.createChannel(channelId, channelData))
+        (await this.getChannel(channelId)) ||
+        (await this.createChannel(channelId, { ...channelData, type: "group" }))
       const { custom, ...rest } = membershipData
       const hostMembershipPromise = this.sdk.objects.setMemberships({
         ...rest,
