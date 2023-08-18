@@ -60,7 +60,7 @@ export default function () {
       console.log("Received channel: ", channel)
       setUpdateForm({ ...channel })
       setChannel(channel)
-      channel?.getTyping((userIds) => setTypingUserIds(userIds))
+      if (channel.type !== "public") channel?.getTyping((userIds) => setTypingUserIds(userIds))
     } catch (e: any) {
       setError(extractErrorMessage(e))
       console.error(e)
@@ -113,8 +113,7 @@ export default function () {
 
   async function handleGetPresence() {
     try {
-      const ids = await channel?.whoIsPresent(input)
-      setPresence(ids)
+      await channel?.streamPresence(setPresence)
     } catch (e: any) {
       setError(extractErrorMessage(e))
       console.error(e)
@@ -270,7 +269,7 @@ export default function () {
             <section>
               <h3>Channel presence</h3>
               <button className="mb-3" onClick={handleGetPresence}>
-                Get channel presence
+                Stream channel presence
               </button>
               <p>
                 <b>Channel presence: </b>

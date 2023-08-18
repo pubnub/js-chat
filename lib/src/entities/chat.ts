@@ -8,6 +8,7 @@ import {
   EventType,
   ChannelType,
   ErrorLoggerImplementation,
+  UserMentionData,
 } from "../types"
 import { Message } from "./message"
 import { Event } from "./event"
@@ -28,6 +29,10 @@ type ChatConfig = {
     deviceGateway: "apns2" | "gcm"
     apnsTopic?: string
     apnsEnvironment: "development" | "production"
+  }
+  rateLimitFactor: number
+  rateLimitPerChannel: {
+    [key in ChannelType]: number
   }
   errorLogger?: ErrorLoggerImplementation
 }
@@ -55,6 +60,8 @@ export class Chat {
       storeUserActivityInterval,
       storeUserActivityTimestamps,
       pushNotifications,
+      rateLimitFactor,
+      rateLimitPerChannel,
       errorLogger,
       ...pubnubConfig
     } = params
@@ -91,6 +98,12 @@ export class Chat {
         apnsEnvironment: "development",
         deviceGateway: "gcm",
       },
+      rateLimitFactor: rateLimitFactor || 2,
+      rateLimitPerChannel: rateLimitPerChannel || {
+        direct: 0,
+        group: 0,
+        public: 0,
+      },
     }
   }
 
@@ -114,7 +127,7 @@ export class Chat {
   subscribe(channel: string) {
     const subscriptionId = Math.floor(Math.random() * Date.now()).toString(36)
     const channelSubIds = (this.subscriptions[channel] ||= new Set())
-    if (!channelSubIds.size) this.sdk.subscribe({ channels: [channel] })
+    if (!channelSubIds.size) this.sdk.subscribe({ channels: [channel], withPresence: true })
     channelSubIds.add(subscriptionId)
 
     return () => {
@@ -492,118 +505,6 @@ export class Chat {
     return this.createChannel(channelId, { ...channelData, type: "public" })
   }
 
-  async createDirectConversation({
-    user,
-    channelData,
-    membershipData = {},
-  }: {
-    user: User
-    channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
-    membershipData?: Omit<
-      PubNub.SetMembershipsParameters<PubNub.ObjectCustom>,
-      "channels" | "include" | "filter"
-    > & {
-      custom?: PubNub.ObjectCustom
-    }
-  }) {
-    try {
-      if (!this.user) {
-        throw "Chat user is not set. Set them by calling setChatUser on the Chat instance."
-      }
-
-      const sortedUsers = [this.user.id, user.id].sort()
-
-      const channelName = `direct.${sortedUsers[0]}&${sortedUsers[1]}`
-
-      const channel =
-        (await this.getChannel(channelName)) ||
-        (await this.createChannel(channelName, { ...channelData, type: "direct" }))
-
-      const { custom, ...rest } = membershipData
-      const hostMembershipPromise = this.sdk.objects.setMemberships({
-        ...rest,
-        channels: [{ id: channel.id, custom }],
-        include: {
-          totalCount: true,
-          customFields: true,
-          channelFields: true,
-          customChannelFields: true,
-        },
-        filter: `channel.id == '${channel.id}'`,
-      })
-
-      const [hostMembershipResponse, inviteeMembership] = await Promise.all([
-        hostMembershipPromise,
-        channel.invite(user),
-      ])
-
-      return {
-        channel,
-        hostMembership: Membership.fromMembershipDTO(
-          this,
-          hostMembershipResponse.data[0],
-          this.user
-        ),
-        inviteeMembership,
-      }
-    } catch (error) {
-      throw error
-    }
-  }
-
-  async createGroupConversation({
-    users,
-    channelId,
-    channelData,
-    membershipData = {},
-  }: {
-    users: User[]
-    channelId: string
-    channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
-    membershipData?: Omit<
-      PubNub.SetMembershipsParameters<PubNub.ObjectCustom>,
-      "channels" | "include" | "filter"
-    > & {
-      custom?: PubNub.ObjectCustom
-    }
-  }) {
-    try {
-      const channel =
-        (await this.getChannel(channelId)) ||
-        (await this.createChannel(channelId, { ...channelData, type: "group" }))
-
-      const { custom, ...rest } = membershipData
-      const hostMembershipPromise = this.sdk.objects.setMemberships({
-        ...rest,
-        channels: [{ id: channel.id, custom }],
-        include: {
-          totalCount: true,
-          customFields: true,
-          channelFields: true,
-          customChannelFields: true,
-        },
-        filter: `channel.id == '${channel.id}'`,
-      })
-
-      const [hostMembershipResponse, inviteesMemberships] = await Promise.all([
-        hostMembershipPromise,
-        channel.inviteMultiple(users),
-      ])
-
-      return {
-        channel,
-        hostMembership: Membership.fromMembershipDTO(
-          this,
-          hostMembershipResponse.data[0],
-          this.user
-        ),
-        inviteesMemberships,
-      }
-    } catch (error) {
-      throw error
-    }
-  }
-
   /**
    *  Presence
    */
@@ -736,6 +637,115 @@ export class Chat {
     }
   }
 
+  async createDirectConversation({
+    user,
+    channelData,
+    membershipData = {},
+  }: {
+    user: User
+    channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
+    membershipData?: Omit<
+      PubNub.SetMembershipsParameters<PubNub.ObjectCustom>,
+      "channels" | "include" | "filter"
+    > & {
+      custom?: PubNub.ObjectCustom
+    }
+  }) {
+    try {
+      if (!this.user) {
+        throw "Chat user is not set. Set them by calling setChatUser on the Chat instance."
+      }
+
+      const sortedUsers = [this.user.id, user.id].sort()
+
+      const channelName = `direct.${sortedUsers[0]}&${sortedUsers[1]}`
+
+      const channel =
+        (await this.getChannel(channelName)) || (await this.createChannel(channelName, channelData))
+
+      const { custom, ...rest } = membershipData
+      const hostMembershipPromise = this.sdk.objects.setMemberships({
+        ...rest,
+        channels: [{ id: channel.id, custom }],
+        include: {
+          totalCount: true,
+          customFields: true,
+          channelFields: true,
+          customChannelFields: true,
+        },
+        filter: `channel.id == '${channel.id}'`,
+      })
+
+      const [hostMembershipResponse, inviteeMembership] = await Promise.all([
+        hostMembershipPromise,
+        channel.invite(user),
+      ])
+
+      return {
+        channel,
+        hostMembership: Membership.fromMembershipDTO(
+          this,
+          hostMembershipResponse.data[0],
+          this.user
+        ),
+        inviteeMembership,
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async createGroupConversation({
+    users,
+    channelId,
+    channelData,
+    membershipData = {},
+  }: {
+    users: User[]
+    channelId: string
+    channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
+    membershipData?: Omit<
+      PubNub.SetMembershipsParameters<PubNub.ObjectCustom>,
+      "channels" | "include" | "filter"
+    > & {
+      custom?: PubNub.ObjectCustom
+    }
+  }) {
+    try {
+      const channel =
+        (await this.getChannel(channelId)) || (await this.createChannel(channelId, channelData))
+      const { custom, ...rest } = membershipData
+      const hostMembershipPromise = this.sdk.objects.setMemberships({
+        ...rest,
+        channels: [{ id: channel.id, custom }],
+        include: {
+          totalCount: true,
+          customFields: true,
+          channelFields: true,
+          customChannelFields: true,
+        },
+        filter: `channel.id == '${channel.id}'`,
+      })
+
+      const [hostMembershipResponse, inviteesMemberships] = await Promise.all([
+        hostMembershipPromise,
+        channel.inviteMultiple(users),
+      ])
+
+      return {
+        channel,
+        hostMembership: Membership.fromMembershipDTO(
+          this,
+          hostMembershipResponse.data[0],
+          this.user
+        ),
+        inviteesMemberships,
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
   async getUserSuggestions(
     text: string,
     options: { limit: number } = { limit: 10 }
@@ -801,5 +811,61 @@ export class Chat {
 
   downloadDebugLog() {
     return this.errorLogger.getStorageObject()
+  }
+
+  async getCurrentUserMentions(
+    params: { startTimetoken?: string; endTimetoken?: string; count?: number } = {}
+  ): Promise<{ enhancedMentionsData: UserMentionData[]; isMore: boolean }> {
+    const mentionsHistoryObject = await this.getEventsHistory({
+      ...params,
+      channel: this.currentUser.id,
+    })
+
+    const enhancedMentionsData = await Promise.all(
+      mentionsHistoryObject.events
+        .filter((event) => event.type === "mention")
+        .map(async (event) => {
+          let maybeParentChannelPromise = null
+
+          if (event.payload.parentChannel) {
+            maybeParentChannelPromise = this.getChannel(event.payload.parentChannel)
+          }
+
+          const [channel, parentChannel] = await Promise.all([
+            this.getChannel(event.payload.channel),
+            maybeParentChannelPromise,
+          ])
+
+          const [message, user] = await Promise.all([
+            (channel as Channel).getMessage(event.payload.messageTimetoken),
+            this.getUser(event.userId),
+          ])
+
+          if (!parentChannel) {
+            return {
+              event: event as Event<"mention">,
+              channel: channel as Channel,
+              message: message as Message,
+              user: user as User,
+            }
+          }
+
+          return {
+            event: event as Event<"mention">,
+            parentChannel: parentChannel as Channel,
+            threadChannel: ThreadChannel.fromDTO(this, {
+              id: (channel as Channel).id,
+              parentChannelId: parentChannel.id,
+            }),
+            message: message as Message,
+            user: user as User,
+          }
+        })
+    )
+
+    return {
+      enhancedMentionsData,
+      isMore: mentionsHistoryObject.isMore,
+    }
   }
 }

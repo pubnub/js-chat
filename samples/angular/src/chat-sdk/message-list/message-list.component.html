@@ -30,6 +30,9 @@
                     <div class="message-row__forward-icon__container" (click)="loadThreadMessages(message)" *ngIf="message.hasThread">
                         <img src="assets/icon-of-blank-message-dialogue-box-free-vector.webp" class="message-row__forward-icon" />
                     </div>
+                    <div class="message-row__forward-icon__container" (click)="openThread(message)">
+                        <img src="assets/thick-thread-spool.png" class="message-row__forward-icon" />
+                    </div>
                     <div class="message-row__forward-icon__container" (click)="quoteMessage(message)">
                         <img src="assets/quote-mark-icon-symbol-illustration-free-vector.jpeg" class="message-row__forward-icon" />
                     </div>
@@ -53,6 +56,10 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div *ngIf="(message.timetoken === threadInputOpen) && threadChannelOpen" class="thread-input__container">
+                <h1>Thread input</h1>
+                <app-message-input-chat [channel]="threadChannelOpen" [chat]="chat" />
             </div>
         </div>
     </div>

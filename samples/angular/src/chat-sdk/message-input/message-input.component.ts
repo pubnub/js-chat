@@ -21,7 +21,6 @@ export class MessageInputComponentChat {
   }
   @Input() channel!: Channel
   @Input() chat!: Chat
-  @Input() typingSent!: boolean
   newMessageDraft: MessageDraft
   lastAffectedNameOccurrenceIndex = -1
   currentlyHighlightedMention: {

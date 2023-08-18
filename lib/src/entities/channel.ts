@@ -16,6 +16,7 @@ import {
   TextMessageContent,
   ChannelType,
 } from "../types"
+import { ExponentialRateLimiter } from "../rate-limiter"
 import { Membership } from "./membership"
 import { User } from "./user"
 import { MentionsUtils } from "../mentions-utils"
@@ -46,12 +47,18 @@ export class Channel {
   private typingSentTimer?: ReturnType<typeof setTimeout>
   /** @internal */
   private typingIndicators: Map<string, ReturnType<typeof setTimeout>> = new Map()
+  /** @internal */
+  private sendTextRateLimiter: ExponentialRateLimiter
 
   /** @internal */
   constructor(chat: Chat, params: ChannelFields) {
     this.chat = chat
     this.id = params.id
     this.suggestedNames = new Map()
+    this.sendTextRateLimiter = new ExponentialRateLimiter(
+      params.type ? chat.config.rateLimitPerChannel[params.type] || 0 : 0,
+      chat.config.rateLimitFactor
+    )
     Object.assign(this, params)
   }
 
@@ -116,7 +123,7 @@ export class Channel {
    * Publishing
    */
   /** @internal */
-  private getPushPayload(text: string) {
+  protected getPushPayload(text: string) {
     const { sendPushes, apnsTopic } = this.chat.config.pushNotifications
     if (!sendPushes) return {}
 
@@ -133,8 +140,31 @@ export class Channel {
     return pushBuilder.buildPayload(pushGateways)
   }
 
+  /** @internal */
+  protected emitUserMention({
+    userId,
+    timetoken,
+    text,
+  }: {
+    userId: string
+    timetoken: number
+    text: string
+  }) {
+    const payload = {
+      messageTimetoken: String(timetoken),
+      channel: this.id,
+      ...this.getPushPayload(text),
+    }
+    this.chat.emitEvent({
+      channel: userId,
+      type: "mention",
+      method: "publish",
+      payload,
+    })
+  }
+
   async sendText(text: string, options: SendTextOptionParams = {}) {
-    try {
+    const implementation = async () => {
       const { mentionedUsers, textLinks, quotedMessage, files, ...rest } = options
       const filesData: TextMessageContent["files"] = []
 
@@ -187,24 +217,15 @@ export class Channel {
       if (mentionedUsers) {
         Object.keys(mentionedUsers).forEach((key) => {
           const userId = mentionedUsers[Number(key)].id
-          const payload = {
-            messageTimetoken: String(publishResponse.timetoken),
-            channel: this.id,
-            ...this.getPushPayload(text),
-          }
-          this.chat.emitEvent({
-            channel: userId,
-            type: "mention",
-            method: "publish",
-            payload,
-          })
+
+          this.emitUserMention({ userId, timetoken: publishResponse.timetoken, text })
         })
       }
 
       return publishResponse
-    } catch (error) {
-      throw error
     }
+
+    return this.sendTextRateLimiter.runWithinLimits(implementation)
   }
 
   async forwardMessage(message: Message) {
@@ -312,6 +333,31 @@ export class Channel {
     return this.chat.isPresent(userId, this.id)
   }
 
+  async streamPresence(callback: (userIds: string[]) => unknown) {
+    let ids = await this.whoIsPresent()
+    callback(ids)
+
+    const listener = {
+      presence: (event: PubNub.PresenceEvent) => {
+        if (event.channel !== this.id) return
+        if ("join" === event.action && !ids.includes(event.uuid)) ids.push(event.uuid)
+        if (["leave", "timeout"].includes(event.action)) ids = ids.filter((id) => id !== event.uuid)
+        callback([...ids])
+      },
+    }
+
+    const removeListener = this.chat.addListener(listener)
+    const unsubscribe = this.chat.subscribe(this.id)
+
+    return () => {
+      removeListener()
+      unsubscribe()
+    }
+  }
+
+  /*
+   * Messages
+   */
   async getHistory(
     params: { startTimetoken?: string; endTimetoken?: string; count?: number } = {}
   ) {
@@ -591,7 +637,6 @@ export class Channel {
       next: response.next,
       total: response.count,
     }
-    return response
   }
 
   async deleteFile(params: { id: string; name: string }) {

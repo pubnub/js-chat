@@ -6,6 +6,9 @@ import PubNub, {
 } from "pubnub"
 import { User } from "./entities/user"
 import { Message } from "./entities/message"
+import { Event } from "./entities/event"
+import { Channel } from "./entities/channel"
+import { ThreadChannel } from "./entities/thread-channel"
 
 export type ChannelType = "direct" | "group" | "public"
 
@@ -155,3 +158,18 @@ export declare class ErrorLoggerImplementation {
   setItem(key: string, params: ErrorLoggerSetParams): void
   getStorageObject(): Record<string, unknown>
 }
+
+export type UserMentionData =
+  | {
+      event: Event<"mention">
+      channel: Channel
+      message: Message
+      user: User
+    }
+  | {
+      event: Event<"mention">
+      threadChannel: ThreadChannel
+      parentChannel: Channel
+      message: Message
+      user: User
+    }
