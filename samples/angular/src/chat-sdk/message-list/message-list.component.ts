@@ -147,6 +147,9 @@ export class MessageListComponentChat {
     if (messagePart.type === "mention") {
       return `<a href="https://pubnub.com/${messagePart.content.id}">@${messagePart.content.name}</a>`
     }
+    if (messagePart.type === "channelReference") {
+      return `<a href="https://pubnub.com/${messagePart.content.id}">#${messagePart.content.name}</a>`
+    }
 
     return ""
   }

@@ -34,6 +34,10 @@ export class MessageDraft {
     [nameOccurrenceIndex: number]: User
   } = {}
   /** @internal */
+  private referencedChannels: {
+    [channelOccurrenceIndex: number]: Channel
+  } = {}
+  /** @internal */
   private textLinks: TextLink[] = []
   /** @internal */
   private quotedMessage: Message | undefined = undefined
@@ -48,6 +52,7 @@ export class MessageDraft {
       userSuggestionSource: "channel",
       isTypingIndicatorTriggered: true,
       userLimit: 10,
+      channelLimit: 10,
       ...(config || {}),
     }
   }
@@ -245,71 +250,101 @@ export class MessageDraft {
   }
 
   /** @internal */
-  private async parseTextToGetSuggestedUser() {
-    const previousWordsStartingWithAt = this.previousValue
+  private getUserOrChannelReference({
+    splitSymbol,
+    referencesObject,
+  }: {
+    splitSymbol: "@" | "#"
+    referencesObject: { [occuranceIndex: number]: User | Channel }
+  }) {
+    let copiedObject = { ...referencesObject }
+    const previousWordsStartingWithSymbol = this.previousValue
       .split(" ")
-      .filter((word) => word.startsWith("@"))
-    const currentWordsStartingWithAt = this.value.split(" ").filter((word) => word.startsWith("@"))
+      .filter((word) => word.startsWith(splitSymbol))
+    const currentWordsStartingWithSymbol = this.value
+      .split(" ")
+      .filter((word) => word.startsWith(splitSymbol))
 
-    let differentMentionPosition = -1
+    let differentReferencePosition = -1
 
-    const differentMentions = currentWordsStartingWithAt.filter((m, i) => {
-      const isStringDifferent = previousWordsStartingWithAt.indexOf(m) === -1
+    const differentReferences = currentWordsStartingWithSymbol.filter((m, i) => {
+      const isStringDifferent = previousWordsStartingWithSymbol.indexOf(m) === -1
 
       if (isStringDifferent) {
-        differentMentionPosition = i
+        differentReferencePosition = i
       }
 
       return isStringDifferent
     })
 
-    if (previousWordsStartingWithAt.length > currentWordsStartingWithAt.length) {
+    if (previousWordsStartingWithSymbol.length > currentWordsStartingWithSymbol.length) {
       // a mention was removed
-      const firstRemovalIndex = previousWordsStartingWithAt.findIndex(
-        (e, i) => !currentWordsStartingWithAt.includes(e)
+      const firstRemovalIndex = previousWordsStartingWithSymbol.findIndex(
+        (e, i) => !currentWordsStartingWithSymbol.includes(e)
       )
-      const lastRemovalIndex = previousWordsStartingWithAt.findLastIndex(
-        (e, i) => !currentWordsStartingWithAt.includes(e)
+      const lastRemovalIndex = previousWordsStartingWithSymbol.findLastIndex(
+        (e, i) => !currentWordsStartingWithSymbol.includes(e)
       )
 
       if (lastRemovalIndex !== -1) {
-        let reindexedMentionedUsers = { ...this.mentionedUsers }
+        let reindexedReferences = { ...copiedObject }
 
-        Object.keys(this.mentionedUsers).forEach((key) => {
+        Object.keys(copiedObject).forEach((key) => {
           if (Number(key) >= firstRemovalIndex && Number(key) <= lastRemovalIndex) {
-            delete reindexedMentionedUsers[Number(key)]
+            delete reindexedReferences[Number(key)]
           }
           if (Number(key) > lastRemovalIndex) {
-            delete reindexedMentionedUsers[Number(key)]
-            reindexedMentionedUsers = {
-              ...reindexedMentionedUsers,
-              [Number(key) - lastRemovalIndex + firstRemovalIndex - 1]:
-                this.mentionedUsers[Number(key)],
+            delete reindexedReferences[Number(key)]
+            reindexedReferences = {
+              ...reindexedReferences,
+              [Number(key) - lastRemovalIndex + firstRemovalIndex - 1]: copiedObject[Number(key)],
             }
           }
         })
 
-        this.mentionedUsers = reindexedMentionedUsers
+        copiedObject = reindexedReferences
       }
     }
 
-    Object.keys(this.mentionedUsers).forEach((key) => {
-      const mentionedUserName = this.mentionedUsers[Number(key)]?.name
+    Object.keys(copiedObject).forEach((key) => {
+      const referencedName = copiedObject[Number(key)]?.name
 
-      if (mentionedUserName && !currentWordsStartingWithAt[Number(key)]) {
-        delete this.mentionedUsers[Number(key)]
+      if (referencedName && !currentWordsStartingWithSymbol[Number(key)]) {
+        delete copiedObject[Number(key)]
       }
 
-      const splitMentionsByAt = (this.value.match(/(?<=^|\s)@[^@\s]+(?:\s+[^@\s]+)*/g) || []).map(
-        (splitMention) => splitMention.substring(1)
+      const regex =
+        splitSymbol === "@"
+          ? /(?<=^|\s)@[^@\s]+(?:\s+[^@\s]+)*/g
+          : /(?<=^|\s)#[^#\s]+(?:\s+[^#\s]+)*/g
+
+      const splitMentionsByAt = (this.value.match(regex) || []).map((splitMention) =>
+        splitMention.substring(1)
       )
 
-      if (mentionedUserName && !splitMentionsByAt[Number(key)]?.startsWith(mentionedUserName)) {
-        delete this.mentionedUsers[Number(key)]
+      if (referencedName && !splitMentionsByAt[Number(key)]?.startsWith(referencedName)) {
+        delete copiedObject[Number(key)]
       }
     })
 
-    if (!differentMentions.length) {
+    return {
+      referencesObject: copiedObject,
+      differentReferences,
+      differentReferencePosition,
+    }
+  }
+
+  /** @internal */
+  private async parseTextToGetSuggestedUser() {
+    const { differentReferences, differentReferencePosition, referencesObject } =
+      this.getUserOrChannelReference({
+        splitSymbol: "@",
+        referencesObject: this.mentionedUsers,
+      })
+
+    this.mentionedUsers = referencesObject as { [nameOccurance: number]: User }
+
+    if (!differentReferences.length) {
       return {
         nameOccurrenceIndex: -1,
         suggestedUsers: [],
@@ -320,19 +355,46 @@ export class MessageDraft {
 
     if (this.config.userSuggestionSource === "channel") {
       suggestedUsers = (
-        await this.channel.getUserSuggestions(differentMentions[0], {
+        await this.channel.getUserSuggestions(differentReferences[0], {
           limit: this.config.userLimit,
         })
       ).map((membership) => membership.user)
     } else {
-      suggestedUsers = await this.chat.getUserSuggestions(differentMentions[0], {
+      suggestedUsers = await this.chat.getUserSuggestions(differentReferences[0], {
         limit: this.config.userLimit,
       })
     }
 
     return {
-      nameOccurrenceIndex: differentMentionPosition,
+      nameOccurrenceIndex: differentReferencePosition,
       suggestedUsers,
+    }
+  }
+
+  /** @internal */
+  private async parseTextToGetSuggestedChannels() {
+    const { differentReferences, differentReferencePosition, referencesObject } =
+      this.getUserOrChannelReference({
+        splitSymbol: "#",
+        referencesObject: this.referencedChannels,
+      })
+
+    this.referencedChannels = referencesObject as { [nameOccurance: number]: Channel }
+
+    if (!differentReferences.length) {
+      return {
+        channelOccurrenceIndex: -1,
+        suggestedChannels: [],
+      }
+    }
+
+    const suggestedChannels = await this.chat.getChannelSuggestions(differentReferences[0], {
+      limit: this.config.channelLimit,
+    })
+
+    return {
+      channelOccurrenceIndex: differentReferencePosition,
+      suggestedChannels,
     }
   }
 
@@ -346,7 +408,10 @@ export class MessageDraft {
 
     this.reindexTextLinks()
 
-    return this.parseTextToGetSuggestedUser()
+    return {
+      users: await this.parseTextToGetSuggestedUser(),
+      channels: await this.parseTextToGetSuggestedChannels(),
+    }
   }
 
   addMentionedUser(user: User, nameOccurrenceIndex: number) {
@@ -376,6 +441,42 @@ export class MessageDraft {
     this.value = result.trim()
   }
 
+  addReferencedChannel(channel: Channel, channelNameOccurrenceIndex: number) {
+    let counter = 0
+    let result = ""
+    let isChannelFound = false
+
+    this.value.split(" ").forEach((word) => {
+      if (!word.startsWith("#")) {
+        result += `${word} `
+      } else {
+        if (counter !== channelNameOccurrenceIndex) {
+          result += `${word} `
+        } else {
+          result += `#${channel.name} `
+          this.referencedChannels[channelNameOccurrenceIndex] = channel
+          isChannelFound = true
+        }
+        counter++
+      }
+    })
+
+    if (!isChannelFound) {
+      throw "This channel does not appear in the text"
+    }
+
+    this.value = result.trim()
+  }
+
+  removeReferencedChannel(channelNameOccurrenceIndex: number) {
+    if (this.referencedChannels[channelNameOccurrenceIndex]) {
+      delete this.referencedChannels[channelNameOccurrenceIndex]
+      return
+    }
+
+    console.warn("This is noop. There is no channel reference occurrence at this index.")
+  }
+
   removeMentionedUser(nameOccurrenceIndex: number) {
     if (this.mentionedUsers[nameOccurrenceIndex]) {
       delete this.mentionedUsers[nameOccurrenceIndex]
@@ -399,10 +500,25 @@ export class MessageDraft {
     )
   }
 
+  /** @internal */
+  private transformReferencedChannelsToSend() {
+    return Object.keys(this.referencedChannels).reduce(
+      (acc, key) => ({
+        ...acc,
+        [key]: {
+          id: this.referencedChannels[Number(key)].id,
+          name: this.referencedChannels[Number(key)].name,
+        },
+      }),
+      {}
+    )
+  }
+
   async send(params: MessageDraftOptions = {}) {
     return this.channel.sendText(this.value, {
       ...params,
       mentionedUsers: this.transformMentionedUsersToSend(),
+      referencedChannels: this.transformReferencedChannelsToSend(),
       textLinks: this.textLinks,
       quotedMessage: this.quotedMessage,
       files: this.files,
@@ -486,6 +602,7 @@ export class MessageDraft {
       text: this.value,
       textLinks: this.textLinks,
       mentionedUsers: this.transformMentionedUsersToSend(),
+      referencedChannels: this.transformReferencedChannelsToSend(),
     })
   }
 

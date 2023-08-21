@@ -1,0 +1,7 @@
+{
+  "c": ["app/page", "webpack"],
+  "r": [],
+  "m": [
+    "(app-pages-browser)/../../node_modules/@chatscope/chat-ui-kit-styles/dist/default/styles.min.css"
+  ]
+}

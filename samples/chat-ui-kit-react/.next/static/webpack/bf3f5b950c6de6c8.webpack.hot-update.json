@@ -1,0 +1,8 @@
+{
+  "c": ["app/page", "webpack"],
+  "r": ["/_error"],
+  "m": [
+    "(app-pages-browser)/../../node_modules/@chatscope/chat-ui-kit-styles/dist/default/styles.min.css",
+    "./node_modules/next/dist/build/webpack/loaders/next-client-pages-loader.js?absolutePagePath=%2FUsers%2Fpiotr.suwala%2Fpubnub%2Fjs-chat%2Fsamples%2Fchat-ui-kit-react%2Fnode_modules%2Fnext%2Fdist%2Fpages%2F_error.js&page=%2F_error!"
+  ]
+}
