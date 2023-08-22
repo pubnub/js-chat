@@ -61,7 +61,6 @@ describe("Channel test", () => {
       TimetokenUtils.dateToTimetoken("Whatever here")
       fail("The value passed as date is not an instance of Date")
     } catch (e) {
-      console.log("error", e)
       expect(e).toBe("The value passed as date is not an instance of Date")
     }
   })
