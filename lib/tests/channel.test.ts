@@ -422,7 +422,7 @@ describe("Channel test", () => {
     // verification that users inside the keyset were suggested
     expect(getUserSuggestionsSpy).toHaveBeenCalledTimes(1)
 
-    const foundUser1AmongSuggestedUsers = onChangeResponse.suggestedUsers.find(
+    const foundUser1AmongSuggestedUsers = onChangeResponse.users.suggestedUsers.find(
       (suggestedUser) => suggestedUser.id === user1.id
     )
 
@@ -431,7 +431,9 @@ describe("Channel test", () => {
     const membersResponse = await channel.getMembers()
     const members = membersResponse.members
     expect(
-      onChangeResponse.suggestedUsers.some((suggestedUser) => !members.includes(suggestedUser.id))
+      onChangeResponse.users.suggestedUsers.some(
+        (suggestedUser) => !members.includes(suggestedUser.id)
+      )
     ).toBeTruthy()
 
     await chat.deleteUser(user1.id)

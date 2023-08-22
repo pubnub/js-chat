@@ -47,6 +47,8 @@ export class Chat {
   private lastSavedActivityInterval?: ReturnType<typeof setInterval>
   /** @internal */
   private suggestedNamesCache: Map<string, User[]>
+  /** @internal */
+  private suggestedChannelsCache: Map<string, Channel[]>
   /* @internal */
   private subscriptions: { [channel: string]: Set<string> }
   /** @internal */
@@ -87,6 +89,7 @@ export class Chat {
     })
     this.subscriptions = {}
     this.suggestedNamesCache = new Map<string, User[]>()
+    this.suggestedChannelsCache = new Map<string, Channel[]>()
 
     this.config = {
       saveDebugLog: saveDebugLog || false,
@@ -661,7 +664,8 @@ export class Chat {
       const channelName = `direct.${sortedUsers[0]}&${sortedUsers[1]}`
 
       const channel =
-        (await this.getChannel(channelName)) || (await this.createChannel(channelName, channelData))
+        (await this.getChannel(channelName)) ||
+        (await this.createChannel(channelName, { ...channelData, type: "direct" }))
 
       const { custom, ...rest } = membershipData
       const hostMembershipPromise = this.sdk.objects.setMemberships({
@@ -713,7 +717,8 @@ export class Chat {
   }) {
     try {
       const channel =
-        (await this.getChannel(channelId)) || (await this.createChannel(channelId, channelData))
+        (await this.getChannel(channelId)) ||
+        (await this.createChannel(channelId, { ...channelData, type: "group" }))
       const { custom, ...rest } = membershipData
       const hostMembershipPromise = this.sdk.objects.setMemberships({
         ...rest,
@@ -768,6 +773,30 @@ export class Chat {
     this.suggestedNamesCache.set(cacheKey, usersResponse.users)
 
     return this.suggestedNamesCache.get(cacheKey) as User[]
+  }
+
+  async getChannelSuggestions(
+    text: string,
+    options: { limit: number } = { limit: 10 }
+  ): Promise<Channel[]> {
+    const cacheKey = MentionsUtils.getChannelPhraseToLookFor(text)
+
+    if (!cacheKey) {
+      return []
+    }
+
+    if (this.suggestedChannelsCache.get(cacheKey)) {
+      return this.suggestedChannelsCache.get(cacheKey) as Channel[]
+    }
+
+    const channelsResponse = await this.getChannels({
+      filter: `name LIKE "${cacheKey}*"`,
+      limit: options.limit,
+    })
+
+    this.suggestedChannelsCache.set(cacheKey, channelsResponse.channels)
+
+    return this.suggestedChannelsCache.get(cacheKey) as Channel[]
   }
 
   /**

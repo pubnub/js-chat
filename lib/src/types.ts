@@ -71,10 +71,18 @@ export type MessageMentionedUsers = {
   }
 }
 
+export type MessageReferencedChannels = {
+  [nameOccurrenceIndex: number]: {
+    id: string
+    name: string
+  }
+}
+
 export type MessageDraftOptions = Omit<PublishParameters, "message" | "channel">
 
 export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel"> & {
   mentionedUsers?: MessageMentionedUsers
+  referencedChannels?: MessageReferencedChannels
   textLinks?: TextLink[]
   quotedMessage?: Message
   files?: FileList | File[] | SendFileParameters["file"][]
@@ -107,6 +115,7 @@ export type MessageDraftConfig = {
   userSuggestionSource: "channel" | "global"
   isTypingIndicatorTriggered: boolean
   userLimit: number
+  channelLimit: number
 }
 
 export type TextLink = {
@@ -136,6 +145,10 @@ export type PayloadForTextTypes = {
     text: string
     link: string
   }
+  channelReference: {
+    name: string
+    id: string
+  }
 }
 
 export type TextTypes = keyof PayloadForTextTypes
@@ -147,6 +160,7 @@ export type MixedTextTypedElement =
   | TextTypeElement<"mention">
   | TextTypeElement<"plainLink">
   | TextTypeElement<"textLink">
+  | TextTypeElement<"channelReference">
 
 export type ErrorLoggerSetParams = {
   key: string

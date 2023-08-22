@@ -15,8 +15,6 @@
 }
 
 .message-row__content {
-  display: flex;
-  flex-direction: column;
   border: 1px solid red;
 }
 
@@ -29,7 +27,7 @@
 }
 
 .linked-text {
-  word-break: break-all;
+
 }
 
 .thread-input__container {

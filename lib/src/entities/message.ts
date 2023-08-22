@@ -43,6 +43,14 @@ export class Message {
     return {}
   }
 
+  get referencedChannels() {
+    if (this.meta?.referencedChannels) {
+      return this.meta.referencedChannels
+    }
+
+    return {}
+  }
+
   get textLinks() {
     if (this.meta?.textLinks) {
       return this.meta.textLinks
@@ -177,6 +185,7 @@ export class Message {
       text,
       textLinks: this.textLinks,
       mentionedUsers: this.mentionedUsers,
+      referencedChannels: this.referencedChannels,
     })
   }
 
