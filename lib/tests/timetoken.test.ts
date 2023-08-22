@@ -12,7 +12,6 @@ describe("Channel test", () => {
   test("should throw an error if the passed value for unix timestamp is not a number", () => {
     try {
       TimetokenUtils.unixToTimetoken("I'm not a number")
-      fail("The value passed as unixTime is NaN")
     } catch (e) {
       expect(e).toBe("The value passed as unixTime is NaN")
     }
@@ -29,7 +28,6 @@ describe("Channel test", () => {
   test("should throw an error if the passed value for PN timetoken is not a number", () => {
     try {
       TimetokenUtils.timetokenToUnix("I'm not a number")
-      fail("The value passed as timetoken is NaN")
     } catch (e) {
       expect(e).toBe("The value passed as timetoken is NaN")
     }
@@ -43,7 +41,6 @@ describe("Channel test", () => {
   test("should throw an error if the passed value for PN timetoken is not a number", () => {
     try {
       TimetokenUtils.timetokenToDate("{}")
-      fail("The value passed as timetoken is NaN")
     } catch (e) {
       expect(e).toBe("The value passed as timetoken is NaN")
     }
@@ -59,7 +56,6 @@ describe("Channel test", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       TimetokenUtils.dateToTimetoken("Whatever here")
-      fail("The value passed as date is not an instance of Date")
     } catch (e) {
       expect(e).toBe("The value passed as date is not an instance of Date")
     }
