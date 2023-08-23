@@ -7,7 +7,7 @@ dotenv.config()
 
 let chat: Chat | undefined
 
-function makeid(length = 8) {
+export function makeid(length = 8) {
   let result = ""
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
   const charactersLength = characters.length
@@ -23,7 +23,9 @@ export function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-export async function createChatInstance() {
+export async function createChatInstance(
+  options: { userId?: string; shouldCreateNewInstance?: boolean } = {}
+) {
   const keysetError = `
     #######################################################
     # Could not read the PubNub keyset from the .env file #
@@ -33,11 +35,19 @@ export async function createChatInstance() {
   if (!process.env.PUBLISH_KEY || !process.env.SUBSCRIBE_KEY || !process.env.USER_ID)
     throw keysetError
 
+  if (options.shouldCreateNewInstance) {
+    return await Chat.init({
+      publishKey: process.env.PUBLISH_KEY,
+      subscribeKey: process.env.SUBSCRIBE_KEY,
+      userId: options.userId || process.env.USER_ID,
+    })
+  }
+
   if (!chat) {
     chat = await Chat.init({
       publishKey: process.env.PUBLISH_KEY,
       subscribeKey: process.env.SUBSCRIBE_KEY,
-      userId: process.env.USER_ID,
+      userId: options.userId || process.env.USER_ID,
     })
   }
 
