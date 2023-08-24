@@ -1,19 +1,16 @@
-import React, {useState, useCallback, useEffect, useContext} from "react"
+import React, { useState, useCallback, useEffect, useContext } from "react"
 import { GiftedChat, Bubble } from "react-native-gifted-chat"
 import { StatusBar } from "expo-status-bar"
 import { Linking, StyleSheet, Text, View } from "react-native"
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context"
 import { Chat, Channel, User, MessageDraft, Message, MixedTextTypedElement } from "@pubnub/chat"
-import { EnhancedIMessage, mapPNMessageToGChatMessage } from "./utils"
-import {ChatContext} from "./context";
+import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
+import { ChatContext } from "../../../context"
 
-const publishKey = "pub-c-0457cb83-0786-43df-bc70-723b16a6e816"
-const subscribeKey = "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de"
-
-export default function ChatScreen({ navigation }) {
-  const [chat, setChat] = useState<Chat | null>(null)
+export function ChatScreen() {
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null)
-  const [messages, setMessages] = useState<Message[]>([])
+  const [isMoreMessages, setIsMoreMessages] = useState(true)
+  const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false)
   const [giftedChatMappedMessages, setGiftedChatMappedMessages] = useState<EnhancedIMessage[]>([])
   const [users, setUsers] = useState(new Map())
   const [typingData, setTypingData] = useState<string[]>([])
@@ -21,7 +18,7 @@ export default function ChatScreen({ navigation }) {
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([])
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const [text, setText] = useState("")
-  const chatContext = useContext(ChatContext)
+  const { chat } = useContext(ChatContext)
 
   const updateUsersMap = useCallback((k: string, v: User | User[]) => {
     if (Array.isArray(v)) {
@@ -45,16 +42,6 @@ export default function ChatScreen({ navigation }) {
 
   useEffect(() => {
     async function init() {
-      const chat = await Chat.init({
-        publishKey,
-        subscribeKey,
-        userId: "test-user",
-        typingTimeout: 2000,
-      })
-
-      setChat(chat)
-      chatContext.setChat(chat)
-
       const channel =
         (await chat.getChannel("test-channel")) ||
         (await chat.createPublicConversation({
@@ -74,11 +61,41 @@ export default function ChatScreen({ navigation }) {
     init()
   }, [])
 
+  const loadEarlierMessages = async () => {
+    if (!currentChannel) {
+      return
+    }
+
+    const lastMessageTimetoken = giftedChatMappedMessages.length
+      ? giftedChatMappedMessages[giftedChatMappedMessages.length - 1].originalPnMessage.timetoken
+      : undefined
+
+    setIsLoadingMoreMessages(true)
+    const historicalMessagesObject = await currentChannel.getHistory({
+      count: 5,
+      startTimetoken: lastMessageTimetoken,
+    })
+
+    setIsLoadingMoreMessages(false)
+
+    setGiftedChatMappedMessages(
+      GiftedChat.prepend(
+        giftedChatMappedMessages,
+        historicalMessagesObject.messages.map((msg) =>
+          mapPNMessageToGChatMessage(msg, users.get(msg.userId))
+        ).reverse()
+      )
+    )
+
+    setIsMoreMessages(historicalMessagesObject.isMore)
+  }
+
   useEffect(() => {
     async function switchChannelImplementation() {
       if (!currentChannel) {
         return
       }
+      setGiftedChatMappedMessages([])
 
       const historicalMessagesObject = await currentChannel.getHistory({ count: 5 })
 
@@ -88,14 +105,12 @@ export default function ChatScreen({ navigation }) {
         setTypingData(value)
       })
 
-      setMessages(historicalMessagesObject.messages)
-      // setMessages((msgs) => [...historicalMessagesObject.messages, ...msgs])
       setGiftedChatMappedMessages((msgs) =>
-        GiftedChat.append(
+        GiftedChat.prepend(
           [],
-          historicalMessagesObject.messages
-            .map((msg) => mapPNMessageToGChatMessage(msg, users.get(msg.userId)))
-            .reverse()
+          historicalMessagesObject.messages.map((msg) =>
+            mapPNMessageToGChatMessage(msg, users.get(msg.userId))
+          ).reverse()
         )
       )
 
@@ -120,7 +135,6 @@ export default function ChatScreen({ navigation }) {
           }
         })
       }
-      setMessages((currentMessages) => [...currentMessages, message])
       setGiftedChatMappedMessages((currentMessages) =>
         GiftedChat.append(currentMessages, [
           mapPNMessageToGChatMessage(message, users.get(message.userId)),
@@ -130,7 +144,6 @@ export default function ChatScreen({ navigation }) {
 
     return () => {
       disconnect()
-      setMessages([])
     }
   }, [currentChannel, users])
 
@@ -228,12 +241,14 @@ export default function ChatScreen({ navigation }) {
 
   const renderMessageText = useCallback(
     (props: Bubble<EnhancedIMessage>["props"]) => {
-      if (props.currentMessage?.linkedText) {
+      if (props.currentMessage?.originalPnMessage.getLinkedText()) {
         return (
           <Text style={styles.linkedMessage}>
-            {props.currentMessage.linkedText.map((msgPart, index) =>
-              renderMessagePart(msgPart, index, props.currentMessage?.user._id || "")
-            )}
+            {props.currentMessage.originalPnMessage
+              .getLinkedText()
+              .map((msgPart, index) =>
+                renderMessagePart(msgPart, index, props.currentMessage?.user._id || "")
+              )}
           </Text>
         )
       }
@@ -273,11 +288,6 @@ export default function ChatScreen({ navigation }) {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        <View>
-          <Text onPress={() => navigation.navigate('ChannelList')}>
-            Open Channel List
-          </Text>
-        </View>
         <View style={styles.content}>
           <GiftedChat
             messages={giftedChatMappedMessages}
@@ -286,8 +296,11 @@ export default function ChatScreen({ navigation }) {
             renderMessageText={renderMessageText}
             renderFooter={renderFooter}
             text={text}
+            loadEarlier={isMoreMessages}
+            isLoadingEarlier={isLoadingMoreMessages}
+            onLoadEarlier={loadEarlierMessages}
             user={{
-              _id: "test-user",
+              _id: chat.currentUser.id,
             }}
           />
         </View>

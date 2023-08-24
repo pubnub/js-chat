@@ -1,8 +1,8 @@
-import { Message, MixedTextTypedElement, TimetokenUtils, User } from "@pubnub/chat"
+import { Message, TimetokenUtils, User } from "@pubnub/chat"
 import { IMessage } from "react-native-gifted-chat"
 
 export type EnhancedIMessage = IMessage & {
-  linkedText: MixedTextTypedElement[]
+  originalPnMessage: Message
 }
 
 export function mapPNMessageToGChatMessage(
@@ -12,7 +12,7 @@ export function mapPNMessageToGChatMessage(
   return {
     _id: pnMessage.timetoken,
     text: pnMessage.text,
-    linkedText: pnMessage.getLinkedText(),
+    originalPnMessage: pnMessage,
     createdAt: TimetokenUtils.timetokenToDate(pnMessage.timetoken),
     user: {
       _id: user?.id || pnMessage.userId,
