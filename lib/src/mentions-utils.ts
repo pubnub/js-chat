@@ -1,10 +1,17 @@
-import { MessageMentionedUsers, MixedTextTypedElement, TextLink, TextTypeElement } from "./types"
+import {
+  MessageMentionedUsers,
+  MessageReferencedChannels,
+  MixedTextTypedElement,
+  TextLink,
+  TextTypeElement,
+} from "./types"
 import { Validator } from "./validator"
 
 type GetLinkedTextParams = {
   text: string
   mentionedUsers: MessageMentionedUsers
   textLinks: TextLink[]
+  referencedChannels: MessageReferencedChannels
 }
 
 const range = (start: number, stop: number, step = 1) =>
@@ -28,7 +35,29 @@ export class MentionsUtils {
     return splitWords[0] + (splitWords[1] ? ` ${splitWords[1]}` : "")
   }
 
-  static getLinkedText({ text, mentionedUsers, textLinks }: GetLinkedTextParams) {
+  static getChannelPhraseToLookFor(text: string) {
+    const lastAtIndex = text.lastIndexOf("#")
+    const charactersAfterHash = text.split("#").slice(-1)[0]
+
+    if (lastAtIndex === -1 || charactersAfterHash.length < 3) {
+      return null
+    }
+
+    const splitWords = charactersAfterHash.split(" ")
+
+    if (splitWords.length > 2) {
+      return null
+    }
+
+    return splitWords[0] + (splitWords[1] ? ` ${splitWords[1]}` : "")
+  }
+
+  static getLinkedText({
+    text,
+    mentionedUsers,
+    textLinks,
+    referencedChannels,
+  }: GetLinkedTextParams) {
     let resultWithTextLinks = ""
     const indicesOfWordsWithTextLinks: { start: number; end: number; link: string }[] = []
 
@@ -65,16 +94,19 @@ export class MentionsUtils {
     })
 
     let counter = 0
-    // multi word names
+    let channelCounter = 0
+    // multi word user names
     let indicesToSkip: number[] = []
+    // multi word channel names
+    let channelIndicesToSkip: number[] = []
 
     const splitText = resultWithTextLinks.split(" ")
 
     const arrayOfTextElements: MixedTextTypedElement[] = []
 
     splitText.forEach((word, index) => {
-      if (!word.startsWith("@")) {
-        if (indicesToSkip.includes(index)) {
+      if (!word.startsWith("@") && !word.startsWith("#")) {
+        if (indicesToSkip.includes(index) || channelIndicesToSkip.includes(index)) {
           return
         }
 
@@ -128,7 +160,7 @@ export class MentionsUtils {
             text: word,
           },
         })
-      } else {
+      } else if (word.startsWith("@")) {
         const mentionFound = Object.keys(mentionedUsers).indexOf(String(counter)) >= 0
 
         if (!mentionFound) {
@@ -154,12 +186,61 @@ export class MentionsUtils {
           } else {
             additionalPunctuationCharacters = word.replace("@", "").replace(userName, "")
           }
+          if (additionalPunctuationCharacters) {
+            additionalPunctuationCharacters = `${additionalPunctuationCharacters} `
+          }
 
           counter++
           arrayOfTextElements.push({
             type: "mention",
             content: {
               name: userName,
+              id: userId,
+            },
+          })
+          arrayOfTextElements.push({
+            type: "text",
+            content: {
+              text: additionalPunctuationCharacters,
+            },
+          })
+        }
+      } else {
+        const channelReferenceFound =
+          Object.keys(referencedChannels).indexOf(String(channelCounter)) >= 0
+
+        if (!channelReferenceFound) {
+          channelCounter++
+          arrayOfTextElements.push({
+            type: "text",
+            content: {
+              text: word,
+            },
+          })
+        } else {
+          const userId = referencedChannels[channelCounter].id
+          const channelName = referencedChannels[channelCounter].name
+          const channelNameWords = channelName.split(" ")
+
+          let additionalPunctuationCharacters = ""
+
+          if (channelNameWords.length > 1) {
+            channelIndicesToSkip = channelNameWords.map((_, i) => index + i)
+            additionalPunctuationCharacters = splitText[
+              channelIndicesToSkip[channelIndicesToSkip.length - 1]
+            ].replace(channelNameWords[channelNameWords.length - 1], "")
+          } else {
+            additionalPunctuationCharacters = word.replace("#", "").replace(channelName, "")
+          }
+          if (additionalPunctuationCharacters) {
+            additionalPunctuationCharacters = `${additionalPunctuationCharacters} `
+          }
+
+          channelCounter++
+          arrayOfTextElements.push({
+            type: "channelReference",
+            content: {
+              name: channelName,
               id: userId,
             },
           })
@@ -179,7 +260,7 @@ export class MentionsUtils {
       if (acc && acc.length) {
         previousObject = acc[acc.length - 1]
       }
-      const additionalPunctuation = ["mention", "plainLink"].includes(
+      const additionalPunctuation = ["mention", "plainLink", "channelReference"].includes(
         arrayOfTextElements[currentIndex + 1]?.type
       )
         ? " "

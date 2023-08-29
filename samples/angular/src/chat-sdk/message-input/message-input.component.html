@@ -9,8 +9,21 @@
             </div>
         </li>
     </ul>
+    <ul *ngIf="suggestedChannels.length">
+        <li *ngFor="let channel of suggestedChannels">
+            <div>
+                <span>{{ channel.id }}</span>
+                <span>---</span>
+                <span>{{ channel.name }}</span>
+                <button (click)="toggleChannelToReference(channel)">Reference this channel</button>
+            </div>
+        </li>
+    </ul>
     <div *ngIf="!suggestedUsers.length">
         <span>No user suggestions using this phrase</span>
+    </div>
+    <div *ngIf="!suggestedChannels.length">
+        <span>No channels suggestions using this phrase</span>
     </div>
     <div *ngIf="currentlyHighlightedMention.mentionedUser" class="currently-highlighted-mention">
         <strong>You are currently highlighting this user:</strong>

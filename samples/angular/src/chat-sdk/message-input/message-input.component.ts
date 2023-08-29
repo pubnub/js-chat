@@ -10,6 +10,7 @@ import { StateService } from "../../app/state.service"
 export class MessageInputComponentChat {
   pubnubInput = ""
   suggestedUsers: User[] = []
+  suggestedChannels: Channel[] = []
   usersToNotify: User[] = []
   isAddTextLinkDialogOpen = false
   textLinkDialogValues: {
@@ -23,6 +24,7 @@ export class MessageInputComponentChat {
   @Input() chat!: Chat
   newMessageDraft: MessageDraft
   lastAffectedNameOccurrenceIndex = -1
+  lastAffectedChannelNameOccurrenceIndex = -1
   currentlyHighlightedMention: {
     mentionedUser: User | undefined | null
     nameOccurrenceIndex: number
@@ -48,14 +50,22 @@ export class MessageInputComponentChat {
 
   async handleInput(text: string) {
     const response = await this.newMessageDraft.onChange(text)
-    this.suggestedUsers = response.suggestedUsers
-    this.lastAffectedNameOccurrenceIndex = response.nameOccurrenceIndex
+    this.suggestedUsers = response.users.suggestedUsers
+    this.lastAffectedNameOccurrenceIndex = response.users.nameOccurrenceIndex
+    this.suggestedChannels = response.channels.suggestedChannels
+    this.lastAffectedChannelNameOccurrenceIndex = response.channels.channelOccurrenceIndex
     this.messagePreview = this.newMessageDraft.getMessagePreview()
   }
 
   toggleUserToNotify(user: User) {
     this.newMessageDraft.addMentionedUser(user, this.lastAffectedNameOccurrenceIndex)
     this.messagePreview = this.newMessageDraft.getMessagePreview()
+  }
+
+  toggleChannelToReference(channel: Channel) {
+    this.newMessageDraft.addReferencedChannel(channel, this.lastAffectedChannelNameOccurrenceIndex)
+    this.messagePreview = this.newMessageDraft.getMessagePreview()
+    console.log("this.messagePreview", this.messagePreview)
   }
 
   removeUserFromNotification(nameOccurrenceIndex: number) {
@@ -129,6 +139,9 @@ export class MessageInputComponentChat {
     }
     if (messagePart.type === "mention") {
       return `<a href="https://pubnub.com/${messagePart.content.id}">@${messagePart.content.name}</a>`
+    }
+    if (messagePart.type === "channelReference") {
+      return `<a href="https://pubnub.com/${messagePart.content.id}">#${messagePart.content.name}</a>`
     }
 
     return ""

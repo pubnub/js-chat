@@ -165,7 +165,8 @@ export class Channel {
 
   async sendText(text: string, options: SendTextOptionParams = {}) {
     const implementation = async () => {
-      const { mentionedUsers, textLinks, quotedMessage, files, ...rest } = options
+      const { mentionedUsers, textLinks, quotedMessage, files, referencedChannels, ...rest } =
+        options
       const filesData: TextMessageContent["files"] = []
 
       if (quotedMessage && quotedMessage.channelId !== this.id) {
@@ -203,6 +204,7 @@ export class Channel {
         meta: {
           ...(rest.meta || {}),
           mentionedUsers,
+          referencedChannels,
           textLinks,
           quotedMessage: quotedMessage
             ? {
