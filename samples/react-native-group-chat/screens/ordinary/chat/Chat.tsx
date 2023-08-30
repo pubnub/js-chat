@@ -1,13 +1,16 @@
-import React, { useState, useCallback, useEffect, useContext } from "react"
+import React, { useState, useCallback, useEffect, useContext, useMemo } from "react"
 import { GiftedChat, Bubble } from "react-native-gifted-chat"
 import { StatusBar } from "expo-status-bar"
 import { Linking, StyleSheet, Text, View } from "react-native"
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context"
-import { Chat, Channel, User, MessageDraft, Message, MixedTextTypedElement } from "@pubnub/chat"
+import { Channel, User, MessageDraft, MixedTextTypedElement } from "@pubnub/chat"
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { ChatContext } from "../../../context"
+import { NativeStackScreenProps } from "@react-navigation/native-stack"
+import { HomeStackParamList } from "../../../types"
 
-export function ChatScreen() {
+export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList, "Chat">) {
+  const { channelId } = route.params;
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null)
   const [isMoreMessages, setIsMoreMessages] = useState(true)
   const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false)
@@ -18,7 +21,10 @@ export function ChatScreen() {
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([])
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const [text, setText] = useState("")
-  const { chat } = useContext(ChatContext)
+  const { chat, memberships } = useContext(ChatContext)
+  const currentChannelMembership = useMemo(() => memberships.find(
+    (membership) => membership.channel.id === channelId
+  ), [memberships])
 
   const updateUsersMap = useCallback((k: string, v: User | User[]) => {
     if (Array.isArray(v)) {
@@ -42,10 +48,14 @@ export function ChatScreen() {
 
   useEffect(() => {
     async function init() {
+      if (!chat) {
+        return
+      }
+
       const channel =
-        (await chat.getChannel("test-channel")) ||
+        (await chat.getChannel(channelId)) ||
         (await chat.createPublicConversation({
-          channelId: "test-channel",
+          channelId,
           channelData: { name: "Some test channel" },
         }))
 
@@ -59,7 +69,7 @@ export function ChatScreen() {
     }
 
     init()
-  }, [])
+  }, [channelId])
 
   const loadEarlierMessages = async () => {
     if (!currentChannel) {
@@ -81,9 +91,9 @@ export function ChatScreen() {
     setGiftedChatMappedMessages(
       GiftedChat.prepend(
         giftedChatMappedMessages,
-        historicalMessagesObject.messages.map((msg) =>
-          mapPNMessageToGChatMessage(msg, users.get(msg.userId))
-        ).reverse()
+        historicalMessagesObject.messages
+          .map((msg) => mapPNMessageToGChatMessage(msg, users.get(msg.userId)))
+          .reverse()
       )
     )
 
@@ -99,28 +109,37 @@ export function ChatScreen() {
 
       const historicalMessagesObject = await currentChannel.getHistory({ count: 5 })
 
-      setMessageDraft(currentChannel.createMessageDraft({ userSuggestionSource: "global" }))
+      if (currentChannelMembership && historicalMessagesObject.messages.length) {
+        currentChannelMembership.setLastReadMessage(
+          historicalMessagesObject.messages[historicalMessagesObject.messages.length - 1]
+        )
+      }
 
-      currentChannel.getTyping((value) => {
-        setTypingData(value)
-      })
+      setMessageDraft(
+        currentChannel.createMessageDraft({
+          userSuggestionSource: "global",
+          isTypingIndicatorTriggered: currentChannel.type !== "public",
+        })
+      )
+
+      if (currentChannel.type !== "public") {
+        currentChannel.getTyping((value) => {
+          setTypingData(value)
+        })
+      }
 
       setGiftedChatMappedMessages((msgs) =>
         GiftedChat.prepend(
           [],
-          historicalMessagesObject.messages.map((msg) =>
-            mapPNMessageToGChatMessage(msg, users.get(msg.userId))
-          ).reverse()
+          historicalMessagesObject.messages
+            .map((msg) => mapPNMessageToGChatMessage(msg, users.get(msg.userId)))
+            .reverse()
         )
       )
-
-      currentChannel.getTyping((value) => {
-        setTypingData(value)
-      })
     }
 
     switchChannelImplementation()
-  }, [currentChannel])
+  }, [currentChannel, currentChannelMembership])
 
   useEffect(() => {
     if (!currentChannel) {
@@ -135,6 +154,9 @@ export function ChatScreen() {
           }
         })
       }
+      if (currentChannelMembership) {
+        currentChannelMembership.setLastReadMessage(message)
+      }
       setGiftedChatMappedMessages((currentMessages) =>
         GiftedChat.append(currentMessages, [
           mapPNMessageToGChatMessage(message, users.get(message.userId)),
@@ -145,7 +167,7 @@ export function ChatScreen() {
     return () => {
       disconnect()
     }
-  }, [currentChannel, users])
+  }, [currentChannel, users, currentChannelMembership])
 
   const resetInput = () => {
     if (!messageDraft) {

@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, StyleSheet } from "react-native";
+import { RootStackParamList } from "../../../types"
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-export function LoginScreen({ navigation }) {
+export function LoginScreen({ navigation }: NativeStackScreenProps<RootStackParamList, "login">) {
   const [name, setName] = useState("test-user")
 
   return (

@@ -1,4 +1,4 @@
-import PubNub, { MessageEvent, SignalEvent } from "pubnub"
+import PubNub, { GetMembershipsParametersv2, MessageEvent, SignalEvent } from "pubnub"
 import { Channel, ChannelFields } from "./channel"
 import { User, UserFields } from "./user"
 import {
@@ -895,6 +895,111 @@ export class Chat {
     return {
       enhancedMentionsData,
       isMore: mentionsHistoryObject.isMore,
+    }
+  }
+
+  async getUnreadMessagesCounts(params: Omit<GetMembershipsParametersv2, "include"> = {}) {
+    const userMemberships = await this.currentUser.getMemberships(params)
+
+    const membershipsWithTimetokens = userMemberships.memberships.filter(
+      (membership) => membership.lastReadMessageTimetoken
+    )
+    const relevantTimetokens = membershipsWithTimetokens.map((m) => m.lastReadMessageTimetoken)
+    const relevantChannelIds = membershipsWithTimetokens.map((m) => m.channel.id)
+
+    if (!relevantChannelIds.length) {
+      return []
+    }
+
+    const response = await this.sdk.messageCounts({
+      channels: relevantChannelIds,
+      channelTimetokens: relevantTimetokens as string[],
+    })
+
+    return Object.keys(response.channels)
+      .map((key) => {
+        const relevantMembership = membershipsWithTimetokens.find((m) => m.channel.id === key)
+
+        if (!relevantMembership) {
+          throw `Cannot find channel with id ${key}`
+        }
+
+        return {
+          channel: relevantMembership.channel,
+          membership: relevantMembership,
+          count: response.channels[key],
+        }
+      })
+      .filter((r) => r.count > 0)
+  }
+
+  async markAllMessagesAsRead(params: Omit<GetMembershipsParametersv2, "include"> = {}) {
+    const userMemberships = await this.currentUser.getMemberships(params)
+
+    const membershipsWithTimetokens = userMemberships.memberships.filter(
+      (membership) => membership.lastReadMessageTimetoken
+    )
+
+    const relevantChannelIds = membershipsWithTimetokens.map((m) => m.channel.id)
+
+    if (!relevantChannelIds.length) {
+      return
+    }
+
+    const lastMessagesFromMembershipChannels = await this.sdk.fetchMessages({
+      channels: relevantChannelIds,
+      count: 1,
+    })
+
+    const channelsSetCustom = relevantChannelIds.map((relevantChannelId, i) => {
+      const relevantLastMessage =
+        lastMessagesFromMembershipChannels.channels[encodeURIComponent(relevantChannelId)]
+
+      return {
+        id: relevantChannelId,
+        custom: {
+          ...membershipsWithTimetokens[i].custom,
+          lastReadMessageTimetoken: relevantLastMessage[0] ? relevantLastMessage[0].timetoken : "",
+        },
+      }
+    })
+    const filterExpression = `${relevantChannelIds.map((r) => `channel.id == '${r}'`).join(" || ")}`
+
+    const membershipsResponse = await this.sdk.objects.setMemberships({
+      uuid: this.user.id,
+      channels: channelsSetCustom,
+      include: {
+        totalCount: true,
+        customFields: true,
+        channelFields: true,
+        customChannelFields: true,
+      },
+      filter: filterExpression,
+    })
+
+    relevantChannelIds.forEach((relevantChannelId) => {
+      const relevantLastMessage = lastMessagesFromMembershipChannels.channels[encodeURIComponent(relevantChannelId)]
+
+      this.emitEvent({
+        channel: relevantChannelId,
+        type: "receipt",
+        method: "signal",
+        payload: {
+          messageTimetoken: relevantLastMessage[0] ? String(relevantLastMessage[0].timetoken) : "",
+        },
+      })
+    })
+
+    return {
+      page: {
+        next: membershipsResponse.next,
+        prev: membershipsResponse.prev,
+      },
+      total: membershipsResponse.totalCount,
+      status: membershipsResponse.status,
+      memberships: membershipsResponse.data.map((m) =>
+        Membership.fromMembershipDTO(this, m, this.user)
+      ),
     }
   }
 }
