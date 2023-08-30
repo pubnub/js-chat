@@ -41,9 +41,9 @@ export class AppComponent {
     })
 
     const channel =
-      (await this.chat.getChannel("test-channel")) ||
+      (await this.chat.getChannel("test-public-conv")) ||
       (await this.chat.createPublicConversation({
-        channelId: "test-channel",
+        channelId: "test-public-conv",
         channelData: { name: "test channel" },
       }))
 
