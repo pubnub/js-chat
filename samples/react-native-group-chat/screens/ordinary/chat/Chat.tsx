@@ -22,9 +22,10 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const [text, setText] = useState("")
   const { chat, memberships } = useContext(ChatContext)
-  const currentChannelMembership = useMemo(() => memberships.find(
-    (membership) => membership.channel.id === channelId
-  ), [memberships])
+  const currentChannelMembership = useMemo(
+    () => memberships.find((membership) => membership.channel.id === channelId),
+    [memberships, channelId]
+  )
 
   const updateUsersMap = useCallback((k: string, v: User | User[]) => {
     if (Array.isArray(v)) {
@@ -154,6 +155,7 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
           }
         })
       }
+
       if (currentChannelMembership) {
         currentChannelMembership.setLastReadMessage(message)
       }
@@ -324,15 +326,6 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
         }}
       />
     </View>
-  )
-
-  return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-
-        <StatusBar style="auto" />
-      </SafeAreaView>
-    </SafeAreaProvider>
   )
 }
 

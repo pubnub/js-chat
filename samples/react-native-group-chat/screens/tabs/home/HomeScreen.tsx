@@ -7,11 +7,12 @@ import { Line } from "../../../components/line"
 import { SearchBar } from "../../../components/search-bar"
 import { HomeStackParamList } from "../../../types"
 import { NativeStackScreenProps } from "@react-navigation/native-stack"
-import { ChannelsSection } from "../../../components/channels-section";
+import { useFocusEffect } from "@react-navigation/native"
+import { ChannelsSection } from "../../../components/channels-section"
 import { UnreadChannelsSection } from "../../../components/unread-channels-section"
 
 export function HomeScreen({ navigation }: NativeStackScreenProps<HomeStackParamList, "Home">) {
-  const { chat } = useContext(ChatContext)
+  const { chat, setMemberships } = useContext(ChatContext)
   const [searchText, setSearchText] = useState("")
   const [currentUserGroupChannels, setCurrentUserGroupChannels] = useState<Channel[]>([])
   const [currentUserDirectChannels, setCurrentUserDirectChannels] = useState<Channel[]>([])
@@ -40,6 +41,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<HomeStackParam
       ])
 
       const channels = membershipsObject.memberships.map((m) => m.channel)
+      setMemberships(membershipsObject.memberships)
 
       setCurrentUserGroupChannels(channels.filter((c) => c.type === "group"))
       setCurrentUserDirectChannels(channels.filter((c) => c.type === "direct"))
@@ -48,6 +50,12 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<HomeStackParam
 
     init()
   }, [chat])
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUnreadMessagesCount()
+    }, [])
+  )
 
   const getFilteredChannels = useCallback(
     (channels: Channel[]) => {
