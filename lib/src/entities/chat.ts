@@ -978,7 +978,8 @@ export class Chat {
     })
 
     relevantChannelIds.forEach((relevantChannelId) => {
-      const relevantLastMessage = lastMessagesFromMembershipChannels.channels[encodeURIComponent(relevantChannelId)]
+      const relevantLastMessage =
+        lastMessagesFromMembershipChannels.channels[encodeURIComponent(relevantChannelId)]
 
       this.emitEvent({
         channel: relevantChannelId,

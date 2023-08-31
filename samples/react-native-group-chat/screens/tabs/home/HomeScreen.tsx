@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useEffect, useState } from "react"
-import {View, Text, StyleSheet, Image, ScrollView, TouchableOpacity} from "react-native"
-import { ChannelSectionItem } from "../../../components/channel-section-item"
+import { StyleSheet, ScrollView } from "react-native"
 import { ChatContext } from "../../../context"
 import { Gap } from "../../../components/gap"
 import { Channel, Membership } from "@pubnub/chat"
@@ -8,12 +7,10 @@ import { Line } from "../../../components/line"
 import { SearchBar } from "../../../components/search-bar"
 import { HomeStackParamList } from "../../../types"
 import { NativeStackScreenProps } from "@react-navigation/native-stack"
-import { UnreadChannelSectionItem } from "../../../components/unread-channel-section-item"
+import { ChannelsSection } from "../../../components/channels-section";
+import { UnreadChannelsSection } from "../../../components/unread-channels-section"
 
-export function HomeScreen({
-  navigation,
-  route,
-}: NativeStackScreenProps<HomeStackParamList, "Home">) {
+export function HomeScreen({ navigation }: NativeStackScreenProps<HomeStackParamList, "Home">) {
   const { chat } = useContext(ChatContext)
   const [searchText, setSearchText] = useState("")
   const [currentUserGroupChannels, setCurrentUserGroupChannels] = useState<Channel[]>([])
@@ -22,7 +19,6 @@ export function HomeScreen({
   const [unreadChannels, setUnreadChannels] = useState<
     { channel: Channel; count: number; membership: Membership }[]
   >([])
-
   const fetchUnreadMessagesCount = useCallback(async () => {
     if (!chat) {
       return
@@ -63,7 +59,7 @@ export function HomeScreen({
   )
 
   const getFilteredUnreadChannels = useCallback(
-    (unreadChannelCounts: { channel: Channel; count: number }[]) => {
+    (unreadChannelCounts: { channel: Channel; count: number; membership: Membership }[]) => {
       return unreadChannelCounts.filter(
         (c) => c.channel.name && c.channel.name.toLowerCase().includes(searchText.toLowerCase())
       )
@@ -82,72 +78,43 @@ export function HomeScreen({
 
   return (
     <ScrollView style={styles.container}>
-      <Text>You are logged in as {route.params.name}</Text>
       <Gap paddingTop={24} />
       <SearchBar onChangeText={setSearchText} value={searchText} />
       <Gap paddingBottom={16} />
       <Line />
-      <Gap paddingBottom={16} />
-      <View style={styles.sectionContainer}>
-        <Text style={styles.sectionText}>UNREAD</Text>
-        <TouchableOpacity onPress={markAllMessagesAsRead}>
-          <Image source={require("../../../assets/more_horiz.png")} />
-        </TouchableOpacity>
-      </View>
-      {getFilteredUnreadChannels(unreadChannels).map((channelObject) => (
-        <UnreadChannelSectionItem
-          key={channelObject.channel.id}
-          avatarUrl={`https://loremflickr.com/40/40?random=${channelObject.channel.id}`}
-          channelName={channelObject.channel.name || channelObject.channel.id}
-          onPress={() => navigation.navigate("Chat", { channelId: channelObject.channel.id })}
-          unreadMessagesCount={channelObject.count}
-        />
-      ))}
-      <Gap paddingBottom={16} />
+      <Gap paddingBottom={8} />
+      <UnreadChannelsSection
+        onPress={(channelId) => navigation.navigate("Chat", { channelId })}
+        unreadChannels={getFilteredUnreadChannels(unreadChannels)}
+        markAllMessagesAsRead={markAllMessagesAsRead}
+      />
+      <Gap paddingBottom={8} />
       <Line />
-      <Gap paddingBottom={16} />
-      <View style={styles.sectionContainer}>
-        <Text style={styles.sectionText}>PUBLIC CHANNELS</Text>
-        <Image source={require("../../../assets/add.png")} />
-      </View>
-      {getFilteredChannels(currentUserPublicChannels).map((c) => (
-        <ChannelSectionItem
-          key={c.id}
-          avatarUrl={`https://loremflickr.com/40/40?random=${c.id}`}
-          channelName={c.name || c.id}
-          onPress={() => navigation.navigate("Chat", { channelId: c.id })}
-        />
-      ))}
-      <Gap paddingBottom={16} />
+      <Gap paddingBottom={8} />
+      <ChannelsSection
+        channels={getFilteredChannels(currentUserPublicChannels)}
+        title="PUBLIC CHANNELS"
+        onAddIconPress={() => null}
+        onChannelPress={(channelId) => navigation.navigate("Chat", { channelId })}
+      />
+      <Gap paddingBottom={8} />
       <Line />
-      <Gap paddingBottom={16} />
-      <View style={styles.sectionContainer}>
-        <Text style={styles.sectionText}>GROUPS</Text>
-        <Image source={require("../../../assets/add.png")} />
-      </View>
-      {getFilteredChannels(currentUserGroupChannels).map((c) => (
-        <ChannelSectionItem
-          key={c.id}
-          avatarUrl={`https://loremflickr.com/40/40?random=${c.id}`}
-          channelName={c.name || c.id}
-          onPress={() => navigation.navigate("Chat", { channelId: c.id })}
-        />
-      ))}
-      <Gap paddingBottom={16} />
+      <Gap paddingBottom={8} />
+      <ChannelsSection
+        channels={getFilteredChannels(currentUserGroupChannels)}
+        title="GROUPS"
+        onAddIconPress={() => null}
+        onChannelPress={(channelId) => navigation.navigate("Chat", { channelId })}
+      />
+      <Gap paddingBottom={8} />
       <Line />
-      <Gap paddingBottom={16} />
-      <View style={styles.sectionContainer}>
-        <Text style={styles.sectionText}>DIRECT MESSAGES</Text>
-      </View>
-      <Gap paddingBottom={16} />
-      {getFilteredChannels(currentUserDirectChannels).map((c) => (
-        <ChannelSectionItem
-          key={c.id}
-          avatarUrl={`https://loremflickr.com/40/40?random=${c.id}`}
-          channelName={c.name || c.id}
-          onPress={() => navigation.navigate("Chat", { channelId: c.id })}
-        />
-      ))}
+      <Gap paddingBottom={8} />
+      <ChannelsSection
+        channels={getFilteredChannels(currentUserDirectChannels)}
+        title="DIRECT MESSAGES"
+        onAddIconPress={() => null}
+        onChannelPress={(channelId) => navigation.navigate("Chat", { channelId })}
+      />
     </ScrollView>
   )
 }
@@ -186,5 +153,8 @@ const styles = StyleSheet.create({
   },
   sectionText: {
     fontSize: 14,
+  },
+  sectionIcons: {
+    flexDirection: "row",
   },
 })

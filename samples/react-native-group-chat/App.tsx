@@ -9,10 +9,12 @@ import { PeopleScreen } from "./screens/tabs/people"
 import { MentionsScreen } from "./screens/tabs/mentions"
 import { HomeStackScreen } from "./screens/tabs/home"
 import { ProfileScreen } from "./screens/tabs/profile"
-import {useContext, useEffect, useState} from "react"
+import { useContext, useEffect, useState } from "react"
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack"
 import { LoginScreen } from "./screens/ordinary/login-screen"
 import { RootStackParamList } from "./types"
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
+import { StatusBar } from "expo-status-bar"
 
 const Tab = createBottomTabNavigator()
 const MainStack = createNativeStackNavigator<RootStackParamList>()
@@ -120,16 +122,21 @@ function App() {
         setMemberships: setUserMemberships,
       }}
     >
-      <PaperProvider>
-        <NavigationContainer>
-          <MainStack.Navigator>
-            <MainStack.Screen name="login" component={LoginScreen} />
-            <MainStack.Screen name="tabs" component={TabNavigator} />
-          </MainStack.Navigator>
-        </NavigationContainer>
+      <PaperProvider settings={{ rippleEffectEnabled: false }}>
+        <SafeAreaProvider>
+          <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
+            <NavigationContainer>
+              <MainStack.Navigator screenOptions={{ headerShown: false }}>
+                <MainStack.Screen name="login" component={LoginScreen} />
+                <MainStack.Screen name="tabs" component={TabNavigator} />
+              </MainStack.Navigator>
+            </NavigationContainer>
+            <StatusBar style="auto" />
+          </SafeAreaView>
+        </SafeAreaProvider>
       </PaperProvider>
     </ChatContext.Provider>
-  );
+  )
 }
 
-export default App;
+export default App

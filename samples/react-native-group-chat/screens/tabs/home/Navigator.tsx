@@ -10,7 +10,7 @@ export function HomeStackScreen({
   route,
 }: NativeStackScreenProps<BottomTabsParamList, "HomeStack">) {
   return (
-    <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+    <HomeStack.Navigator>
       <HomeStack.Screen
         name="Home"
         component={HomeScreen}
@@ -18,5 +18,5 @@ export function HomeStackScreen({
       />
       <HomeStack.Screen name="Chat" component={ChatScreen} />
     </HomeStack.Navigator>
-  );
+  )
 }

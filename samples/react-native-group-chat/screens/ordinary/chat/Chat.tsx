@@ -308,24 +308,28 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
   }
 
   return (
+    <View style={styles.content}>
+      <GiftedChat
+        messages={giftedChatMappedMessages}
+        onSend={(messages) => onSend(messages)}
+        onInputTextChanged={handleInputChange}
+        renderMessageText={renderMessageText}
+        renderFooter={renderFooter}
+        text={text}
+        loadEarlier={isMoreMessages}
+        isLoadingEarlier={isLoadingMoreMessages}
+        onLoadEarlier={loadEarlierMessages}
+        user={{
+          _id: chat.currentUser.id,
+        }}
+      />
+    </View>
+  )
+
+  return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
-          <GiftedChat
-            messages={giftedChatMappedMessages}
-            onSend={(messages) => onSend(messages)}
-            onInputTextChanged={handleInputChange}
-            renderMessageText={renderMessageText}
-            renderFooter={renderFooter}
-            text={text}
-            loadEarlier={isMoreMessages}
-            isLoadingEarlier={isLoadingMoreMessages}
-            onLoadEarlier={loadEarlierMessages}
-            user={{
-              _id: chat.currentUser.id,
-            }}
-          />
-        </View>
+
         <StatusBar style="auto" />
       </SafeAreaView>
     </SafeAreaProvider>
