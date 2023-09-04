@@ -17,6 +17,7 @@ import {
   TextMessageContent,
   ChannelType,
   DeltaMessageContent,
+  SendDeltaParams,
 } from "../types"
 import { ExponentialRateLimiter } from "../rate-limiter"
 import { Membership } from "./membership"
@@ -165,20 +166,22 @@ export class Channel {
     })
   }
 
-  async sendDelta(delta: any) {
-    delta.forEach(async (d: any) => {
-      if (!d.insert.image) return
-      const { id, name } = await this.chat.sdk.sendFile({
-        channel: this.id,
-        file: {
-          data: d.insert.image,
-          name: "random-image.png",
-        },
-      })
-      const url = this.chat.sdk.getFileUrl({ channel: this.id, id, name })
-      console.log("found an image: ", d.insert.image)
-      console.log("uploaded to: ", url)
-    })
+  async sendDelta(delta: any, options: SendDeltaParams) {
+    const { files } = options
+
+    if (files) {
+      const filesArray = Array.isArray(files) ? files : Array.from(files)
+      for (const file of filesArray) {
+        const { name, id } = await this.chat.sdk.sendFile({
+          channel: this.id,
+          file,
+          storeInHistory: false,
+        })
+        const url = this.chat.sdk.getFileUrl({ channel: this.id, id, name })
+        delta.push({ insert: { image: url } })
+      }
+    }
+
     const message: DeltaMessageContent = {
       type: MessageType.DELTA,
       delta,

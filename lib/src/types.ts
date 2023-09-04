@@ -86,6 +86,10 @@ export type MessageReferencedChannels = {
 
 export type MessageDraftOptions = Omit<PublishParameters, "message" | "channel">
 
+export type SendDeltaParams = {
+  files?: FileList | File[] | SendFileParameters["file"][]
+}
+
 export type SendTextOptionParams = Omit<PublishParameters, "message" | "channel"> & {
   mentionedUsers?: MessageMentionedUsers
   referencedChannels?: MessageReferencedChannels

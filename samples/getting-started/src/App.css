@@ -76,7 +76,6 @@ p {
 }
 
 form {
-  display: flex;
   padding: 8px 16px 16px;
 }
 
@@ -85,13 +84,16 @@ input {
   border-radius: 15px;
   border: none;
   padding: 8px 14px;
-  width: 100%;
 }
 
 input[type="submit"] {
   cursor: pointer;
-  margin-left: 10px;
-  width: auto;
+}
+
+.message-input-actions {
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 0 0;
 }
 
 .ql-container {

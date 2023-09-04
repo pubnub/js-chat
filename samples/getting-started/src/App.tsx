@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useRef, useState, useCallback } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import * as Quill from "quill"
 import "quill/dist/quill.snow.css"
 import "quill-mention"
-import { Channel, Chat, Message, MixedTextTypedElement, TimetokenUtils, User } from "@pubnub/chat"
+import { Channel, Chat, Message, TimetokenUtils, User } from "@pubnub/chat"
 import "./App.css"
 
 const userData = {
@@ -15,36 +15,24 @@ export default function App() {
   const [users, setUsers] = useState<User[]>([])
   const [channel, setChannel] = useState<Channel>()
   const [messages, setMessages] = useState<Message[]>([])
-  const [file, setFile] = useState<FileList>(null)
-  const messageListRef = useRef<HTMLElement>(null)
-
+  const [files, setFiles] = useState<FileList>(null)
   const [q, setQ] = useState()
+  const messageListRef = useRef<HTMLElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function handleSend(event: React.SyntheticEvent) {
     event.preventDefault()
     if (!channel) return
 
-    if (file.length) {
-      const response = await chat?.sdk.sendFile({
-        channel: channel?.id,
-        file,
-        storeInHistory: false,
-      })
-      const { id, name, timetoken } = response
-      const url = await chat?.sdk.getFileUrl({ channel: channel.id, id, name })
-      console.log("file upload re: ", response)
-      console.log("file upload url: ", url)
-    } else {
-      const delta = q?.getContents()
-      await channel?.sendDelta(delta.ops)
-      // await chat.sdk.publish({ channel: channel.id, message: { type: "text", delta: delta.ops } })
-      q.setContents([{ insert: "\n" }])
-    }
+    // q?.insertEmbed(10, "image", "https://www.pubnub.com/pubnub_logo.svg")
+    const delta = q?.getContents()
+    console.log("Sending delta: ", delta)
+    await channel?.sendDelta(delta.ops, { files })
+    q.setContents([{ insert: "\n" }])
+    setFiles(null)
+    fileInputRef.current.value = null
   }
 
-  // ?TODO: check if these links still work
-  // http://ps16.pndsn.com/v1/files/sub-c-2e5fa5c4-fd65-4ef8-9246-286dde521c20/channels/support-channel/files/b92d71fa-8162-46c5-bfc9-812a145eb1dc/72_Digital-Nomads_Can-1.pdf?uuid=support-agent&pnsdk=PubNub-JS-Web%2F7.2.2
-  // https://files-eu-central-1.pndsn.com/sub-c-2e5fa5c4-fd65-4ef8-9246-286dde521c20/z0F2VJgBTHPoSRnQ7f1p4ainzv_zCWAOhT5QiQqYay4/b92d71fa-8162-46c5-bfc9-812a145eb1dc/72_Digital-Nomads_Can-1.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAY7AU6GQDV5LCPVEX%2F20230731%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20230731T130000Z&X-Amz-Expires=3900&X-Amz-SignedHeaders=host&X-Amz-Signature=1eb5a36e7543a4e5c5389c78e1dacf10fcab7cfb42b60f9c9ec3a3e0b720e1fd
   async function handleMessage(message: Message) {
     console.log("received a message: ", message)
     if (chat && !users.find((user) => user.id === message.userId)) {
@@ -130,23 +118,6 @@ export default function App() {
     initalizeChat()
   }, [])
 
-  const renderMessagePart = useCallback((messagePart: MixedTextTypedElement) => {
-    if (messagePart.type === "text") {
-      return messagePart.content.text
-    }
-    if (messagePart.type === "plainLink") {
-      return <a href={messagePart.content.link}>{messagePart.content.link}</a>
-    }
-    if (messagePart.type === "textLink") {
-      return <a href={messagePart.content.link}>{messagePart.content.text}</a>
-    }
-    if (messagePart.type === "mention") {
-      return <a href={`https://pubnub.com/${messagePart.content.id}`}>{messagePart.content.name}</a>
-    }
-
-    return ""
-  }, [])
-
   if (!chat || !channel) return <p>Loading...</p>
 
   return (
@@ -190,32 +161,35 @@ export default function App() {
       </section>
 
       <form className="message-input" onSubmit={handleSend}>
-        <div className="wrapper" style={{ flexGrow: 1 }}>
-          <div id="editor" ref={inputRef} />
+        <div id="editor" ref={inputRef} />
+
+        <div className="message-input-actions">
+          <input
+            type="file"
+            onChange={(ev) => {
+              const files = ev.target.files
+              console.log("currently picked files: ", files)
+              setFiles(files)
+            }}
+            multiple={true}
+            ref={fileInputRef}
+          />
+
+          <input
+            type="submit"
+            value="➔"
+            onClick={handleSend}
+            // style={{ color: text && "#de2440" }}
+          />
         </div>
-        <input
-          type="submit"
-          value="➔"
-          onClick={handleSend}
-          // style={{ color: text && "#de2440" }}
-        />
-        <input
-          type="file"
-          onChange={(ev) => {
-            const files = ev.target.files
-            console.log("currently picked files: ", files)
-            setFile(files)
-          }}
-          multiple={true}
-        />
-        <input
+        {/* <input
           type="button"
           onClick={async () => {
             const { messages } = await channel.getHistory()
             console.log("Hsitory is: ", messages)
           }}
           value="History"
-        />
+        /> */}
       </form>
     </main>
   )
