@@ -1,10 +1,11 @@
-import React, { useState } from "react";
-import { TouchableOpacity, View, StyleSheet } from "react-native";
-import ExpandMore from "../../assets/expand_more.svg";
-import ExpandLess from "../../assets/expand_less.svg";
-import { Channel } from "@pubnub/chat";
+import React, { useState } from "react"
+import { TouchableOpacity, View, StyleSheet } from "react-native"
+import ExpandMore from "../../assets/expand_more.svg"
+import ExpandLess from "../../assets/expand_less.svg"
+import { Channel } from "@pubnub/chat"
 import { Avatar, List } from "react-native-paper"
-import AddIcon from "../../assets/add.svg";
+import AddIcon from "../../assets/add.svg"
+import ContentCopyIcon from "../../assets/content_copy.svg"
 
 type ChannelsSectionProps = {
   channels: Channel[]

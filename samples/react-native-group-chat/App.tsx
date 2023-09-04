@@ -1,5 +1,5 @@
 import * as React from "react"
-import {Chat, Membership} from "@pubnub/chat"
+import { Chat, Membership } from "@pubnub/chat"
 import { NavigationContainer } from "@react-navigation/native"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { PaperProvider } from "react-native-paper"
@@ -15,6 +15,8 @@ import { LoginScreen } from "./screens/ordinary/login-screen"
 import { RootStackParamList } from "./types"
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
 import { StatusBar } from "expo-status-bar"
+import { GestureHandlerRootView } from "react-native-gesture-handler"
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
 
 const Tab = createBottomTabNavigator()
 const MainStack = createNativeStackNavigator<RootStackParamList>()
@@ -122,19 +124,23 @@ function App() {
         setMemberships: setUserMemberships,
       }}
     >
-      <PaperProvider settings={{ rippleEffectEnabled: false }}>
-        <SafeAreaProvider>
-          <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
-            <NavigationContainer>
-              <MainStack.Navigator screenOptions={{ headerShown: false }}>
-                <MainStack.Screen name="login" component={LoginScreen} />
-                <MainStack.Screen name="tabs" component={TabNavigator} />
-              </MainStack.Navigator>
-            </NavigationContainer>
-            <StatusBar style="auto" />
-          </SafeAreaView>
-        </SafeAreaProvider>
-      </PaperProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <BottomSheetModalProvider>
+          <PaperProvider settings={{ rippleEffectEnabled: false }}>
+            <SafeAreaProvider>
+              <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
+                <NavigationContainer>
+                  <MainStack.Navigator screenOptions={{ headerShown: false }}>
+                    <MainStack.Screen name="login" component={LoginScreen} />
+                    <MainStack.Screen name="tabs" component={TabNavigator} />
+                  </MainStack.Navigator>
+                </NavigationContainer>
+                <StatusBar style="auto" />
+              </SafeAreaView>
+            </SafeAreaProvider>
+          </PaperProvider>
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
     </ChatContext.Provider>
   )
 }
