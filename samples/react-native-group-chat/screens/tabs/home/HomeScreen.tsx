@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react"
 import { StyleSheet, ScrollView } from "react-native"
 import { ChatContext } from "../../../context"
-import { Gap } from "../../../components/gap"
+import { Gap } from "../../../ui-components/gap"
 import { Channel, Membership } from "@pubnub/chat"
 import { Line } from "../../../components/line"
 import { SearchBar } from "../../../components/search-bar"
@@ -10,6 +10,8 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack"
 import { useFocusEffect } from "@react-navigation/native"
 import { ChannelsSection } from "../../../components/channels-section"
 import { UnreadChannelsSection } from "../../../components/unread-channels-section"
+import { useTheme } from "react-native-paper"
+import { defaultTheme } from "../../../ui-components/defaultTheme"
 
 export function HomeScreen({ navigation }: NativeStackScreenProps<HomeStackParamList, "Home">) {
   const { chat, setMemberships } = useContext(ChatContext)
@@ -17,6 +19,9 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<HomeStackParam
   const [currentUserGroupChannels, setCurrentUserGroupChannels] = useState<Channel[]>([])
   const [currentUserDirectChannels, setCurrentUserDirectChannels] = useState<Channel[]>([])
   const [currentUserPublicChannels, setCurrentUserPublicChannels] = useState<Channel[]>([])
+
+  const theme = useTheme() as typeof defaultTheme
+
   const [unreadChannels, setUnreadChannels] = useState<
     { channel: Channel; count: number; membership: Membership }[]
   >([])
@@ -85,38 +90,38 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<HomeStackParam
   }, [chat])
 
   return (
-    <ScrollView style={styles.container}>
-      <Gap paddingTop={24} />
+    <ScrollView style={[styles.container, { backgroundColor: theme.colors.neutral0 }]}>
+      <Gap value={24} />
       <SearchBar onChangeText={setSearchText} value={searchText} />
-      <Gap paddingBottom={16} />
+      <Gap value={16} />
       <Line />
-      <Gap paddingBottom={8} />
+      <Gap value={8} />
       <UnreadChannelsSection
         onPress={(channelId) => navigation.navigate("Chat", { channelId })}
         unreadChannels={getFilteredUnreadChannels(unreadChannels)}
         markAllMessagesAsRead={markAllMessagesAsRead}
       />
-      <Gap paddingBottom={8} />
+      <Gap value={8} />
       <Line />
-      <Gap paddingBottom={8} />
+      <Gap value={8} />
       <ChannelsSection
         channels={getFilteredChannels(currentUserPublicChannels)}
         title="PUBLIC CHANNELS"
         onAddIconPress={() => null}
         onChannelPress={(channelId) => navigation.navigate("Chat", { channelId })}
       />
-      <Gap paddingBottom={8} />
+      <Gap value={8} />
       <Line />
-      <Gap paddingBottom={8} />
+      <Gap value={8} />
       <ChannelsSection
         channels={getFilteredChannels(currentUserGroupChannels)}
         title="GROUPS"
         onAddIconPress={() => null}
         onChannelPress={(channelId) => navigation.navigate("Chat", { channelId })}
       />
-      <Gap paddingBottom={8} />
+      <Gap value={8} />
       <Line />
-      <Gap paddingBottom={8} />
+      <Gap value={8} />
       <ChannelsSection
         channels={getFilteredChannels(currentUserDirectChannels)}
         title="DIRECT MESSAGES"
@@ -130,39 +135,11 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<HomeStackParam
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    backgroundColor: "#ffffff",
     flex: 1,
   },
   screenContainer: {
     flex: 1,
     justifyContent: "center",
     padding: 16,
-  },
-  appButtonContainer: {
-    elevation: 8,
-    backgroundColor: "#009688",
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-  },
-  appButtonText: {
-    fontSize: 18,
-    color: "#fff",
-    fontWeight: "bold",
-    alignSelf: "center",
-    textTransform: "uppercase",
-  },
-  sectionContainer: {
-    minHeight: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingRight: 16,
-  },
-  sectionText: {
-    fontSize: 14,
-  },
-  sectionIcons: {
-    flexDirection: "row",
   },
 })

@@ -1,5 +1,5 @@
 import * as React from "react"
-import {Chat, Membership} from "@pubnub/chat"
+import { Chat, Membership } from "@pubnub/chat"
 import { NavigationContainer } from "@react-navigation/native"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { PaperProvider } from "react-native-paper"
@@ -15,6 +15,8 @@ import { LoginScreen } from "./screens/ordinary/login-screen"
 import { RootStackParamList } from "./types"
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
 import { StatusBar } from "expo-status-bar"
+import { useFonts } from "expo-font"
+import { defaultTheme } from "./ui-components/defaultTheme"
 
 const Tab = createBottomTabNavigator()
 const MainStack = createNativeStackNavigator<RootStackParamList>()
@@ -29,6 +31,21 @@ const subscribeKey = "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de"
 function TabNavigator({ route }: NativeStackScreenProps<RootStackParamList, "tabs">) {
   const { name } = route.params
   const { setChat, chat } = useContext(ChatContext)
+
+  const [fontsLoaded] = useFonts({
+    "Roboto-Black": require("./assets/fonts/roboto/Roboto-Black.ttf"),
+    "Roboto-BlackItalic": require("./assets/fonts/roboto/Roboto-BlackItalic.ttf"),
+    "Roboto-Bold": require("./assets/fonts/roboto/Roboto-Bold.ttf"),
+    "Roboto-BoldItalic": require("./assets/fonts/roboto/Roboto-BoldItalic.ttf"),
+    "Roboto-Italic": require("./assets/fonts/roboto/Roboto-Italic.ttf"),
+    "Roboto-Light": require("./assets/fonts/roboto/Roboto-Light.ttf"),
+    "Roboto-LightItalic": require("./assets/fonts/roboto/Roboto-LightItalic.ttf"),
+    "Roboto-Medium": require("./assets/fonts/roboto/Roboto-Medium.ttf"),
+    "Roboto-MediumItalic": require("./assets/fonts/roboto/Roboto-MediumItalic.ttf"),
+    "Roboto-Regular": require("./assets/fonts/roboto/Roboto-Regular.ttf"),
+    "Roboto-Thin": require("./assets/fonts/roboto/Roboto-Thin.ttf"),
+    "Roboto-ThinItalic": require("./assets/fonts/roboto/Roboto-ThinItalic.ttf"),
+  })
 
   useEffect(() => {
     async function init() {
@@ -122,7 +139,7 @@ function App() {
         setMemberships: setUserMemberships,
       }}
     >
-      <PaperProvider settings={{ rippleEffectEnabled: false }}>
+      <PaperProvider settings={{ rippleEffectEnabled: false }} theme={defaultTheme}>
         <SafeAreaProvider>
           <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
             <NavigationContainer>
