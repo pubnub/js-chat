@@ -3,7 +3,7 @@ import { Chat, Membership } from "@pubnub/chat"
 import { NavigationContainer } from "@react-navigation/native"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { PaperProvider } from "react-native-paper"
-import { View, Text, Image } from "react-native"
+import { View, Text, Image, StyleSheet } from "react-native"
 import { ChatContext } from "./context"
 import { PeopleScreen } from "./screens/tabs/people"
 import { MentionsScreen } from "./screens/tabs/mentions"
@@ -56,7 +56,18 @@ function TabNavigator({ route }: NativeStackScreenProps<RootStackParamList, "tab
   }
 
   return (
-    <Tab.Navigator>
+    <Tab.Navigator
+      screenOptions={{
+        header: (props) => (
+          <View style={styles.header}>
+            <Text style={styles.title}>{props.route.name}</Text>
+          </View>
+        ),
+        tabBarStyle: styles.tabBar,
+        tabBarActiveTintColor: "#171717",
+        tabBarInactiveTintColor: "#64748B",
+      }}
+    >
       <Tab.Screen
         options={{
           tabBarLabel: "Home",
@@ -64,8 +75,6 @@ function TabNavigator({ route }: NativeStackScreenProps<RootStackParamList, "tab
           tabBarIcon: ({ color }) => {
             return <TabBarIcon tintColor={color} source={require("./assets/tabs/tab1.png")} />
           },
-          tabBarActiveTintColor: "#171717",
-          tabBarInactiveTintColor: "#525252",
         }}
         name="HomeStack"
         component={HomeStackScreen}
@@ -79,8 +88,6 @@ function TabNavigator({ route }: NativeStackScreenProps<RootStackParamList, "tab
           tabBarIcon: ({ color }) => (
             <TabBarIcon tintColor={color} source={require("./assets/tabs/tab2.png")} />
           ),
-          tabBarActiveTintColor: "#171717",
-          tabBarInactiveTintColor: "#525252",
         }}
       />
       <Tab.Screen
@@ -91,8 +98,6 @@ function TabNavigator({ route }: NativeStackScreenProps<RootStackParamList, "tab
           tabBarIcon: ({ color }) => (
             <TabBarIcon tintColor={color} source={require("./assets/tabs/tab3.png")} />
           ),
-          tabBarActiveTintColor: "#171717",
-          tabBarInactiveTintColor: "#525252",
         }}
       />
       <Tab.Screen
@@ -100,8 +105,6 @@ function TabNavigator({ route }: NativeStackScreenProps<RootStackParamList, "tab
         component={ProfileScreen}
         options={{
           tabBarLabel: "Profile",
-          tabBarActiveTintColor: "#171717",
-          tabBarInactiveTintColor: "#525252",
           tabBarIcon: ({ color }) => (
             <TabBarIcon tintColor={color} source={require("./assets/tabs/tab4.png")} />
           ),
@@ -126,7 +129,10 @@ function App() {
     >
       <GestureHandlerRootView style={{ flex: 1 }}>
         <BottomSheetModalProvider>
-          <PaperProvider settings={{ rippleEffectEnabled: false }}>
+          <PaperProvider
+            settings={{ rippleEffectEnabled: false }}
+            theme={{ colors: { primary: "#171717" } }}
+          >
             <SafeAreaProvider>
               <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
                 <NavigationContainer>
@@ -144,5 +150,26 @@ function App() {
     </ChatContext.Provider>
   )
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: "#1E293B",
+    flex: 1,
+  },
+  header: {
+    backgroundColor: "#161C2D",
+    height: 66,
+    justifyContent: "center",
+    paddingHorizontal: 32,
+  },
+  title: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  tabBar: {
+    backgroundColor: "#F8FAFC",
+  },
+})
 
 export default App
