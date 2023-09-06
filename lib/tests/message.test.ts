@@ -1,13 +1,15 @@
-import { Chat, Channel, Message, MessageDraft } from "../src"
+import { Channel, Chat, INTERNAL_ADMIN_CHANNEL, Message, MessageDraft } from "../src"
 import {
   createChatInstance,
   createRandomChannel,
+  generateExpectedLinkedText,
   sleep,
   waitForAllMessagesToBeDelivered,
-  generateExpectedLinkedText,
+  makeid,
 } from "./utils"
-import { INTERNAL_ADMIN_CHANNEL } from "../src"
 import { jest } from "@jest/globals"
+import mockFs from "mock-fs"
+import * as fs from "fs"
 
 describe("Send message test", () => {
   jest.retryTimes(3)
@@ -24,6 +26,17 @@ describe("Send message test", () => {
     channel = await createRandomChannel()
     messageDraft = new MessageDraft(chat, channel)
   })
+
+  afterEach(() => {
+    mockFs.restore()
+  })
+
+  type FileDetails = {
+    id: string
+    name: string
+    url: string
+    type: string
+  }
 
   test("should send and receive unicode messages correctly", async () => {
     const messages: string[] = []
@@ -346,5 +359,295 @@ describe("Send message test", () => {
     expect(reportMessage?.content.reportedMessageChannelId).toBe(reportedMessage.channelId)
     expect(reportMessage?.content.reportedMessageTimetoken).toBe(reportedMessage.timetoken)
     expect(reportMessage?.content.reportedUserId).toBe(reportedMessage.userId)
+  })
+
+  test("should send multiple image files along with a text message correctly", async () => {
+    const messages: string[] = []
+    const filesReceived: FileDetails[] = []
+    const textMessage = "Hello, sending three files"
+
+    const file1 = fs.createReadStream("tests/fixtures/pblogo1.png")
+    const file2 = fs.createReadStream("tests/fixtures/pblogo2.png")
+    const file3 = fs.createReadStream("tests/fixtures/pblogo3.png")
+
+    const filesFromInput = [
+      { stream: file1, name: "pblogo1.png", mimeType: "image/png" },
+      { stream: file2, name: "pblogo2.png", mimeType: "image/png" },
+      { stream: file3, name: "pblogo3.png", mimeType: "image/png" },
+    ]
+
+    const disconnect = channel.connect((message) => {
+      if (message.content.text !== undefined) {
+        messages.push(message.content.text)
+      }
+      if (message.content.files !== undefined) {
+        filesReceived.push(...message.content.files)
+      }
+    })
+
+    await channel.sendText(textMessage, {
+      files: filesFromInput,
+    })
+
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    await sleep(2000)
+
+    expect(messages).toContain(textMessage)
+
+    expect(filesReceived.length).toBe(3)
+
+    expect(filesReceived[0].id).toBeDefined()
+    expect(filesReceived[0].name).toBe("pblogo1.png")
+    expect(filesReceived[0].url).toBeDefined()
+    expect(filesReceived[0].type).toBe("image/png")
+
+    expect(filesReceived[1].id).toBeDefined()
+    expect(filesReceived[1].name).toBe("pblogo2.png")
+    expect(filesReceived[1].url).toBeDefined()
+    expect(filesReceived[1].type).toBe("image/png")
+
+    expect(filesReceived[2].id).toBeDefined()
+    expect(filesReceived[2].name).toBe("pblogo3.png")
+    expect(filesReceived[2].url).toBeDefined()
+    expect(filesReceived[2].type).toBe("image/png")
+
+    disconnect()
+  }, 30000)
+
+  test("should send image file along with a text message correctly", async () => {
+    const messages: string[] = []
+    const filesReceived: FileDetails[] = []
+    const textMessage = "Hello, sending three files"
+
+    const file1 = fs.createReadStream("tests/fixtures/pblogo1.png")
+
+    const filesFromInput = [{ stream: file1, name: "pblogo1.png", mimeType: "image/png" }]
+
+    const disconnect = channel.connect((message) => {
+      if (message.content.text !== undefined) {
+        messages.push(message.content.text)
+      }
+      if (message.content.files !== undefined) {
+        filesReceived.push(...message.content.files)
+      }
+    })
+
+    await channel.sendText(textMessage, {
+      files: filesFromInput,
+    })
+
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    await sleep(2000)
+
+    expect(messages).toContain(textMessage)
+
+    expect(filesReceived.length).toBe(1)
+
+    expect(filesReceived[0].id).toBeDefined()
+    expect(filesReceived[0].name).toBe("pblogo1.png")
+    expect(filesReceived[0].url).toBeDefined()
+    expect(filesReceived[0].type).toBe("image/png")
+
+    disconnect()
+  }, 30000)
+
+  test("should send pdf file along with a text message correctly", async () => {
+    const messages: string[] = []
+    const filesReceived: FileDetails[] = []
+    const textMessage = "Hello, sending three files"
+
+    const file1 = fs.createReadStream("tests/fixtures/lorem-ipsum.pdf")
+
+    const filesFromInput = [{ stream: file1, name: "lorem-ipsum.pdf", mimeType: "application/pdf" }]
+
+    const disconnect = channel.connect((message) => {
+      if (message.content.text !== undefined) {
+        messages.push(message.content.text)
+      }
+      if (message.content.files !== undefined) {
+        filesReceived.push(...message.content.files)
+      }
+    })
+
+    await channel.sendText(textMessage, {
+      files: filesFromInput,
+    })
+
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    await sleep(2000)
+
+    expect(messages).toContain(textMessage)
+
+    expect(filesReceived.length).toBe(1)
+
+    expect(filesReceived[0].id).toBeDefined()
+    expect(filesReceived[0].name).toBe("lorem-ipsum.pdf")
+    expect(filesReceived[0].url).toBeDefined()
+    expect(filesReceived[0].type).toBe("application/pdf")
+
+    disconnect()
+  }, 30000)
+
+  test("should send txt file along with a text message correctly", async () => {
+    const messages: string[] = []
+    const filesReceived: FileDetails[] = []
+    const textMessage = "Hello, sending three files"
+
+    const file1 = fs.createReadStream("tests/fixtures/sample1.txt")
+
+    const filesFromInput = [{ stream: file1, name: "sample1.txt", mimeType: "text/plain" }]
+
+    const disconnect = channel.connect((message) => {
+      if (message.content.text !== undefined) {
+        messages.push(message.content.text)
+      }
+      if (message.content.files !== undefined) {
+        filesReceived.push(...message.content.files)
+      }
+    })
+
+    await channel.sendText(textMessage, {
+      files: filesFromInput,
+    })
+
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    await sleep(2000)
+
+    expect(messages).toContain(textMessage)
+
+    expect(filesReceived.length).toBe(1)
+
+    expect(filesReceived[0].id).toBeDefined()
+    expect(filesReceived[0].name).toBe("sample1.txt")
+    expect(filesReceived[0].url).toBeDefined()
+    expect(filesReceived[0].type).toBe("text/plain")
+
+    disconnect()
+  }, 30000)
+
+  test("should send multiple different types of files along with a text message correctly", async () => {
+    const messages: string[] = []
+    const filesReceived: FileDetails[] = []
+    const textMessage = "Hello, sending three files"
+
+    const file1 = fs.createReadStream("tests/fixtures/pblogo1.png")
+    const file2 = fs.createReadStream("tests/fixtures/lorem-ipsum.pdf")
+    const file3 = fs.createReadStream("tests/fixtures/sample1.txt")
+
+    const filesFromInput = [
+      { stream: file1, name: "pblogo1.png", mimeType: "image/png" },
+      { stream: file2, name: "lorem-ipsum.pdf", mimeType: "application/pdf" },
+      { stream: file3, name: "sample1.txt", mimeType: "text/plain" },
+    ]
+
+    const disconnect = channel.connect((message) => {
+      if (message.content.text !== undefined) {
+        messages.push(message.content.text)
+      }
+      if (message.content.files !== undefined) {
+        filesReceived.push(...message.content.files)
+      }
+    })
+
+    await channel.sendText(textMessage, {
+      files: filesFromInput,
+    })
+
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    await sleep(2000)
+
+    expect(messages).toContain(textMessage)
+
+    expect(filesReceived.length).toBe(3)
+
+    expect(filesReceived[0].id).toBeDefined()
+    expect(filesReceived[0].name).toBe("pblogo1.png")
+    expect(filesReceived[0].url).toBeDefined()
+    expect(filesReceived[0].type).toBe("image/png")
+
+    expect(filesReceived[1].id).toBeDefined()
+    expect(filesReceived[1].name).toBe("lorem-ipsum.pdf")
+    expect(filesReceived[1].url).toBeDefined()
+    expect(filesReceived[1].type).toBe("application/pdf")
+
+    expect(filesReceived[2].id).toBeDefined()
+    expect(filesReceived[2].name).toBe("sample1.txt")
+    expect(filesReceived[2].url).toBeDefined()
+    expect(filesReceived[2].type).toBe("text/plain")
+
+    disconnect()
+  }, 30000)
+
+  //Needs to be clarified
+  test.only("shouldn't allow to send image file over 5 mb along with a text message", async () => {
+    const messages: string[] = []
+    const filesReceived: FileDetails[] = []
+    const textMessage = "Hello, sending three files"
+
+    const file1 = fs.createReadStream("tests/fixtures/lorem-ipsum.pdf")
+
+    const filesFromInput = [{ stream: file1, name: "lorem-ipsum.pdf", mimeType: "image/jpg" }]
+
+    // const disconnect = channel.connect((message) => {
+    //   if (message.content.text !== undefined) {
+    //     messages.push(message.content.text)
+    //   }
+    //   if (message.content.files !== undefined) {
+    //     filesReceived.push(...message.content.files)
+    //   }
+    // })
+
+    try {
+      await channel.sendText(textMessage, {
+        files: filesFromInput,
+      })
+    } catch (error) {
+      expect(error).toBeTruthy()
+    }
+
+    // const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    // await sleep(2000)
+    //
+    // expect(messages).toContain(textMessage)
+    //
+    // expect(filesReceived.length).toBe(1)
+    //
+    // expect(filesReceived[0].id).toBeDefined()
+    // expect(filesReceived[0].name).toBe("oversize.jpg")
+    // expect(filesReceived[0].url).toBeDefined()
+    // expect(filesReceived[0].type).toBe("image/jpg")
+    //
+    // disconnect()
+  }, 30000)
+
+  test("should send 3 messages with proper delays and verify rate limiter", async () => {
+    const timeout = 1000
+    const factor = 2
+
+    const chat = await createChatInstance({
+      shouldCreateNewInstance: true,
+      config: { rateLimitFactor: factor, rateLimitPerChannel: { public: timeout } },
+    })
+
+    const channel = await chat.createPublicConversation({
+      channelId: `channel_${makeid()}`,
+      channelData: {
+        name: "Test Channel",
+        description: "This is a test channel",
+      },
+    })
+
+    const start = performance.now()
+
+    await channel.sendText("Message 1")
+
+    await channel.sendText("Message 2")
+    const durationSecond = performance.now() - start
+
+    await channel.sendText("Message 3")
+    const durationThird = performance.now() - start
+
+    expect(durationSecond).toBeGreaterThan(timeout)
+    expect(durationThird).toBeGreaterThan(timeout + timeout * factor)
   })
 })

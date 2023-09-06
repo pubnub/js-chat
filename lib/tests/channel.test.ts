@@ -721,5 +721,35 @@ describe("Channel test", () => {
     }
   })
 
+  //WIP
+  test("should verify all available user's mentions", async () => {
+    const user1Id = `user1_${Date.now()}`
+    const user1 = await chat.createUser(user1Id, { name: "User1" })
+
+    const messageText = `Hello, @${user1.name} here is my mail test@pubnub.com`
+
+    await messageDraft.onChange(`Hello, @${user1.name} here is my mail test@pubnub.com`)
+
+    await messageDraft.send()
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const history = await channel.getHistory()
+
+    const messageInHistory = history.messages.find(
+      (message: any) => message.content.text === messageText
+    )
+
+    expect(messageInHistory).toBeDefined()
+
+    expect(Object.keys(messageInHistory.mentionedUsers).length).toBe(2)
+    expect(messageInHistory.mentionedUsers["0"].id).toEqual(user1.id)
+
+    const extractedNamesFromText = extractMentionedUserIds(messageText)
+    expect(messageInHistory.mentionedUsers["0"].name).toEqual(extractedNamesFromText[0])
+    expect(messageInHistory.mentionedUsers["1"].name).toEqual(extractedNamesFromText[1])
+
+    await chat.deleteUser(user1.id)
+  })
+
   jest.retryTimes(3)
 })
