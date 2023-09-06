@@ -12,13 +12,15 @@ import { Gap } from "../../../ui-components/gap"
 export function ProfileScreen({
   navigation,
 }: NativeStackScreenProps<BottomTabsParamList, "Profile">) {
-  const { chat } = useContext(ChatContext)
+  const { chat, setMemberships, setChat } = useContext(ChatContext)
   const [notifications, setNotifications] = useState(true)
   const [receipts, setReceipts] = useState(true)
   const theme = usePNTheme()
 
   const logout = () => {
     navigation.pop()
+    setChat(null)
+    setMemberships([])
   }
 
   return (
