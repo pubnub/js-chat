@@ -1,10 +1,10 @@
 import React, { useState } from "react"
 import { TouchableOpacity, View, StyleSheet } from "react-native"
 import { Channel } from "@pubnub/chat"
-import { List, useTheme } from "react-native-paper"
-import { Icon } from "../../ui-components/icon";
+import { List } from "react-native-paper"
+import { Icon } from "../../ui-components/icon"
 import { RandomAvatar } from "../../ui-components/random-avatar"
-import { defaultTheme } from "../../ui-components/defaultTheme"
+import { usePNTheme } from "../../ui-components/defaultTheme"
 
 type ChannelsSectionProps = {
   channels: Channel[]
@@ -20,7 +20,7 @@ export function ChannelsSection({
   onChannelPress,
 }: ChannelsSectionProps) {
   const [isSectionExpanded, setIsSectionExpanded] = useState(true)
-  const theme = useTheme() as typeof defaultTheme
+  const theme = usePNTheme()
 
   return (
     <List.Accordion
@@ -50,7 +50,11 @@ export function ChannelsSection({
           title={channel.name || channel.id}
           onPress={() => onChannelPress(channel.id)}
           titleStyle={theme.textStyles.smallBody}
-          left={() => <RandomAvatar />}
+          left={() => (
+            <View style={styles.avatarContainer}>
+              <RandomAvatar />
+            </View>
+          )}
         />
       ))}
     </List.Accordion>
@@ -67,5 +71,8 @@ const styles = StyleSheet.create({
   },
   accordionTitleStyle: {
     left: -16,
+  },
+  avatarContainer: {
+    marginLeft: 16,
   },
 })

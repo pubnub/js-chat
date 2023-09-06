@@ -2,7 +2,7 @@ import React from "react"
 import { StyleSheet } from "react-native"
 import { IconButton } from "react-native-paper"
 import { IconSource } from "react-native-paper/lib/typescript/components/Icon"
-import { colorPalette } from "../defaultTheme"
+import { colorPalette, usePNTheme } from "../defaultTheme"
 
 type IconProps = {
   icon: IconSource
@@ -10,7 +10,15 @@ type IconProps = {
 }
 
 export function Icon({ icon, iconColor }: IconProps) {
-  return <IconButton icon={icon} style={styles.container} iconColor={iconColor ? colorPalette[iconColor] : undefined} />
+  const theme = usePNTheme()
+
+  return (
+    <IconButton
+      icon={icon}
+      style={styles.container}
+      iconColor={iconColor ? theme.colors[iconColor] : undefined}
+    />
+  )
 }
 
 const styles = StyleSheet.create({

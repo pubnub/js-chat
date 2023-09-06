@@ -1,7 +1,7 @@
 import { TextStyle } from "react-native"
-import { MD3LightTheme as DefaultTheme } from "react-native-paper/lib/typescript/styles/themes/v3/LightTheme";
+import { useTheme, MD3LightTheme as DefaultTheme } from "react-native-paper"
 
-const colorPalette = {
+export const colorPalette = {
   sky50: "#F0F9FF",
   sky100: "#E0F2FE",
   sky150: "#49A5E3",
@@ -24,6 +24,7 @@ const colorPalette = {
   navy100: "#F1F5F9",
   navy200: "#E2E8F0",
   navy300: "#CBD5E1",
+  navy500: "#64748B",
   navy700: "#334155",
   navy800: "#1E293B",
   navy900: "#161C2D",
@@ -36,28 +37,24 @@ const textStyles = {
     fontSize: 18,
     lineHeight: 28,
     color: colorPalette.neutral900,
-    fontWeight: "700",
     fontFamily: "Roboto-Bold",
   },
   body: {
     fontSize: 16,
     lineHeight: 24,
     color: colorPalette.neutral900,
-    fontWeight: "400",
     fontFamily: "Roboto-Regular",
   },
   smallBody: {
     fontSize: 14,
     lineHeight: 24,
     color: colorPalette.neutral900,
-    fontWeight: "400",
     fontFamily: "Roboto-Regular",
   },
   label: {
     fontSize: 14,
     lineHeight: 20,
     color: colorPalette.neutral900,
-    fontWeight: "500",
     fontFamily: "Roboto-Medium",
   },
 } as { [variant: string]: TextStyle }
@@ -67,6 +64,11 @@ export const defaultTheme = {
   colors: {
     ...DefaultTheme.colors,
     ...colorPalette,
+    primary: colorPalette.neutral900,
   },
   textStyles,
+}
+
+export function usePNTheme() {
+  return useTheme() as typeof defaultTheme
 }

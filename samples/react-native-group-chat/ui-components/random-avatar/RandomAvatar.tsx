@@ -16,7 +16,6 @@ import Avatar14 from "../../assets/avatars/avatar14.png"
 import Avatar15 from "../../assets/avatars/avatar15.png"
 import Avatar16 from "../../assets/avatars/avatar16.png"
 import { Avatar } from "react-native-paper"
-import { StyleSheet } from "react-native"
 
 const avatars = {
   1: Avatar1,
@@ -41,18 +40,14 @@ export function getRandomAvatar() {
   return avatars[Math.floor(Math.random() * 17) as keyof typeof avatars]
 }
 
-export function RandomAvatar() {
+type RandomAvatarProps = {
+  size?: number
+}
+
+export function RandomAvatar({ size = 27 }: RandomAvatarProps) {
   const randomSource = useMemo(() => {
     return getRandomAvatar()
   }, [])
 
-  return <Avatar.Image size={27} style={styles.avatar} source={randomSource} />
+  return <Avatar.Image size={size} source={randomSource} />
 }
-
-const styles = StyleSheet.create({
-  avatar: {
-    marginLeft: 16,
-    width: 27,
-    height: 27,
-  },
-})

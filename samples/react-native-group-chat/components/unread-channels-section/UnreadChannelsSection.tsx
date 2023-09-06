@@ -32,7 +32,7 @@ export function UnreadChannelsSection({
           <TouchableOpacity onPress={markAllMessagesAsRead}>
             <Icon icon="dots-horizontal" iconColor="neutral400" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setIsSectionExpanded(!isSectionExpanded)}>
+          <TouchableOpacity onPress={() => setIsSectionExpanded(!isSectionExpanded)} hitSlop={48}>
             {isSectionExpanded ? (
               <Icon icon="chevron-up" iconColor="neutral400" />
             ) : (
@@ -48,7 +48,11 @@ export function UnreadChannelsSection({
           title={unreadChannel.channel.name || unreadChannel.channel.id}
           onPress={() => onPress(unreadChannel.channel.id)}
           titleStyle={theme.textStyles.smallBody}
-          left={() => <RandomAvatar />}
+          left={() => (
+            <View style={styles.avatarContainer}>
+              <RandomAvatar />
+            </View>
+          )}
           right={() => <Badge>{unreadChannel.count}</Badge>}
         />
       ))}
@@ -66,5 +70,8 @@ const styles = StyleSheet.create({
   },
   accordionTitleStyle: {
     left: -16,
+  },
+  avatarContainer: {
+    marginLeft: 16,
   },
 })

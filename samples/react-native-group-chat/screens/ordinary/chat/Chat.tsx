@@ -6,10 +6,11 @@ import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { ChatContext } from "../../../context"
 import { NativeStackScreenProps } from "@react-navigation/native-stack"
 import { HomeStackParamList } from "../../../types"
+import { useActionsMenu } from "../../../components/actions-menu"
 import { getRandomAvatar } from "../../../ui-components/random-avatar"
 
 export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList, "Chat">) {
-  const { channelId } = route.params;
+  const { channelId } = route.params
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null)
   const [isMoreMessages, setIsMoreMessages] = useState(true)
   const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false)
@@ -25,6 +26,8 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
     () => memberships.find((membership) => membership.channel.id === channelId),
     [memberships, channelId]
   )
+
+  const { ActionsMenuComponent, handlePresentModalPress } = useActionsMenu()
 
   const updateUsersMap = useCallback((k: string, v: User | User[]) => {
     if (Array.isArray(v)) {
@@ -321,7 +324,9 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
         user={{
           _id: chat.currentUser.id,
         }}
+        onLongPress={() => handlePresentModalPress()}
       />
+      <ActionsMenuComponent />
     </View>
   )
 }

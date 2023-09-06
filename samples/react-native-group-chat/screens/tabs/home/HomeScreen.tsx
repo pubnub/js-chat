@@ -10,8 +10,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack"
 import { useFocusEffect } from "@react-navigation/native"
 import { ChannelsSection } from "../../../components/channels-section"
 import { UnreadChannelsSection } from "../../../components/unread-channels-section"
-import { useTheme } from "react-native-paper"
-import { defaultTheme } from "../../../ui-components/defaultTheme"
+import { usePNTheme } from "../../../ui-components/defaultTheme"
 
 export function HomeScreen({ navigation }: NativeStackScreenProps<HomeStackParamList, "Home">) {
   const { chat, setMemberships } = useContext(ChatContext)
@@ -20,7 +19,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<HomeStackParam
   const [currentUserDirectChannels, setCurrentUserDirectChannels] = useState<Channel[]>([])
   const [currentUserPublicChannels, setCurrentUserPublicChannels] = useState<Channel[]>([])
 
-  const theme = useTheme() as typeof defaultTheme
+  const theme = usePNTheme()
 
   const [unreadChannels, setUnreadChannels] = useState<
     { channel: Channel; count: number; membership: Membership }[]
