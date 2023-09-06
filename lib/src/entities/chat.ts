@@ -955,11 +955,14 @@ export class Chat {
       const relevantLastMessage =
         lastMessagesFromMembershipChannels.channels[encodeURIComponent(relevantChannelId)]
 
+      const relevantLastMessageTimetoken =
+        relevantLastMessage && relevantLastMessage[0] ? relevantLastMessage[0].timetoken : ""
+
       return {
         id: relevantChannelId,
         custom: {
           ...membershipsWithTimetokens[i].custom,
-          lastReadMessageTimetoken: relevantLastMessage[0] ? relevantLastMessage[0].timetoken : "",
+          lastReadMessageTimetoken: relevantLastMessageTimetoken,
         },
       }
     })
@@ -981,12 +984,17 @@ export class Chat {
       const relevantLastMessage =
         lastMessagesFromMembershipChannels.channels[encodeURIComponent(relevantChannelId)]
 
+      const relevantLastMessageTimetoken =
+        relevantLastMessage && relevantLastMessage[0]
+          ? String(relevantLastMessage[0].timetoken)
+          : ""
+
       this.emitEvent({
         channel: relevantChannelId,
         type: "receipt",
         method: "signal",
         payload: {
-          messageTimetoken: relevantLastMessage[0] ? String(relevantLastMessage[0].timetoken) : "",
+          messageTimetoken: relevantLastMessageTimetoken,
         },
       })
     })

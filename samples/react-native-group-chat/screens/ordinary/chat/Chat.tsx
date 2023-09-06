@@ -7,6 +7,7 @@ import { ChatContext } from "../../../context"
 import { NativeStackScreenProps } from "@react-navigation/native-stack"
 import { HomeStackParamList } from "../../../types"
 import { useActionsMenu } from "../../../components/actions-menu"
+import { getRandomAvatar } from "../../../ui-components/random-avatar"
 
 export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList, "Chat">) {
   const { channelId } = route.params
@@ -35,7 +36,7 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
       v.forEach((user) => {
         newUsers.set(user.id, {
           ...user,
-          thumbnail: `https://loremflickr.com/40/40?random=${user.id}`,
+          thumbnail: getRandomAvatar(),
         })
       })
 
@@ -43,9 +44,7 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
       return
     }
 
-    setUsers(
-      new Map(users.set(k, { ...v, thumbnail: `https://loremflickr.com/40/40?random=${k}` }))
-    )
+    setUsers(new Map(users.set(k, { ...v, thumbnail: getRandomAvatar() })))
   }, [])
 
   useEffect(() => {

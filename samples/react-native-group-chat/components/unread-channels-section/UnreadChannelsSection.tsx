@@ -1,10 +1,10 @@
 import React, { useState } from "react"
 import { Channel, Membership } from "@pubnub/chat"
 import { TouchableOpacity, View, StyleSheet } from "react-native"
-import { Avatar, Badge, List } from "react-native-paper"
-import MoreIcon from "../../assets/more_horiz.svg"
-import ExpandMore from "../../assets/expand_more.svg"
-import ExpandLess from "../../assets/expand_less.svg"
+import { Badge, List, useTheme } from "react-native-paper"
+import { Icon } from "../../ui-components/icon"
+import { RandomAvatar } from "../../ui-components/random-avatar"
+import { defaultTheme } from "../../ui-components/defaultTheme"
 
 type UnreadChannelsSection = {
   onPress: (channelId: string) => void
@@ -18,24 +18,25 @@ export function UnreadChannelsSection({
   markAllMessagesAsRead,
 }: UnreadChannelsSection) {
   const [isSectionExpanded, setIsSectionExpanded] = useState(true)
+  const theme = useTheme() as typeof defaultTheme
 
   return (
     <List.Accordion
       title="UNREAD"
       expanded={isSectionExpanded}
-      titleStyle={styles.accordionTitleStyle}
-      style={styles.container}
+      titleStyle={[styles.accordionTitleStyle, theme.textStyles.label]}
+      style={[styles.container, { backgroundColor: theme.colors.neutral0 }]}
       pointerEvents="auto"
       right={() => (
         <View style={styles.sectionIcons}>
-          <TouchableOpacity onPress={markAllMessagesAsRead} style={styles.moreIconContainer}>
-            <MoreIcon fill="#A3A3A3" width={24} height={24} />
+          <TouchableOpacity onPress={markAllMessagesAsRead}>
+            <Icon icon="dots-horizontal" iconColor="neutral400" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setIsSectionExpanded(!isSectionExpanded)} hitSlop={48}>
+          <TouchableOpacity onPress={() => setIsSectionExpanded(!isSectionExpanded)}>
             {isSectionExpanded ? (
-              <ExpandLess fill="#A3A3A3" width={24} height={24} />
+              <Icon icon="chevron-up" iconColor="neutral400" />
             ) : (
-              <ExpandMore fill="#A3A3A3" width={24} height={24} />
+              <Icon icon="chevron-down" iconColor="neutral400" />
             )}
           </TouchableOpacity>
         </View>
@@ -46,13 +47,11 @@ export function UnreadChannelsSection({
           key={unreadChannel.channel.id}
           title={unreadChannel.channel.name || unreadChannel.channel.id}
           onPress={() => onPress(unreadChannel.channel.id)}
-          titleStyle={styles.itemTitleStyle}
+          titleStyle={theme.textStyles.smallBody}
           left={() => (
-            <Avatar.Image
-              size={27}
-              style={styles.avatar}
-              source={{ uri: `https://loremflickr.com/40/40?random=${unreadChannel.channel.id}` }}
-            />
+            <View style={styles.avatarContainer}>
+              <RandomAvatar />
+            </View>
           )}
           right={() => <Badge>{unreadChannel.count}</Badge>}
         />
@@ -63,7 +62,6 @@ export function UnreadChannelsSection({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#ffffff",
     paddingVertical: 0,
   },
   sectionIcons: {
@@ -71,20 +69,9 @@ const styles = StyleSheet.create({
     right: -16,
   },
   accordionTitleStyle: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#171717",
     left: -16,
   },
-  itemTitleStyle: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#171717",
-  },
-  avatar: {
+  avatarContainer: {
     marginLeft: 16,
-  },
-  moreIconContainer: {
-    paddingRight: 8,
   },
 })

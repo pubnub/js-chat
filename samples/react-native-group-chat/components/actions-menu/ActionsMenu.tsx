@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo, useRef } from "react"
-import { Text, StyleSheet, View } from "react-native"
+import { StyleSheet, View } from "react-native"
 import { Button as PaperButton } from "react-native-paper"
 import ContentCopyIcon from "../../assets/content_copy.svg"
 import FormatQuoteIcon from "../../assets/format_quote.svg"
 import PushPinIcon from "../../assets/push_pin.svg"
 import SubdirectoryArrowRightIcon from "../../assets/subdirectory_arrow_right.svg"
 import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
-import { Gap } from "../gap"
+import { Gap } from "../../ui-components/gap"
 import Emoji1 from "../../assets/emojis/emoji1.svg"
 import Emoji2 from "../../assets/emojis/emoji2.svg"
 import Emoji3 from "../../assets/emojis/emoji3.svg"
@@ -14,9 +14,12 @@ import Emoji4 from "../../assets/emojis/emoji4.svg"
 import Emoji5 from "../../assets/emojis/emoji5.svg"
 import Emoji6 from "../../assets/emojis/emoji6.svg"
 import Emoji7 from "../../assets/emojis/emoji7.svg"
+import { Text } from "../../ui-components/text"
+import { usePNTheme } from "../../ui-components/defaultTheme"
 
 export function useActionsMenu() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
+  const theme = usePNTheme()
 
   // variables
   const snapPoints = useMemo(() => ["25%", "50%"], [])
@@ -37,7 +40,7 @@ export function useActionsMenu() {
       onChange={handleSheetChanges}
       style={styles.container}
       backdropComponent={BottomSheetBackdrop}
-      handleIndicatorStyle={styles.handleIndicator}
+      handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: theme.colors.neutral500 }]}
     >
       <View style={styles.emojisRow}>
         <Emoji1 width={48} height={48} />
@@ -48,53 +51,58 @@ export function useActionsMenu() {
         <Emoji6 width={48} height={48} />
         <Emoji7 width={48} height={48} />
       </View>
-      <Gap paddingBottom={12} />
-      <Text style={styles.headerText}>Actions</Text>
-      <Gap paddingBottom={20} />
+      <Gap value={12} />
+      <Text variant="headline" textAlign="center">
+        Actions
+      </Text>
+      <Gap value={20} />
       <PaperButton
         icon={() => <ContentCopyIcon width={20} height={20} />}
         mode="contained"
         onPress={() => console.log("Pressed")}
-        buttonColor="#ffffff"
-        textColor="#334155"
-        labelStyle={styles.labelStyle}
-        style={styles.buttonStyle}
+        buttonColor={theme.colors.neutral0}
+        textColor={theme.colors.navy700}
+        labelStyle={[theme.textStyles.body, { color: theme.colors.navy700 }]}
+        style={[styles.buttonStyle, { borderColor: theme.colors.navy300 }]}
         contentStyle={styles.buttonContentStyle}
       >
         Copy message
       </PaperButton>
-      <Gap paddingBottom={16} />
+      <Gap value={16} />
       <PaperButton
         icon={() => <SubdirectoryArrowRightIcon width={20} height={20} />}
         mode="contained"
         onPress={() => console.log("Pressed")}
-        buttonColor="#ffffff"
-        textColor="#334155"
-        style={styles.buttonStyle}
+        buttonColor={theme.colors.neutral0}
+        textColor={theme.colors.navy700}
+        labelStyle={[theme.textStyles.body, { color: theme.colors.navy700 }]}
+        style={[styles.buttonStyle, { borderColor: theme.colors.navy300 }]}
         contentStyle={styles.buttonContentStyle}
       >
         Reply in thread
       </PaperButton>
-      <Gap paddingBottom={16} />
+      <Gap value={16} />
       <PaperButton
         icon={() => <FormatQuoteIcon width={20} height={20} />}
         mode="contained"
         onPress={() => console.log("Pressed")}
-        buttonColor="#ffffff"
-        textColor="#334155"
-        style={styles.buttonStyle}
+        buttonColor={theme.colors.neutral0}
+        textColor={theme.colors.navy700}
+        labelStyle={[theme.textStyles.body, { color: theme.colors.navy700 }]}
+        style={[styles.buttonStyle, { borderColor: theme.colors.navy300 }]}
         contentStyle={styles.buttonContentStyle}
       >
         Quote message
       </PaperButton>
-      <Gap paddingBottom={16} />
+      <Gap value={16} />
       <PaperButton
         icon={() => <PushPinIcon width={20} height={20} />}
         mode="contained"
         onPress={() => console.log("Pressed")}
-        buttonColor="#ffffff"
-        textColor="#334155"
-        style={styles.buttonStyle}
+        buttonColor={theme.colors.neutral0}
+        textColor={theme.colors.navy700}
+        labelStyle={[theme.textStyles.body, { color: theme.colors.navy700 }]}
+        style={[styles.buttonStyle, { borderColor: theme.colors.navy300 }]}
         contentStyle={styles.buttonContentStyle}
       >
         Pin message
@@ -113,20 +121,9 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 32,
   },
-  headerText: {
-    fontSize: 18,
-    lineHeight: 28,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  labelStyle: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
   buttonStyle: {
     borderWidth: 1,
     borderRadius: 6,
-    borderColor: "#CBD5E1",
     justifyContent: "center",
     height: 50,
   },
@@ -134,7 +131,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   handleIndicator: {
-    backgroundColor: "#737373",
     width: 32,
     height: 3,
   },

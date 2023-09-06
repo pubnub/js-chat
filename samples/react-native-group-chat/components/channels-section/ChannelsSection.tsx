@@ -1,11 +1,10 @@
 import React, { useState } from "react"
 import { TouchableOpacity, View, StyleSheet } from "react-native"
-import ExpandMore from "../../assets/expand_more.svg"
-import ExpandLess from "../../assets/expand_less.svg"
 import { Channel } from "@pubnub/chat"
-import { Avatar, List } from "react-native-paper"
-import AddIcon from "../../assets/add.svg"
-import ContentCopyIcon from "../../assets/content_copy.svg"
+import { List } from "react-native-paper"
+import { Icon } from "../../ui-components/icon"
+import { RandomAvatar } from "../../ui-components/random-avatar"
+import { usePNTheme } from "../../ui-components/defaultTheme"
 
 type ChannelsSectionProps = {
   channels: Channel[]
@@ -21,24 +20,25 @@ export function ChannelsSection({
   onChannelPress,
 }: ChannelsSectionProps) {
   const [isSectionExpanded, setIsSectionExpanded] = useState(true)
+  const theme = usePNTheme()
 
   return (
     <List.Accordion
       title={title}
       expanded={isSectionExpanded}
-      titleStyle={styles.accordionTitleStyle}
-      style={styles.container}
+      titleStyle={[styles.accordionTitleStyle, theme.textStyles.label]}
+      style={[styles.container, { backgroundColor: theme.colors.neutral0 }]}
       pointerEvents="auto"
       right={() => (
         <View style={styles.sectionIcons}>
-          <TouchableOpacity onPress={onAddIconPress} style={styles.plusIconContainer}>
-            <AddIcon width={24} height={24} />
+          <TouchableOpacity onPress={onAddIconPress}>
+            <Icon icon="plus" iconColor="neutral400" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setIsSectionExpanded(!isSectionExpanded)}>
             {isSectionExpanded ? (
-              <ExpandLess fill="#A3A3A3" width={24} height={24} />
+              <Icon icon="chevron-up" iconColor="neutral400" />
             ) : (
-              <ExpandMore fill="#A3A3A3" width={24} height={24} />
+              <Icon icon="chevron-down" iconColor="neutral400" />
             )}
           </TouchableOpacity>
         </View>
@@ -49,13 +49,11 @@ export function ChannelsSection({
           key={channel.id}
           title={channel.name || channel.id}
           onPress={() => onChannelPress(channel.id)}
-          titleStyle={styles.itemTitleStyle}
+          titleStyle={theme.textStyles.smallBody}
           left={() => (
-            <Avatar.Image
-              size={27}
-              style={styles.avatar}
-              source={{ uri: `https://loremflickr.com/40/40?random=${channel.id}` }}
-            />
+            <View style={styles.avatarContainer}>
+              <RandomAvatar />
+            </View>
           )}
         />
       ))}
@@ -65,7 +63,6 @@ export function ChannelsSection({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#ffffff",
     paddingVertical: 0,
   },
   sectionIcons: {
@@ -73,20 +70,9 @@ const styles = StyleSheet.create({
     right: -16,
   },
   accordionTitleStyle: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#171717",
     left: -16,
   },
-  itemTitleStyle: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#171717",
-  },
-  avatar: {
+  avatarContainer: {
     marginLeft: 16,
-  },
-  plusIconContainer: {
-    paddingRight: 8,
   },
 })

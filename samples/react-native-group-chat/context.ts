@@ -1,10 +1,10 @@
-import * as React from "react";
+import * as React from "react"
 import { Chat } from "@pubnub/chat"
 import { Membership } from "@pubnub/chat"
 
 type ChatContextParams = {
   chat: null | Chat
-  setChat: (chat: Chat) => void
+  setChat: (chat: Chat | null) => void
   memberships: Membership[]
   setMemberships: (memberships: Membership[]) => void
 }

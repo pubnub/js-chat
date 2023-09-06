@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet } from "react-native";
+import React, { useState } from "react"
+import { View, Text, TextInput, Button, StyleSheet } from "react-native"
 import { RootStackParamList } from "../../../types"
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { NativeStackScreenProps } from "@react-navigation/native-stack"
 
 export function LoginScreen({ navigation }: NativeStackScreenProps<RootStackParamList, "login">) {
   const [name, setName] = useState("test-user")
@@ -22,4 +22,4 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
   },
-});
+})
