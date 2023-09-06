@@ -170,7 +170,7 @@ function App() {
                     <MainStack.Screen name="tabs" component={TabNavigator} />
                   </MainStack.Navigator>
                 </NavigationContainer>
-                <StatusBar style="auto" backgroundColor={defaultTheme.colors.navy800} />
+                <StatusBar style="inverted" backgroundColor={defaultTheme.colors.navy800} />
               </SafeAreaView>
             </SafeAreaProvider>
           </PaperProvider>
