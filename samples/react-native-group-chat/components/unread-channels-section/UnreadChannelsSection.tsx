@@ -32,7 +32,7 @@ export function UnreadChannelsSection({
           <TouchableOpacity onPress={markAllMessagesAsRead}>
             <Icon icon="dots-horizontal" iconColor="neutral400" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setIsSectionExpanded(!isSectionExpanded)} hitSlop={48}>
+          <TouchableOpacity onPress={() => setIsSectionExpanded(!isSectionExpanded)}>
             {isSectionExpanded ? (
               <Icon icon="chevron-up" iconColor="neutral400" />
             ) : (
