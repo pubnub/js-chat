@@ -52,7 +52,9 @@ export function useActionsMenu() {
         <Emoji7 width={48} height={48} />
       </View>
       <Gap value={12} />
-      <Text variant="headline">Actions</Text>
+      <Text variant="headline" textAlign="center">
+        Actions
+      </Text>
       <Gap value={20} />
       <PaperButton
         icon={() => <ContentCopyIcon width={20} height={20} />}

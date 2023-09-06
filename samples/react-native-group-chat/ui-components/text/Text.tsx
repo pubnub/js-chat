@@ -10,9 +10,10 @@ type TextProps = {
   variant: Variant
   fontFamily?: "Roboto-Bold" | "Roboto-Regular" | "Roboto-Medium"
   color?: keyof typeof colorPalette
+  textAlign?: "auto" | "left" | "right" | "center" | "justify" | undefined
 } & Omit<RNTextProps, "style">
 
-export function Text({ variant, fontFamily, color, ...textProps }: TextProps) {
+export function Text({ variant, fontFamily, color, textAlign, ...textProps }: TextProps) {
   const textStyles = defaultTheme.textStyles[variant]
 
   if (!textStyles) {
@@ -26,6 +27,9 @@ export function Text({ variant, fontFamily, color, ...textProps }: TextProps) {
   }
   if (color) {
     additionalStyles.color = colorPalette[color]
+  }
+  if (textAlign) {
+    additionalStyles.textAlign = textAlign
   }
 
   return <RNText {...textProps} style={[textStyles, additionalStyles]} />
