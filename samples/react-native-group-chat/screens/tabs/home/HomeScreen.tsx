@@ -1,16 +1,14 @@
 import React, { useCallback, useContext, useEffect, useState } from "react"
 import { StyleSheet, ScrollView } from "react-native"
 import { ChatContext } from "../../../context"
-import { Gap } from "../../../ui-components/gap"
+import { Gap, Line, usePNTheme } from "../../../ui-components"
 import { Channel, Membership } from "@pubnub/chat"
-import { Line } from "../../../components/line"
 import { SearchBar } from "../../../components/search-bar"
 import { HomeStackParamList } from "../../../types"
 import { NativeStackScreenProps } from "@react-navigation/native-stack"
 import { useFocusEffect } from "@react-navigation/native"
 import { ChannelsSection } from "../../../components/channels-section"
 import { UnreadChannelsSection } from "../../../components/unread-channels-section"
-import { usePNTheme } from "../../../ui-components/defaultTheme"
 
 export function HomeScreen({ navigation }: NativeStackScreenProps<HomeStackParamList, "Home">) {
   const { chat, setMemberships } = useContext(ChatContext)

@@ -6,6 +6,8 @@ import {EnhancedIMessage, mapPNMessageToGChatMessage} from "../../../utils"
 import {MessageDraft, MixedTextTypedElement, ThreadChannel, User} from "@pubnub/chat"
 import {Bubble, GiftedChat} from "react-native-gifted-chat";
 import {Linking, StyleSheet, Text, View} from "react-native";
+import {Line, RandomAvatar, usePNTheme} from "../../../ui-components";
+import {SafeAreaView} from "react-native-safe-area-context";
 
 export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList, "ThreadReply">) {
   const { parentMessage } = route.params
@@ -19,6 +21,7 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
   const [typingData, setTypingData] = useState<string[]>([])
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([])
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
+  const theme = usePNTheme()
 
   useEffect(() => {
     async function init() {
@@ -257,7 +260,21 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
 
   const renderMessageBubble = useCallback((props: Bubble<EnhancedIMessage>["props"]) => {
     return (
-      <Bubble {...props} renderMessageText={renderMessageText} renderTime={() => null} />
+      <Bubble
+        {...props}
+        renderMessageText={renderMessageText}
+        renderTime={() => null}
+        containerToNextStyle={{ right: { marginRight: 0 } }}
+        containerStyle={{ right: { marginRight: 0, } }}
+        wrapperStyle={{
+          right: [
+            styles.ownBubbleBackground,
+            { backgroundColor: theme.colors.teal100 },
+          ],
+          left: [styles.otherBubbleBackground],
+        }}
+        textStyle={{ right: [styles.ownBubbleText, theme.textStyles.body] }}
+      />
     )
   }, [])
 
@@ -268,6 +285,7 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
   return (
     <View style={styles.content}>
       {renderMessageBubble({ currentMessage: parentMessage })}
+      <Line />
       <GiftedChat
         messages={giftedChatMappedMessages}
         onSend={(messages) => onSend(messages)}
@@ -282,6 +300,7 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
         onLoadEarlier={loadEarlierMessages}
         renderDay={() => null}
         renderTime={() => null}
+        renderAvatar={() => <RandomAvatar size={36} />}
         user={{
           _id: chat.currentUser.id,
         }}
@@ -299,4 +318,7 @@ const styles = StyleSheet.create({
   text: { color: "#FFFFFF", padding: 8 },
   messageText: { color: "#000000" },
   outgoingText: { color: "#000000" },
+  ownBubbleBackground: { marginRight: 8 },
+  otherBubbleBackground: {  },
+  ownBubbleText: {},
 })
