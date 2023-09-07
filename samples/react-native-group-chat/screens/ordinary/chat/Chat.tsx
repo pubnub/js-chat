@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useContext, useMemo } from "react"
 import { GiftedChat, Bubble } from "react-native-gifted-chat"
-import { Linking, StyleSheet, Text, View } from "react-native"
+import {Linking, StyleSheet, Text, TouchableOpacity, View} from "react-native"
 import { Channel, User, MessageDraft, MixedTextTypedElement } from "@pubnub/chat"
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { ChatContext } from "../../../context"
@@ -8,9 +8,11 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack"
 import { HomeStackParamList } from "../../../types"
 import { useActionsMenu } from "../../../components/actions-menu"
 import { getRandomAvatar } from "../../../ui-components/random-avatar"
+import { useNavigation } from "@react-navigation/native"
 
 export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList, "Chat">) {
   const { channelId } = route.params
+  const navigation = useNavigation()
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null)
   const [isMoreMessages, setIsMoreMessages] = useState(true)
   const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false)
@@ -305,6 +307,49 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
     )
   }, [typingData, users])
 
+  const renderBubble = (props: Bubble<EnhancedIMessage>["props"]) => {
+    return (
+      <View>
+        <Bubble
+          {...props}
+          containerStyle={{
+            left: { borderColor: 'teal', borderWidth: 8, marginLeft: 0 },
+            right: {},
+          }}
+          wrapperStyle={{
+            left: { borderColor: 'tomato', borderWidth: 4, marginLeft: 0  },
+            right: { marginLeft: 0, },
+          }}
+          bottomContainerStyle={{
+            left: { borderColor: 'purple', borderWidth: 4, marginLeft: 0  },
+            right: {},
+          }}
+          tickStyle={{}}
+          usernameStyle={{ color: 'tomato', fontWeight: '100' }}
+          containerToNextStyle={{
+            left: { borderColor: 'navy', borderWidth: 4 },
+            right: {},
+          }}
+          containerToPreviousStyle={{
+            left: { borderColor: 'mediumorchid', borderWidth: 4 },
+            right: {},
+          }}
+        />
+        {props.currentMessage?.originalPnMessage.hasThread ? (
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("ThreadReply", {
+                parentMessage: props.currentMessage,
+              })
+            }
+          >
+            <Text>Thread replies</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+    )
+  }
+
   if (!messageDraft || !chat) {
     return <Text>Loading...</Text>
   }
@@ -320,11 +365,14 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
         text={text}
         loadEarlier={isMoreMessages}
         isLoadingEarlier={isLoadingMoreMessages}
+        renderBubble={renderBubble}
         onLoadEarlier={loadEarlierMessages}
         user={{
           _id: chat.currentUser.id,
         }}
-        onLongPress={() => handlePresentModalPress()}
+        onLongPress={(_, giftedMessage: EnhancedIMessage) => {
+          handlePresentModalPress({ message: giftedMessage })
+        }}
       />
       <ActionsMenuComponent />
     </View>

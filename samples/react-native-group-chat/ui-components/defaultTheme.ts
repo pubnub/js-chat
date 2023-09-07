@@ -30,6 +30,7 @@ export const colorPalette = {
   navy900: "#161C2D",
   success: "#22C55E",
   badge: "#B91C1C",
+  teal100: "#D1E4E5",
 }
 
 const textStyles = {

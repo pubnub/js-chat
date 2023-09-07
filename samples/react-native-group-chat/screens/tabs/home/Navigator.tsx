@@ -3,6 +3,7 @@ import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navig
 import { ChatScreen } from "../../ordinary/chat"
 import { HomeScreen } from "./HomeScreen"
 import { BottomTabsParamList, HomeStackParamList } from "../../../types"
+import { ThreadReply } from "../../ordinary/thread-reply"
 
 const HomeStack = createNativeStackNavigator<HomeStackParamList>()
 
@@ -17,6 +18,7 @@ export function HomeStackScreen({
         initialParams={{ name: route.params.name }}
       />
       <HomeStack.Screen name="Chat" component={ChatScreen} />
+      <HomeStack.Screen name="ThreadReply" component={ThreadReply} />
     </HomeStack.Navigator>
   )
 }

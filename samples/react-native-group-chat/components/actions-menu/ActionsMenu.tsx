@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from "react"
+import React, {useCallback, useMemo, useRef, useState} from "react"
 import { StyleSheet, View } from "react-native"
 import { Button as PaperButton } from "react-native-paper"
 import ContentCopyIcon from "../../assets/content_copy.svg"
@@ -16,16 +16,22 @@ import Emoji6 from "../../assets/emojis/emoji6.svg"
 import Emoji7 from "../../assets/emojis/emoji7.svg"
 import { Text } from "../../ui-components/text"
 import { usePNTheme } from "../../ui-components/defaultTheme"
+import { Message } from "@pubnub/chat"
+import { useNavigation } from "@react-navigation/native"
+import {EnhancedIMessage} from "../../utils";
 
 export function useActionsMenu() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
   const theme = usePNTheme()
+  const navigation = useNavigation()
+  const [currentlyFocusedMessage, setCurrentlyFocusedMessage] = useState<EnhancedIMessage | null>(null)
 
   // variables
   const snapPoints = useMemo(() => ["25%", "50%"], [])
 
   // callbacks
-  const handlePresentModalPress = useCallback(() => {
+  const handlePresentModalPress = useCallback(({ message }: { message: EnhancedIMessage }) => {
+    setCurrentlyFocusedMessage(message)
     bottomSheetModalRef.current?.present()
   }, [])
   const handleSheetChanges = useCallback((index: number) => {
@@ -72,7 +78,7 @@ export function useActionsMenu() {
       <PaperButton
         icon={() => <SubdirectoryArrowRightIcon width={20} height={20} />}
         mode="contained"
-        onPress={() => console.log("Pressed")}
+        onPress={() => navigation.navigate("ThreadReply", { parentMessage: currentlyFocusedMessage })}
         buttonColor={theme.colors.neutral0}
         textColor={theme.colors.navy700}
         labelStyle={[theme.textStyles.body, { color: theme.colors.navy700 }]}

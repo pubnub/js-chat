@@ -226,6 +226,7 @@ export class Channel {
 
       return publishResponse
     }
+    console.log("this", this)
 
     return this.sendTextRateLimiter.runWithinLimits(implementation)
   }

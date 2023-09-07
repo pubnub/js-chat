@@ -8,7 +8,7 @@ import {
   EventType,
   ChannelType,
   ErrorLoggerImplementation,
-  UserMentionData,
+  UserMentionData, SendTextOptionParams,
 } from "../types"
 import { Message } from "./message"
 import { Event } from "./event"
@@ -357,6 +357,70 @@ export class Chat {
       if (e?.status?.errorData?.status === 404) {
         throw "This message is not a thread"
       } else throw error
+    }
+  }
+
+  /** @internal */
+  async createThreadChannel2(message: Message): Promise<ThreadChannel> {
+    try {
+      if (message.channelId.startsWith(MESSAGE_THREAD_ID_PREFIX)) {
+        throw "Only one level of thread nesting is allowed"
+      }
+
+      const threadChannelId = this.getThreadId(message.channelId, message.timetoken)
+
+      const existingThread = await this.getChannel(threadChannelId)
+
+      if (existingThread) throw "Thread for this message already exists"
+
+      const newThreadChannelDraft = new ThreadChannel(this, {
+        description: `Thread on channel ${message.channelId} with message timetoken ${message.timetoken}`,
+        id: threadChannelId,
+        parentChannelId: message.channelId,
+      })
+
+      const self = this
+
+      return new Proxy(newThreadChannelDraft, {
+        get(target: ThreadChannel, prop: keyof ThreadChannel) {
+          if (prop !== "sendText") {
+            return target[prop]
+          }
+
+          const originalSendText = target.sendText
+
+          return async function proxifiedSendText(
+            text: string,
+            options: SendTextOptionParams = {}
+          ) {
+            try {
+              await Promise.all([
+                self.sdk.objects.setChannelMetadata({
+                  channel: threadChannelId,
+                  data: {
+                    description: `Thread on channel ${message.channelId} with message timetoken ${message.timetoken}`,
+                  },
+                }),
+                self.sdk.addMessageAction({
+                  channel: message.channelId,
+                  messageTimetoken: message.timetoken,
+                  action: {
+                    type: "threadRootId",
+                    value: threadChannelId,
+                  },
+                }),
+              ])
+
+              return originalSendText.bind(this)(text, options)
+            } catch (e) {
+              throw e
+            }
+          }
+        },
+      })
+    } catch (e) {
+      console.error(e)
+      throw e
     }
   }
 
