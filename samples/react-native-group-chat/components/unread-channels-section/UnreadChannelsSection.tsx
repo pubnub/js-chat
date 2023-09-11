@@ -1,10 +1,10 @@
 import React, { useState } from "react"
 import { Channel, Membership } from "@pubnub/chat"
 import { TouchableOpacity, View, StyleSheet } from "react-native"
-import { Badge, List, useTheme } from "react-native-paper"
-import { Icon } from "../../ui-components/icon"
-import { RandomAvatar } from "../../ui-components/random-avatar"
-import { defaultTheme } from "../../ui-components/defaultTheme"
+import { List, useTheme } from "react-native-paper"
+
+import { ListItem } from "../list-item"
+import { Icon, defaultTheme } from "../../ui-components"
 
 type UnreadChannelsSection = {
   onPress: (channelId: string) => void
@@ -43,17 +43,11 @@ export function UnreadChannelsSection({
       )}
     >
       {unreadChannels.map((unreadChannel) => (
-        <List.Item
+        <ListItem
           key={unreadChannel.channel.id}
           title={unreadChannel.channel.name || unreadChannel.channel.id}
           onPress={() => onPress(unreadChannel.channel.id)}
-          titleStyle={theme.textStyles.smallBody}
-          left={() => (
-            <View style={styles.avatarContainer}>
-              <RandomAvatar />
-            </View>
-          )}
-          right={() => <Badge>{unreadChannel.count}</Badge>}
+          badge={String(unreadChannel.count)}
         />
       ))}
     </List.Accordion>
@@ -70,8 +64,5 @@ const styles = StyleSheet.create({
   },
   accordionTitleStyle: {
     left: -16,
-  },
-  avatarContainer: {
-    marginLeft: 16,
   },
 })

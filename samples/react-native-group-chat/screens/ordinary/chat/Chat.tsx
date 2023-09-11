@@ -1,15 +1,16 @@
 import React, { useState, useCallback, useEffect, useContext, useMemo } from "react"
+import { Linking, StyleSheet, Text, View, ActivityIndicator } from "react-native"
 import { GiftedChat, Bubble } from "react-native-gifted-chat"
-import { Linking, StyleSheet, Text, View } from "react-native"
+import { StackScreenProps } from "@react-navigation/stack"
 import { Channel, User, MessageDraft, MixedTextTypedElement } from "@pubnub/chat"
+
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { ChatContext } from "../../../context"
-import { NativeStackScreenProps } from "@react-navigation/native-stack"
 import { HomeStackParamList } from "../../../types"
-import { useActionsMenu } from "../../../components/actions-menu"
-import { getRandomAvatar } from "../../../ui-components/random-avatar"
+import { useActionsMenu } from "../../../components"
+import { getRandomAvatar, colorPalette as colors } from "../../../ui-components"
 
-export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList, "Chat">) {
+export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat">) {
   const { channelId } = route.params
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null)
   const [isMoreMessages, setIsMoreMessages] = useState(true)
@@ -306,7 +307,11 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
   }, [typingData, users])
 
   if (!messageDraft || !chat) {
-    return <Text>Loading...</Text>
+    return (
+      <View style={{ justifyContent: "center", flex: 1 }}>
+        <ActivityIndicator size="large" color={colors.navy700} />
+      </View>
+    )
   }
 
   return (

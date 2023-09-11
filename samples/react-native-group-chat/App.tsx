@@ -1,40 +1,38 @@
-import * as React from "react"
-import { Chat, Membership } from "@pubnub/chat"
-import { NavigationContainer } from "@react-navigation/native"
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
-import { PaperProvider } from "react-native-paper"
-import { View, Image, StyleSheet, Text as RNText } from "react-native"
-import { ChatContext } from "./context"
-import { PeopleScreen } from "./screens/tabs/people"
-import { MentionsScreen } from "./screens/tabs/mentions"
-import { HomeStackScreen } from "./screens/tabs/home"
-import { ProfileScreen } from "./screens/tabs/profile"
 import { useContext, useEffect, useState } from "react"
-import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack"
-import { LoginScreen } from "./screens/ordinary/login-screen"
-import { RootStackParamList } from "./types"
+import { View, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native"
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
-import { StatusBar } from "expo-status-bar"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
-import { useFonts } from "expo-font"
-import { defaultTheme, usePNTheme } from "./ui-components/defaultTheme"
-import { Text } from "./ui-components/text"
+import { NavigationContainer } from "@react-navigation/native"
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
+import { createStackNavigator, StackScreenProps } from "@react-navigation/stack"
+import { PaperProvider } from "react-native-paper"
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons"
+import { StatusBar } from "expo-status-bar"
+import { Chat, Membership } from "@pubnub/chat"
+import {
+  useFonts,
+  Roboto_400Regular,
+  Roboto_500Medium,
+  Roboto_700Bold,
+} from "@expo-google-fonts/roboto"
+import "react-native-get-random-values"
+
+import { PeopleScreen, MentionsScreen, HomeStackScreen, ProfileScreen } from "./screens/tabs"
+import { LoginScreen } from "./screens/ordinary"
+import { ChatContext } from "./context"
+import { RootStackParamList } from "./types"
+import { defaultTheme, colorPalette as colors } from "./ui-components"
 
 const Tab = createBottomTabNavigator()
-const MainStack = createNativeStackNavigator<RootStackParamList>()
-
-const TabBarIcon = ({ source, tintColor }: { source: number; tintColor: string }) => (
-  <Image source={source} style={{ width: 48, height: 24 }} tintColor={tintColor} />
-)
+const MainStack = createStackNavigator<RootStackParamList>()
 
 const publishKey = "pub-c-0457cb83-0786-43df-bc70-723b16a6e816"
 const subscribeKey = "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de"
 
-function TabNavigator({ route }: NativeStackScreenProps<RootStackParamList, "tabs">) {
+function TabNavigator({ route }: StackScreenProps<RootStackParamList, "tabs">) {
   const { name } = route.params
   const { setChat, chat } = useContext(ChatContext)
-  const theme = usePNTheme()
 
   useEffect(() => {
     async function init() {
@@ -53,8 +51,8 @@ function TabNavigator({ route }: NativeStackScreenProps<RootStackParamList, "tab
 
   if (!chat) {
     return (
-      <View>
-        <Text variant="body">Loading...</Text>
+      <View style={{ justifyContent: "center", flex: 1 }}>
+        <ActivityIndicator size="large" color={colors.navy700} />
       </View>
     )
   }
@@ -62,29 +60,29 @@ function TabNavigator({ route }: NativeStackScreenProps<RootStackParamList, "tab
   return (
     <Tab.Navigator
       screenOptions={{
-        header: (props) => (
-          <View style={[styles.header, { backgroundColor: theme.colors.navy900 }]}>
-            <Text variant="body" color="neutral0">
-              {props.route.name}
-            </Text>
-          </View>
-        ),
-        tabBarStyle: { backgroundColor: theme.colors.navy50 },
-        tabBarActiveTintColor: theme.colors.neutral900,
-        tabBarInactiveTintColor: theme.colors.navy500,
+        headerStyle: {
+          height: 64,
+          backgroundColor: colors.navy900,
+        },
+        headerStatusBarHeight: 0, // there's some extra padding on top of the header without this
+        headerTintColor: colors.neutral0,
+        tabBarStyle: { backgroundColor: colors.navy50 },
+        tabBarActiveTintColor: colors.neutral900,
+        tabBarInactiveTintColor: colors.navy500,
+        tabBarHideOnKeyboard: true,
       }}
     >
       <Tab.Screen
-        options={{
-          tabBarLabel: "Home",
-          headerShown: false,
-          tabBarIcon: ({ color }) => {
-            return <TabBarIcon tintColor={color} source={require("./assets/tabs/tab1.png")} />
-          },
-        }}
         name="HomeStack"
         component={HomeStackScreen}
         initialParams={{ name }}
+        options={{
+          tabBarLabel: "Home",
+          headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="home-outline" size={24} color={color} />
+          ),
+        }}
       />
       <Tab.Screen
         name="People"
@@ -92,7 +90,7 @@ function TabNavigator({ route }: NativeStackScreenProps<RootStackParamList, "tab
         options={{
           tabBarLabel: "People",
           tabBarIcon: ({ color }) => (
-            <TabBarIcon tintColor={color} source={require("./assets/tabs/tab2.png")} />
+            <MaterialIcons name="people-outline" size={24} color={color} />
           ),
         }}
       />
@@ -102,7 +100,7 @@ function TabNavigator({ route }: NativeStackScreenProps<RootStackParamList, "tab
         options={{
           tabBarLabel: "Mentions",
           tabBarIcon: ({ color }) => (
-            <TabBarIcon tintColor={color} source={require("./assets/tabs/tab3.png")} />
+            <MaterialIcons name="alternate-email" size={24} color={color} />
           ),
         }}
       />
@@ -112,7 +110,7 @@ function TabNavigator({ route }: NativeStackScreenProps<RootStackParamList, "tab
         options={{
           tabBarLabel: "Profile",
           tabBarIcon: ({ color }) => (
-            <TabBarIcon tintColor={color} source={require("./assets/tabs/tab4.png")} />
+            <MaterialIcons name="person-outline" size={24} color={color} />
           ),
         }}
       />
@@ -121,30 +119,18 @@ function TabNavigator({ route }: NativeStackScreenProps<RootStackParamList, "tab
 }
 
 function App() {
-  const [chat, setChat] = React.useState<Chat | null>(null)
+  const [chat, setChat] = useState<Chat | null>(null)
+  const [users, setUsers] = useState<User[]>([])
   const [userMemberships, setUserMemberships] = useState<Membership[]>([])
 
   const [fontsLoaded] = useFonts({
-    "Roboto-Black": require("./assets/fonts/roboto/Roboto-Black.ttf"),
-    "Roboto-BlackItalic": require("./assets/fonts/roboto/Roboto-BlackItalic.ttf"),
-    "Roboto-Bold": require("./assets/fonts/roboto/Roboto-Bold.ttf"),
-    "Roboto-BoldItalic": require("./assets/fonts/roboto/Roboto-BoldItalic.ttf"),
-    "Roboto-Italic": require("./assets/fonts/roboto/Roboto-Italic.ttf"),
-    "Roboto-Light": require("./assets/fonts/roboto/Roboto-Light.ttf"),
-    "Roboto-LightItalic": require("./assets/fonts/roboto/Roboto-LightItalic.ttf"),
-    "Roboto-Medium": require("./assets/fonts/roboto/Roboto-Medium.ttf"),
-    "Roboto-MediumItalic": require("./assets/fonts/roboto/Roboto-MediumItalic.ttf"),
-    "Roboto-Regular": require("./assets/fonts/roboto/Roboto-Regular.ttf"),
-    "Roboto-Thin": require("./assets/fonts/roboto/Roboto-Thin.ttf"),
-    "Roboto-ThinItalic": require("./assets/fonts/roboto/Roboto-ThinItalic.ttf"),
+    Roboto_400Regular,
+    Roboto_500Medium,
+    Roboto_700Bold,
   })
 
   if (!fontsLoaded) {
-    return (
-      <View>
-        <RNText>Loading fonts...</RNText>
-      </View>
-    )
+    return null
   }
 
   return (
@@ -152,6 +138,8 @@ function App() {
       value={{
         chat,
         setChat,
+        users,
+        setUsers,
         memberships: userMemberships,
         setMemberships: setUserMemberships,
       }}
@@ -159,18 +147,24 @@ function App() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <BottomSheetModalProvider>
           <PaperProvider settings={{ rippleEffectEnabled: false }} theme={defaultTheme}>
+            <StatusBar style="inverted" backgroundColor={defaultTheme.colors.navy800} />
             <SafeAreaProvider>
               <SafeAreaView
                 style={[styles.safeArea, { backgroundColor: defaultTheme.colors.navy800 }]}
                 edges={["top", "left", "right"]}
               >
-                <NavigationContainer>
-                  <MainStack.Navigator screenOptions={{ headerShown: false }}>
-                    <MainStack.Screen name="login" component={LoginScreen} />
-                    <MainStack.Screen name="tabs" component={TabNavigator} />
-                  </MainStack.Navigator>
-                </NavigationContainer>
-                <StatusBar style="inverted" backgroundColor={defaultTheme.colors.navy800} />
+                {/* TODO: for some reason KeyboardAvoidingView doesn't work on any page other than login */}
+                <KeyboardAvoidingView
+                  {...(Platform.OS === "ios" ? { behavior: "padding" } : {})}
+                  style={{ flex: 1 }}
+                >
+                  <NavigationContainer>
+                    <MainStack.Navigator screenOptions={{ headerShown: false }}>
+                      <MainStack.Screen name="login" component={LoginScreen} />
+                      <MainStack.Screen name="tabs" component={TabNavigator} />
+                    </MainStack.Navigator>
+                  </NavigationContainer>
+                </KeyboardAvoidingView>
               </SafeAreaView>
             </SafeAreaProvider>
           </PaperProvider>

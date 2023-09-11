@@ -1,23 +1,22 @@
 import React, { useCallback, useContext, useEffect, useState } from "react"
-import { StyleSheet, ScrollView } from "react-native"
-import { ChatContext } from "../../../context"
-import { Gap, Line, usePNTheme } from "../../../ui-components"
-import { Channel, Membership } from "@pubnub/chat"
-import { SearchBar } from "../../../components/search-bar"
-import { HomeStackParamList } from "../../../types"
-import { NativeStackScreenProps } from "@react-navigation/native-stack"
+import { StyleSheet, ScrollView, TouchableHighlight } from "react-native"
 import { useFocusEffect } from "@react-navigation/native"
+import { StackScreenProps } from "@react-navigation/stack"
+import { Channel, Membership } from "@pubnub/chat"
+
+import { ChatContext } from "../../../context"
+import { Gap, Line, TextInput, colorPalette as colors } from "../../../ui-components"
+import { HomeStackParamList } from "../../../types"
 import { ChannelsSection } from "../../../components/channels-section"
 import { UnreadChannelsSection } from "../../../components/unread-channels-section"
+import { MaterialIcons } from "@expo/vector-icons"
 
-export function HomeScreen({ navigation }: NativeStackScreenProps<HomeStackParamList, "Home">) {
+export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, "Home">) {
   const { chat, setMemberships } = useContext(ChatContext)
   const [searchText, setSearchText] = useState("")
   const [currentUserGroupChannels, setCurrentUserGroupChannels] = useState<Channel[]>([])
   const [currentUserDirectChannels, setCurrentUserDirectChannels] = useState<Channel[]>([])
   const [currentUserPublicChannels, setCurrentUserPublicChannels] = useState<Channel[]>([])
-
-  const theme = usePNTheme()
 
   const [unreadChannels, setUnreadChannels] = useState<
     { channel: Channel; count: number; membership: Membership }[]
@@ -87,56 +86,79 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<HomeStackParam
   }, [chat])
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.colors.neutral0 }]}>
-      <Gap value={24} />
-      <SearchBar onChangeText={setSearchText} value={searchText} />
-      <Gap value={16} />
-      <Line />
-      <Gap value={8} />
-      <UnreadChannelsSection
-        onPress={(channelId) => navigation.navigate("Chat", { channelId })}
-        unreadChannels={getFilteredUnreadChannels(unreadChannels)}
-        markAllMessagesAsRead={markAllMessagesAsRead}
-      />
-      <Gap value={8} />
-      <Line />
-      <Gap value={8} />
-      <ChannelsSection
-        channels={getFilteredChannels(currentUserPublicChannels)}
-        title="PUBLIC CHANNELS"
-        onAddIconPress={() => null}
-        onChannelPress={(channelId) => navigation.navigate("Chat", { channelId })}
-      />
-      <Gap value={8} />
-      <Line />
-      <Gap value={8} />
-      <ChannelsSection
-        channels={getFilteredChannels(currentUserGroupChannels)}
-        title="GROUPS"
-        onAddIconPress={() => null}
-        onChannelPress={(channelId) => navigation.navigate("Chat", { channelId })}
-      />
-      <Gap value={8} />
-      <Line />
-      <Gap value={8} />
-      <ChannelsSection
-        channels={getFilteredChannels(currentUserDirectChannels)}
-        title="DIRECT MESSAGES"
-        onAddIconPress={() => null}
-        onChannelPress={(channelId) => navigation.navigate("Chat", { channelId })}
-      />
-    </ScrollView>
+    <>
+      <ScrollView style={styles.container}>
+        <TextInput
+          onChangeText={setSearchText}
+          value={searchText}
+          placeholder="Search"
+          icon="search"
+          variant="search"
+        />
+        <Gap value={16} />
+        <Line />
+        <Gap value={8} />
+        <UnreadChannelsSection
+          onPress={(channelId) => navigation.navigate("Chat", { channelId })}
+          unreadChannels={getFilteredUnreadChannels(unreadChannels)}
+          markAllMessagesAsRead={markAllMessagesAsRead}
+        />
+        <Gap value={8} />
+        <Line />
+        <Gap value={8} />
+        <ChannelsSection
+          channels={getFilteredChannels(currentUserPublicChannels)}
+          title="PUBLIC CHANNELS"
+          onAddIconPress={() => null}
+          onChannelPress={(channelId) => navigation.navigate("Chat", { channelId })}
+        />
+        <Gap value={8} />
+        <Line />
+        <Gap value={8} />
+        <ChannelsSection
+          channels={getFilteredChannels(currentUserGroupChannels)}
+          title="GROUPS"
+          onAddIconPress={() => null}
+          onChannelPress={(channelId) => navigation.navigate("Chat", { channelId })}
+        />
+        <Gap value={8} />
+        <Line />
+        <Gap value={8} />
+        <ChannelsSection
+          channels={getFilteredChannels(currentUserDirectChannels)}
+          title="DIRECT MESSAGES"
+          onAddIconPress={() => null}
+          onChannelPress={(channelId) => navigation.navigate("Chat", { channelId })}
+        />
+      </ScrollView>
+      <TouchableHighlight
+        underlayColor={colors.navy800}
+        style={styles.fab}
+        onPress={() => navigation.navigate("NewChat")}
+      >
+        <MaterialIcons name="chat-bubble" size={32} color={colors.neutral0} />
+      </TouchableHighlight>
+    </>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
+    backgroundColor: colors.neutral0,
     flex: 1,
+    padding: 16,
   },
   screenContainer: {
     flex: 1,
     justifyContent: "center",
     padding: 16,
+  },
+  fab: {
+    backgroundColor: colors.navy900,
+    borderRadius: 100,
+    bottom: 20,
+    padding: 16,
+    position: "absolute",
+    right: 20,
   },
 })
