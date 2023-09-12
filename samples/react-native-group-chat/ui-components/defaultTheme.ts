@@ -31,6 +31,7 @@ export const colorPalette = {
   success: "#22C55E",
   badge: "#DC2626",
   teal100: "#D1E4E5",
+  teal700: "#216F7B",
 }
 
 const textStyles = {

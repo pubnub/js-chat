@@ -1,13 +1,12 @@
-import React, {useCallback, useContext, useEffect, useState} from "react"
+import React, { useCallback, useContext, useEffect, useState } from "react"
 import { NativeStackScreenProps } from "@react-navigation/native-stack"
 import { HomeStackParamList } from "../../../types"
 import { ChatContext } from "../../../context"
-import {EnhancedIMessage, mapPNMessageToGChatMessage} from "../../../utils"
-import {MessageDraft, MixedTextTypedElement, ThreadChannel, User} from "@pubnub/chat"
-import {Bubble, GiftedChat} from "react-native-gifted-chat";
-import {Linking, StyleSheet, Text, View} from "react-native";
-import {Line, RandomAvatar, usePNTheme} from "../../../ui-components";
-import {SafeAreaView} from "react-native-safe-area-context";
+import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
+import { MessageDraft, MixedTextTypedElement, ThreadChannel, User } from "@pubnub/chat"
+import { Bubble, GiftedChat } from "react-native-gifted-chat"
+import { Linking, StyleSheet, TouchableOpacity, View } from "react-native"
+import { Gap, Line, RandomAvatar, usePNTheme, Text, Icon } from "../../../ui-components"
 
 export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList, "ThreadReply">) {
   const { parentMessage } = route.params
@@ -19,6 +18,7 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
   const [giftedChatMappedMessages, setGiftedChatMappedMessages] = useState<EnhancedIMessage[]>([])
   const [text, setText] = useState("")
   const [typingData, setTypingData] = useState<string[]>([])
+  const [isParentMessageCollapsed, setIsParentMessageCollapsed] = useState(false)
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([])
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const theme = usePNTheme()
@@ -29,11 +29,13 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
         return
       }
 
-      const threadChannel =
-        (await parentMessage.originalPnMessage.getThread()) ||
-        (await parentMessage.originalPnMessage.createThread())
-
-      setCurrentThreadChannel(threadChannel)
+      try {
+        const threadChannel = await parentMessage.originalPnMessage.getThread()
+        setCurrentThreadChannel(threadChannel)
+      } catch (e) {
+        const threadChannel = await parentMessage.originalPnMessage.createThread()
+        setCurrentThreadChannel(threadChannel)
+      }
     }
 
     init()
@@ -84,9 +86,7 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
 
     const disconnect = currentThreadChannel.connect((message) => {
       setGiftedChatMappedMessages((currentMessages) =>
-        GiftedChat.append(currentMessages, [
-          mapPNMessageToGChatMessage(message, undefined),
-        ])
+        GiftedChat.append(currentMessages, [mapPNMessageToGChatMessage(message, undefined)])
       )
     })
 
@@ -167,7 +167,11 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
       if (messagePart.type === "text") {
         return (
           <Text
-            style={[styles.text, userId === chat?.currentUser.id ? styles.messageText : styles.outgoingText]}
+            variant="body"
+            style={[
+              styles.text,
+              userId === chat?.currentUser.id ? styles.messageText : styles.outgoingText,
+            ]}
             key={index}
           >
             {messagePart.content.text}
@@ -176,14 +180,24 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
       }
       if (messagePart.type === "plainLink") {
         return (
-          <Text key={index} style={styles.link} onPress={() => openLink(messagePart.content.link)}>
+          <Text
+            variant="body"
+            key={index}
+            style={styles.link}
+            onPress={() => openLink(messagePart.content.link)}
+          >
             {messagePart.content.link}
           </Text>
         )
       }
       if (messagePart.type === "textLink") {
         return (
-          <Text key={index} style={styles.link} onPress={() => openLink(messagePart.content.link)}>
+          <Text
+            variant="body"
+            key={index}
+            style={styles.link}
+            onPress={() => openLink(messagePart.content.link)}
+          >
             {messagePart.content.text}
           </Text>
         )
@@ -192,6 +206,7 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
         return (
           <Text
             key={index}
+            variant="body"
             style={styles.link}
             onPress={() => openLink(`https://pubnub.com/${messagePart.content.id}`)}
           >
@@ -204,6 +219,7 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
           <Text
             key={index}
             style={styles.link}
+            variant="body"
             onPress={() => openLink(`https://pubnub.com/${messagePart.content.id}`)}
           >
             #{messagePart.content.name}
@@ -220,7 +236,7 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
     (props: Bubble<EnhancedIMessage>["props"]) => {
       if (props.currentMessage?.originalPnMessage.getLinkedText()) {
         return (
-          <Text style={styles.linkedMessage}>
+          <Text style={styles.linkedMessage} variant="body">
             {props.currentMessage.originalPnMessage
               .getLinkedText()
               .map((msgPart, index) =>
@@ -230,9 +246,13 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
         )
       }
 
-      return <Text style={styles.text}>{props.currentMessage?.text}</Text>
+      return (
+        <Text variant="body" style={styles.text}>
+          {props.currentMessage?.text}
+        </Text>
+      )
     },
-    [renderMessagePart]
+    [renderMessagePart, parentMessage]
   )
 
   const renderFooter = useCallback(() => {
@@ -243,16 +263,15 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
     if (typingData.length === 1) {
       return (
         <View>
-          <Text>{typingData[0]} is typing...</Text>
+          <Text variant="body">{typingData[0]} is typing...</Text>
         </View>
       )
     }
 
     return (
       <View>
-        <Text>
-          {typingData.map((typingPoint) => typingPoint).join(", ")}{" "}
-          are typing...
+        <Text variant="body">
+          {typingData.map((typingPoint) => typingPoint).join(", ")} are typing...
         </Text>
       </View>
     )
@@ -265,12 +284,9 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
         renderMessageText={renderMessageText}
         renderTime={() => null}
         containerToNextStyle={{ right: { marginRight: 0 } }}
-        containerStyle={{ right: { marginRight: 0, } }}
+        containerStyle={{ right: { marginRight: 0 } }}
         wrapperStyle={{
-          right: [
-            styles.ownBubbleBackground,
-            { backgroundColor: theme.colors.teal100 },
-          ],
+          right: [styles.ownBubbleBackground, { backgroundColor: theme.colors.teal100 }],
           left: [styles.otherBubbleBackground],
         }}
         textStyle={{ right: [styles.ownBubbleText, theme.textStyles.body] }}
@@ -278,33 +294,65 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
     )
   }, [])
 
+  const renderParentMessageBubble = useCallback(() => {
+    return (
+      <View style={{ flexGrow: 1, paddingHorizontal: 16 }}>
+        <Gap value={24} />
+        <Text variant="body">Thread</Text>
+        <Gap value={16} />
+        <Line />
+        <Gap value={24} />
+        <View
+          style={{
+            flexDirection:
+              parentMessage.originalPnMessage.userId === chat.currentUser.id ? "column" : "row",
+          }}
+        >
+          <RandomAvatar size={32} />
+          <View style={{ marginRight: 8 }} />
+          {renderMessageBubble({ currentMessage: parentMessage })}
+        </View>
+        <TouchableOpacity
+          style={styles.collapseButtonContainer}
+          onPress={() => setIsParentMessageCollapsed(!isParentMessageCollapsed)}
+        >
+          <Icon icon="chevron-down" />
+          <Text variant="body">{isParentMessageCollapsed ? "Expand" : "Collapse"}</Text>
+        </TouchableOpacity>
+        <Gap value={32} />
+        <Line />
+      </View>
+    )
+  }, [chat, isParentMessageCollapsed])
+
   if (!messageDraft || !chat) {
-    return <Text>Loading...</Text>
+    return <Text variant="body">Loading...</Text>
   }
 
   return (
     <View style={styles.content}>
-      {renderMessageBubble({ currentMessage: parentMessage })}
-      <Line />
-      <GiftedChat
-        messages={giftedChatMappedMessages}
-        onSend={(messages) => onSend(messages)}
-        onInputTextChanged={handleInputChange}
-        renderMessageText={renderMessageText}
-        renderFooter={renderFooter}
-        renderLoadEarlier={() => null}
-        renderBubble={renderMessageBubble}
-        text={text}
-        loadEarlier={isMoreMessages}
-        isLoadingEarlier={isLoadingMoreMessages}
-        onLoadEarlier={loadEarlierMessages}
-        renderDay={() => null}
-        renderTime={() => null}
-        renderAvatar={() => <RandomAvatar size={36} />}
-        user={{
-          _id: chat.currentUser.id,
-        }}
-      />
+      {renderParentMessageBubble()}
+      <View style={{ flexGrow: 3 }}>
+        <GiftedChat
+          messages={giftedChatMappedMessages}
+          onSend={(messages) => onSend(messages)}
+          onInputTextChanged={handleInputChange}
+          renderMessageText={renderMessageText}
+          renderFooter={renderFooter}
+          renderLoadEarlier={() => null}
+          renderBubble={renderMessageBubble}
+          text={text}
+          loadEarlier={isMoreMessages}
+          isLoadingEarlier={isLoadingMoreMessages}
+          onLoadEarlier={loadEarlierMessages}
+          renderDay={() => null}
+          renderTime={() => null}
+          renderAvatar={() => <RandomAvatar size={36} />}
+          user={{
+            _id: chat.currentUser.id,
+          }}
+        />
+      </View>
     </View>
   )
 }
@@ -318,7 +366,11 @@ const styles = StyleSheet.create({
   text: { color: "#FFFFFF", padding: 8 },
   messageText: { color: "#000000" },
   outgoingText: { color: "#000000" },
-  ownBubbleBackground: { marginRight: 8 },
-  otherBubbleBackground: {  },
+  ownBubbleBackground: { marginRight: 8, padding: 12 },
+  otherBubbleBackground: { padding: 12 },
   ownBubbleText: {},
+  collapseButtonContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
 })

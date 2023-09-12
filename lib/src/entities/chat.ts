@@ -381,9 +381,11 @@ export class Chat {
 
       const self = this
 
+      let isThreadCreated = false
+
       return new Proxy(newThreadChannelDraft, {
         get(target: ThreadChannel, prop: keyof ThreadChannel) {
-          if (prop !== "sendText") {
+          if (prop !== "sendText" || isThreadCreated) {
             return target[prop]
           }
 
@@ -410,6 +412,7 @@ export class Chat {
                   },
                 }),
               ])
+              isThreadCreated = true
 
               return originalSendText.bind(this)(text, options)
             } catch (e) {

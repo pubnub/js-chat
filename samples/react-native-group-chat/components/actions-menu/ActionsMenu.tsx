@@ -16,14 +16,14 @@ import Emoji6 from "../../assets/emojis/emoji6.svg"
 import Emoji7 from "../../assets/emojis/emoji7.svg"
 import { Text } from "../../ui-components/text"
 import { usePNTheme } from "../../ui-components/defaultTheme"
-import { Message } from "@pubnub/chat"
 import { useNavigation } from "@react-navigation/native"
-import {EnhancedIMessage} from "../../utils";
+import { EnhancedIMessage } from "../../utils"
+import { HomeStackNavigation } from "../../types"
 
 export function useActionsMenu() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
   const theme = usePNTheme()
-  const navigation = useNavigation()
+  const navigation = useNavigation<HomeStackNavigation>()
   const [currentlyFocusedMessage, setCurrentlyFocusedMessage] = useState<EnhancedIMessage | null>(null)
 
   // variables
@@ -78,7 +78,11 @@ export function useActionsMenu() {
       <PaperButton
         icon={() => <SubdirectoryArrowRightIcon width={20} height={20} />}
         mode="contained"
-        onPress={() => navigation.navigate("ThreadReply", { parentMessage: currentlyFocusedMessage })}
+        onPress={() => {
+          navigation.navigate("ThreadReply", { parentMessage: currentlyFocusedMessage })
+          setCurrentlyFocusedMessage(null)
+          bottomSheetModalRef.current?.dismiss()
+        }}
         buttonColor={theme.colors.neutral0}
         textColor={theme.colors.navy700}
         labelStyle={[theme.textStyles.body, { color: theme.colors.navy700 }]}
