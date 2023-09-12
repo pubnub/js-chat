@@ -1,12 +1,7 @@
 import React, { useCallback, useMemo, useRef } from "react"
 import { StyleSheet, View } from "react-native"
-import { Button as PaperButton } from "react-native-paper"
-import ContentCopyIcon from "../../assets/content_copy.svg"
-import FormatQuoteIcon from "../../assets/format_quote.svg"
-import PushPinIcon from "../../assets/push_pin.svg"
-import SubdirectoryArrowRightIcon from "../../assets/subdirectory_arrow_right.svg"
 import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
-import { Gap } from "../../ui-components/gap"
+import { Gap, Text, usePNTheme, Button } from "../../ui-components"
 import Emoji1 from "../../assets/emojis/emoji1.svg"
 import Emoji2 from "../../assets/emojis/emoji2.svg"
 import Emoji3 from "../../assets/emojis/emoji3.svg"
@@ -14,8 +9,6 @@ import Emoji4 from "../../assets/emojis/emoji4.svg"
 import Emoji5 from "../../assets/emojis/emoji5.svg"
 import Emoji6 from "../../assets/emojis/emoji6.svg"
 import Emoji7 from "../../assets/emojis/emoji7.svg"
-import { Text } from "../../ui-components/text"
-import { usePNTheme } from "../../ui-components/defaultTheme"
 
 export function useActionsMenu() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
@@ -56,57 +49,46 @@ export function useActionsMenu() {
         Actions
       </Text>
       <Gap value={20} />
-      <PaperButton
-        icon={() => <ContentCopyIcon width={20} height={20} />}
-        mode="contained"
+      <Button
+        size="md"
+        align="left"
+        icon="content-copy"
+        variant="outlined"
         onPress={() => console.log("Pressed")}
-        buttonColor={theme.colors.neutral0}
-        textColor={theme.colors.navy700}
-        labelStyle={[theme.textStyles.body, { color: theme.colors.navy700 }]}
-        style={[styles.buttonStyle, { borderColor: theme.colors.navy300 }]}
-        contentStyle={styles.buttonContentStyle}
       >
         Copy message
-      </PaperButton>
+      </Button>
       <Gap value={16} />
-      <PaperButton
-        icon={() => <SubdirectoryArrowRightIcon width={20} height={20} />}
-        mode="contained"
+      <Button
+        size="md"
+        align="left"
+        icon="subdirectory-arrow-right"
+        variant="outlined"
         onPress={() => console.log("Pressed")}
-        buttonColor={theme.colors.neutral0}
-        textColor={theme.colors.navy700}
-        labelStyle={[theme.textStyles.body, { color: theme.colors.navy700 }]}
-        style={[styles.buttonStyle, { borderColor: theme.colors.navy300 }]}
-        contentStyle={styles.buttonContentStyle}
       >
         Reply in thread
-      </PaperButton>
+      </Button>
       <Gap value={16} />
-      <PaperButton
-        icon={() => <FormatQuoteIcon width={20} height={20} />}
-        mode="contained"
+      <Button
+        size="md"
+        align="left"
+        icon="format-quote"
+        variant="outlined"
         onPress={() => console.log("Pressed")}
-        buttonColor={theme.colors.neutral0}
-        textColor={theme.colors.navy700}
-        labelStyle={[theme.textStyles.body, { color: theme.colors.navy700 }]}
-        style={[styles.buttonStyle, { borderColor: theme.colors.navy300 }]}
-        contentStyle={styles.buttonContentStyle}
       >
         Quote message
-      </PaperButton>
+      </Button>
       <Gap value={16} />
-      <PaperButton
-        icon={() => <PushPinIcon width={20} height={20} />}
-        mode="contained"
+      <Button
+        size="md"
+        align="left"
+        icon="push-pin"
+        variant="outlined"
         onPress={() => console.log("Pressed")}
-        buttonColor={theme.colors.neutral0}
-        textColor={theme.colors.navy700}
-        labelStyle={[theme.textStyles.body, { color: theme.colors.navy700 }]}
-        style={[styles.buttonStyle, { borderColor: theme.colors.navy300 }]}
-        contentStyle={styles.buttonContentStyle}
       >
         Pin message
-      </PaperButton>
+      </Button>
+      <Gap value={16} />
     </BottomSheetModal>
   )
 
@@ -120,15 +102,6 @@ export function useActionsMenu() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 32,
-  },
-  buttonStyle: {
-    borderWidth: 1,
-    borderRadius: 6,
-    justifyContent: "center",
-    height: 50,
-  },
-  buttonContentStyle: {
-    justifyContent: "flex-start",
   },
   handleIndicator: {
     width: 32,

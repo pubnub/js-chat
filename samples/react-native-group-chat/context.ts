@@ -1,10 +1,11 @@
 import * as React from "react"
-import { Chat } from "@pubnub/chat"
-import { Membership } from "@pubnub/chat"
+import { Chat, User, Membership } from "@pubnub/chat"
 
 type ChatContextParams = {
   chat: null | Chat
   setChat: (chat: Chat | null) => void
+  users: User[]
+  setUsers: (users: User[]) => void
   memberships: Membership[]
   setMemberships: (memberships: Membership[]) => void
 }
@@ -12,6 +13,8 @@ type ChatContextParams = {
 export const ChatContext = React.createContext({
   chat: null as Chat | null,
   setChat: () => null,
+  users: [],
+  setUsers: () => null,
   memberships: [],
   setMemberships: () => null,
 } as ChatContextParams)
