@@ -27,7 +27,7 @@ export function LoginScreen({ navigation }: StackScreenProps<RootStackParamList,
       <TextInput label="User ID" value={name} onChangeText={setName} />
       <Gap value={96} />
 
-      <Button size="sm" onPress={() => navigation.replace("tabs", { name })}>
+      <Button size="md" onPress={() => navigation.replace("tabs", { name })}>
         Log in
       </Button>
     </View>

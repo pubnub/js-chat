@@ -2,28 +2,20 @@ import { useState, useContext, useEffect } from "react"
 import { View, StyleSheet, FlatList } from "react-native"
 import { StackScreenProps } from "@react-navigation/stack"
 
+import { HomeStackParamList } from "../../../types"
 import { ChatContext } from "../../../context"
 import { ListItem } from "../../../components"
 import { Gap, Button, Line, TextInput, colorPalette as colors } from "../../../ui-components"
 
 export function NewChatScreen({ navigation }: StackScreenProps<HomeStackParamList, "NewChat">) {
   const [searchText, setSearchText] = useState("")
-  const { chat, users, setUsers } = useContext(ChatContext)
-
-  async function fetchUsers() {
-    const { users } = await chat?.getUsers()
-    setUsers(users)
-  }
+  const { chat, users } = useContext(ChatContext)
 
   async function openChat(user: User) {
     // TODO: this should ideally navigate first and create channel in the background
     const { channel } = await chat?.createDirectConversation({ user })
     navigation.navigate("Chat", { channelId: channel.id })
   }
-
-  useEffect(() => {
-    if (!users.length) fetchUsers()
-  }, [])
 
   return (
     <View style={styles.container}>
@@ -62,10 +54,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral0,
     padding: 16,
     flex: 1,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
   },
 })

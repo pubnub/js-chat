@@ -5,13 +5,23 @@ import { Text, colorPalette as colors, RandomAvatar } from "../../ui-components"
 
 type ListItemProps = {
   title: string
+  showActive?: boolean
+  active?: boolean
   badge?: string
   onPress?: () => unknown
   showCheckbox?: boolean
   checked?: boolean
 }
 
-export function ListItem({ title, badge, onPress, showCheckbox, checked }: ListItemProps) {
+export function ListItem({
+  title,
+  showActive,
+  active,
+  badge,
+  onPress,
+  showCheckbox,
+  checked,
+}: ListItemProps) {
   return (
     <TouchableHighlight style={styles.touchable} onPress={onPress} underlayColor={colors.navy100}>
       <View style={styles.wrapper}>
@@ -25,6 +35,14 @@ export function ListItem({ title, badge, onPress, showCheckbox, checked }: ListI
         ) : null}
 
         <RandomAvatar />
+        {showActive ? (
+          <View
+            style={[
+              styles.indicator,
+              { backgroundColor: active ? colors.success : colors.neutral300 },
+            ]}
+          ></View>
+        ) : null}
 
         <View style={styles.title}>
           <Text variant="smallBody">{title}</Text>
@@ -49,6 +67,16 @@ const styles = StyleSheet.create({
   wrapper: {
     alignItems: "center",
     flexDirection: "row",
+  },
+  indicator: {
+    borderColor: colors.neutral0,
+    borderRadius: 12,
+    borderWidth: 2,
+    bottom: -1,
+    height: 12,
+    left: 21,
+    position: "absolute",
+    width: 12,
   },
   checkbox: {
     paddingRight: 12,

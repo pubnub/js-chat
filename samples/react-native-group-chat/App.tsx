@@ -27,9 +27,6 @@ import { defaultTheme, colorPalette as colors } from "./ui-components"
 const Tab = createBottomTabNavigator()
 const MainStack = createStackNavigator<RootStackParamList>()
 
-const publishKey = "pub-c-0457cb83-0786-43df-bc70-723b16a6e816"
-const subscribeKey = "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de"
-
 function TabNavigator({ route }: StackScreenProps<RootStackParamList, "tabs">) {
   const { name } = route.params
   const { setChat, chat } = useContext(ChatContext)
@@ -37,10 +34,11 @@ function TabNavigator({ route }: StackScreenProps<RootStackParamList, "tabs">) {
   useEffect(() => {
     async function init() {
       const chat = await Chat.init({
-        publishKey,
-        subscribeKey,
+        publishKey: process.env.EXPO_PUBLIC_PUBNUB_PUB_KEY,
+        subscribeKey: process.env.EXPO_PUBLIC_PUBNUB_SUB_KEY,
         userId: name || "test-user",
         typingTimeout: 2000,
+        storeUserActivityTimestamps: true,
       })
 
       setChat(chat)

@@ -80,7 +80,9 @@ export function ProfileScreen({ navigation }: StackScreenProps<BottomTabsParamLi
           onValueChange={setNotifications}
         />
       </View>
+
       <Gap value={12} />
+
       <Text variant="body" color="neutral600">
         Get notified about new messages and mentions from chats
       </Text>
@@ -100,7 +102,9 @@ export function ProfileScreen({ navigation }: StackScreenProps<BottomTabsParamLi
           onValueChange={setReceipts}
         />
       </View>
+
       <Gap value={12} />
+
       <Text variant="body" color="neutral600">
         You will see send or receive receipts
       </Text>

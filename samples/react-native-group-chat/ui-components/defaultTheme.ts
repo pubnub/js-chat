@@ -60,6 +60,12 @@ const textStyles = {
     color: colorPalette.neutral900,
     fontFamily: "Roboto_500Medium",
   },
+  smallLabel: {
+    fontSize: 12,
+    lineHeight: 20,
+    color: colorPalette.neutral900,
+    fontFamily: "Roboto_400Regular",
+  },
 } as { [variant: string]: TextStyle }
 
 export const defaultTheme = {
