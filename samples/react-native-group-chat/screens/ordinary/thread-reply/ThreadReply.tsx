@@ -6,7 +6,15 @@ import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { MessageDraft, ThreadChannel, User } from "@pubnub/chat"
 import { Bubble, GiftedChat } from "react-native-gifted-chat"
 import { StyleSheet, TouchableOpacity, View } from "react-native"
-import { Gap, Line, RandomAvatar, usePNTheme, Text, Icon } from "../../../ui-components"
+import {
+  Gap,
+  Line,
+  RandomAvatar,
+  usePNTheme,
+  Text,
+  Icon,
+  colorPalette,
+} from "../../../ui-components"
 import { useNavigation } from "@react-navigation/native"
 import { useCommonChatRenderers } from "../../../hooks"
 
@@ -201,9 +209,7 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
         <Gap value={16} />
         <Line />
         <Gap value={24} />
-        <View
-          style={{ flexDirection: "row" }}
-        >
+        <View style={{ flexDirection: "row" }}>
           <RandomAvatar size={32} />
           <View style={{ marginRight: 8 }} />
           {renderMessageBubble({ currentMessage: parentMessage })}
@@ -258,14 +264,9 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f5f5" },
-  content: { backgroundColor: "#ffffff", flex: 1 },
+  container: { flex: 1, backgroundColor: colorPalette.neutral100 },
+  content: { backgroundColor: colorPalette.neutral0, flex: 1 },
   bubbleContainer: {},
-  link: { color: "#1066a4" },
-  linkedMessage: { padding: 8 },
-  text: { color: "#FFFFFF", padding: 8 },
-  messageText: { color: "#000000" },
-  outgoingText: { color: "#000000" },
   ownBubbleBackground: { marginRight: 8, padding: 12 },
   otherBubbleBackground: { padding: 12 },
   ownBubbleText: {},
