@@ -1,30 +1,44 @@
 import React, { useContext, useState, useRef } from "react"
-import { View, StyleSheet } from "react-native"
-import { NativeStackScreenProps } from "@react-navigation/native-stack"
+import { View, StyleSheet, Switch } from "react-native"
+import { StackScreenProps } from "@react-navigation/stack"
+import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
+
 import { BottomTabsParamList } from "../../../types"
 import { ChatContext } from "../../../context"
-import { Switch } from "react-native-paper"
-import { usePNTheme } from "../../../ui-components/defaultTheme"
-import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
-import { Line, Button, Text, Gap, RandomAvatar } from "../../../ui-components"
+import {
+  Line,
+  Button,
+  Text,
+  Gap,
+  RandomAvatar,
+  TextInput,
+  colorPalette as colors,
+} from "../../../ui-components"
 
-export function ProfileScreen({
-  navigation,
-}: NativeStackScreenProps<BottomTabsParamList, "Profile">) {
+export function ProfileScreen({ navigation }: StackScreenProps<BottomTabsParamList, "Profile">) {
   const { chat, setMemberships, setChat } = useContext(ChatContext)
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
   const [notifications, setNotifications] = useState(true)
   const [receipts, setReceipts] = useState(true)
-  const theme = usePNTheme()
+  const [userName, setUserName] = useState(chat?.currentUser.name)
+  const [nameInput, setNameInput] = useState(userName)
 
   const logout = () => {
-    navigation.pop()
+    navigation.replace("login")
     setChat(null)
     setMemberships([])
   }
 
+  const saveName = async () => {
+    await chat?.currentUser.update({ name: nameInput })
+    // TODO: this should ideally stream remote updates to confirm the change instead
+    // however, there doesn't seem to be a way to update chat.currentUser in the SDK
+    setUserName(nameInput)
+    bottomSheetModalRef.current?.dismiss()
+  }
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.neutral0 }]}>
+    <View style={styles.container}>
       <Gap value={24} />
 
       <View style={{ alignItems: "center" }}>
@@ -35,13 +49,18 @@ export function ProfileScreen({
 
       <View style={styles.row}>
         <View>
-          <Text variant="headline" fontFamily="Roboto-Regular">
+          <Text variant="headline" fontFamily="Roboto_400Regular">
             Name
           </Text>
-          <Text variant="headline">{chat?.currentUser.name || chat?.currentUser.id}</Text>
+          <Text variant="headline">{userName}</Text>
         </View>
 
-        <Button variant="outlined" size="sm" onPress={() => alert("TODO")} style={{ width: 120 }}>
+        <Button
+          variant="outlined"
+          size="md"
+          onPress={() => bottomSheetModalRef.current?.present()}
+          style={{ width: 120 }}
+        >
           Change
         </Button>
       </View>
@@ -51,10 +70,15 @@ export function ProfileScreen({
       <Gap value={24} />
 
       <View style={styles.row}>
-        <Text variant="headline" fontFamily="Roboto-Regular">
+        <Text variant="headline" fontFamily="Roboto_400Regular">
           Notifications
         </Text>
-        <Switch value={notifications} onValueChange={setNotifications} />
+        <Switch
+          disabled
+          trackColor={{ true: colors.neutral900 }}
+          value={notifications}
+          onValueChange={setNotifications}
+        />
       </View>
       <Gap value={12} />
       <Text variant="body" color="neutral600">
@@ -66,10 +90,15 @@ export function ProfileScreen({
       <Gap value={24} />
 
       <View style={styles.row}>
-        <Text variant="headline" fontFamily="Roboto-Regular">
+        <Text variant="headline" fontFamily="Roboto_400Regular">
           Read receipts
         </Text>
-        <Switch value={receipts} onValueChange={setReceipts} />
+        <Switch
+          disabled
+          trackColor={{ true: colors.neutral900 }}
+          value={receipts}
+          onValueChange={setReceipts}
+        />
       </View>
       <Gap value={12} />
       <Text variant="body" color="neutral600">
@@ -80,7 +109,7 @@ export function ProfileScreen({
       <Line />
       <Gap value={24} />
 
-      <Button variant="danger" size="md" onPress={logout} icon="logout" align="left">
+      <Button variant="danger" size="lg" onPress={logout} icon="logout" align="left">
         Logout
       </Button>
 
@@ -89,8 +118,20 @@ export function ProfileScreen({
         index={1}
         snapPoints={["25%", "50%"]}
         backdropComponent={BottomSheetBackdrop}
+        style={styles.container}
       >
-        <Text>Hello</Text>
+        <Gap value={24} />
+        <Text variant="headline" textAlign="center">
+          Change your name
+        </Text>
+        <Gap value={36} />
+        <TextInput label="Name" value={nameInput} onChangeText={setNameInput} />
+        <Gap value={36} />
+        <Button onPress={saveName}>Save</Button>
+        <Gap value={16} />
+        <Button variant="outlined" onPress={() => bottomSheetModalRef.current?.dismiss()}>
+          Cancel
+        </Button>
       </BottomSheetModal>
     </View>
   )
@@ -98,6 +139,7 @@ export function ProfileScreen({
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: colors.neutral0,
     flex: 1,
     paddingHorizontal: 32,
   },

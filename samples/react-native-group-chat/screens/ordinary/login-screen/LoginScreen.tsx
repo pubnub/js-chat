@@ -1,11 +1,12 @@
 import React, { useState } from "react"
 import { View, StyleSheet } from "react-native"
-import { RootStackParamList } from "../../../types"
-import { NativeStackScreenProps } from "@react-navigation/native-stack"
+import { StackScreenProps } from "@react-navigation/stack"
+
 import { Text, Button, Gap, TextInput, colorPalette as colors } from "../../../ui-components"
+import { RootStackParamList } from "../../../types"
 import ChatIcon from "../../../assets/chat.svg"
 
-export function LoginScreen({ navigation }: NativeStackScreenProps<RootStackParamList, "login">) {
+export function LoginScreen({ navigation }: StackScreenProps<RootStackParamList, "login">) {
   const [name, setName] = useState("test-user")
 
   return (
@@ -26,7 +27,7 @@ export function LoginScreen({ navigation }: NativeStackScreenProps<RootStackPara
       <TextInput label="User ID" value={name} onChangeText={setName} />
       <Gap value={96} />
 
-      <Button size="md" onPress={() => navigation.navigate("tabs", { name })}>
+      <Button size="sm" onPress={() => navigation.replace("tabs", { name })}>
         Log in
       </Button>
     </View>

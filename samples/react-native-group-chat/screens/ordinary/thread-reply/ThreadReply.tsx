@@ -1,16 +1,19 @@
 import React, { useCallback, useContext, useEffect, useState } from "react"
-import { NativeStackScreenProps } from "@react-navigation/native-stack"
+import { StackScreenProps } from "@react-navigation/stack"
 import { HomeStackParamList } from "../../../types"
 import { ChatContext } from "../../../context"
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
-import { MessageDraft, MixedTextTypedElement, ThreadChannel, User } from "@pubnub/chat"
+import { MessageDraft, ThreadChannel, User } from "@pubnub/chat"
 import { Bubble, GiftedChat } from "react-native-gifted-chat"
-import { Linking, StyleSheet, TouchableOpacity, View } from "react-native"
+import { StyleSheet, TouchableOpacity, View } from "react-native"
 import { Gap, Line, RandomAvatar, usePNTheme, Text, Icon } from "../../../ui-components"
+import { useNavigation } from "@react-navigation/native"
+import { useCommonChatRenderers } from "../../../hooks"
 
-export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList, "ThreadReply">) {
+export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "ThreadReply">) {
   const { parentMessage } = route.params
   const { chat } = useContext(ChatContext)
+  const navigation = useNavigation()
   const [currentThreadChannel, setCurrentThreadChannel] = useState<ThreadChannel | null>(null)
   const [messageDraft, setMessageDraft] = useState<MessageDraft | null>(null)
   const [isMoreMessages, setIsMoreMessages] = useState(true)
@@ -23,11 +26,19 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const theme = usePNTheme()
 
+  const { renderFooter, renderMessageText } = useCommonChatRenderers({
+    chat,
+    typingData,
+    users: new Map(),
+  })
+
   useEffect(() => {
     async function init() {
       if (!chat) {
         return
       }
+
+      navigation.setOptions({ title: "Reply in thread" })
 
       try {
         const threadChannel = await parentMessage.originalPnMessage.getThread()
@@ -129,10 +140,6 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
     [messageDraft, currentThreadChannel]
   )
 
-  const openLink = (link: string) => {
-    Linking.openURL(link)
-  }
-
   const loadEarlierMessages = async () => {
     if (!currentThreadChannel) {
       return
@@ -162,125 +169,13 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
     setIsMoreMessages(historicalMessagesObject.isMore)
   }
 
-  const renderMessagePart = useCallback(
-    (messagePart: MixedTextTypedElement, index: number, userId: string | number) => {
-      if (messagePart.type === "text") {
-        return (
-          <Text
-            variant="body"
-            style={[
-              styles.text,
-              userId === chat?.currentUser.id ? styles.messageText : styles.outgoingText,
-            ]}
-            key={index}
-          >
-            {messagePart.content.text}
-          </Text>
-        )
-      }
-      if (messagePart.type === "plainLink") {
-        return (
-          <Text
-            variant="body"
-            key={index}
-            style={styles.link}
-            onPress={() => openLink(messagePart.content.link)}
-          >
-            {messagePart.content.link}
-          </Text>
-        )
-      }
-      if (messagePart.type === "textLink") {
-        return (
-          <Text
-            variant="body"
-            key={index}
-            style={styles.link}
-            onPress={() => openLink(messagePart.content.link)}
-          >
-            {messagePart.content.text}
-          </Text>
-        )
-      }
-      if (messagePart.type === "mention") {
-        return (
-          <Text
-            key={index}
-            variant="body"
-            style={styles.link}
-            onPress={() => openLink(`https://pubnub.com/${messagePart.content.id}`)}
-          >
-            @{messagePart.content.name}
-          </Text>
-        )
-      }
-      if (messagePart.type === "channelReference") {
-        return (
-          <Text
-            key={index}
-            style={styles.link}
-            variant="body"
-            onPress={() => openLink(`https://pubnub.com/${messagePart.content.id}`)}
-          >
-            #{messagePart.content.name}
-          </Text>
-        )
-      }
-
-      return null
-    },
-    [chat?.currentUser]
-  )
-
-  const renderMessageText = useCallback(
-    (props: Bubble<EnhancedIMessage>["props"]) => {
-      if (props.currentMessage?.originalPnMessage.getLinkedText()) {
-        return (
-          <Text style={styles.linkedMessage} variant="body">
-            {props.currentMessage.originalPnMessage
-              .getLinkedText()
-              .map((msgPart, index) =>
-                renderMessagePart(msgPart, index, props.currentMessage?.user._id || "")
-              )}
-          </Text>
-        )
-      }
-
-      return (
-        <Text variant="body" style={styles.text}>
-          {props.currentMessage?.text}
-        </Text>
-      )
-    },
-    [renderMessagePart, parentMessage]
-  )
-
-  const renderFooter = useCallback(() => {
-    if (!typingData.length) {
-      return null
-    }
-
-    if (typingData.length === 1) {
-      return (
-        <View>
-          <Text variant="body">{typingData[0]} is typing...</Text>
-        </View>
-      )
-    }
-
-    return (
-      <View>
-        <Text variant="body">
-          {typingData.map((typingPoint) => typingPoint).join(", ")} are typing...
-        </Text>
-      </View>
-    )
-  }, [typingData])
-
   const renderMessageBubble = useCallback((props: Bubble<EnhancedIMessage>["props"]) => {
     return (
       <Bubble
         {...props}
+        user={{
+          _id: props.currentMessage?.originalPnMessage.userId as string,
+        }}
         renderMessageText={renderMessageText}
         renderTime={() => null}
         containerToNextStyle={{ right: { marginRight: 0 } }}
@@ -295,6 +190,10 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
   }, [])
 
   const renderParentMessageBubble = useCallback(() => {
+    if (!chat) {
+      return null
+    }
+
     return (
       <View style={{ flexGrow: 1, paddingHorizontal: 16 }}>
         <Gap value={24} />
@@ -303,10 +202,7 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
         <Line />
         <Gap value={24} />
         <View
-          style={{
-            flexDirection:
-              parentMessage.originalPnMessage.userId === chat.currentUser.id ? "column" : "row",
-          }}
+          style={{ flexDirection: "row" }}
         >
           <RandomAvatar size={32} />
           <View style={{ marginRight: 8 }} />
@@ -321,6 +217,10 @@ export function ThreadReply({ route }: NativeStackScreenProps<HomeStackParamList
         </TouchableOpacity>
         <Gap value={32} />
         <Line />
+        <Gap value={12} />
+        <Text variant="body" color="neutral900">
+          Thread reply
+        </Text>
       </View>
     )
   }, [chat, isParentMessageCollapsed])

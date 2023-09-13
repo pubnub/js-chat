@@ -321,7 +321,7 @@ export class Message {
   }
 
   createThread() {
-    return this.chat.createThreadChannel2(this)
+    return this.chat.createThreadChannel(this)
   }
 
   /** @internal */

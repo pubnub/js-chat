@@ -361,7 +361,7 @@ export class Chat {
   }
 
   /** @internal */
-  async createThreadChannel2(message: Message): Promise<ThreadChannel> {
+  async createThreadChannel(message: Message): Promise<ThreadChannel> {
     try {
       if (message.channelId.startsWith(MESSAGE_THREAD_ID_PREFIX)) {
         throw "Only one level of thread nesting is allowed"
@@ -421,46 +421,6 @@ export class Chat {
           }
         },
       })
-    } catch (e) {
-      console.error(e)
-      throw e
-    }
-  }
-
-  /** @internal */
-  async createThreadChannel(message: Message) {
-    try {
-      if (message.channelId.startsWith(MESSAGE_THREAD_ID_PREFIX)) {
-        throw "Only one level of thread nesting is allowed"
-      }
-
-      const threadChannelId = this.getThreadId(message.channelId, message.timetoken)
-
-      const existingThread = await this.getChannel(threadChannelId)
-      if (existingThread) throw "Thread for this message already exists"
-
-      const response = await this.sdk.objects.setChannelMetadata({
-        channel: threadChannelId,
-        data: {
-          description: `Thread on channel ${message.channelId} with message timetoken ${message.timetoken}`,
-        },
-      })
-      const data = await Promise.all([
-        ThreadChannel.fromDTO(this, {
-          ...response.data,
-          parentChannelId: message.channelId,
-        }),
-        this.sdk.addMessageAction({
-          channel: message.channelId,
-          messageTimetoken: message.timetoken,
-          action: {
-            type: "threadRootId",
-            value: threadChannelId,
-          },
-        }),
-      ])
-
-      return data[0]
     } catch (e) {
       console.error(e)
       throw e

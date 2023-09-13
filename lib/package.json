@@ -21,7 +21,7 @@
     "pubnub": "7.2.2"
   },
   "devDependencies": {
-    "@babel/core": "7.22.5",
+    "@babel/core": "7.22.15",
     "@babel/preset-env": "7.22.5",
     "@babel/preset-typescript": "7.22.5",
     "@types/jest": "29.5.0",

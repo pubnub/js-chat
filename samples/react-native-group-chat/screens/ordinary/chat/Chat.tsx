@@ -1,17 +1,19 @@
 import React, { useState, useCallback, useEffect, useContext, useMemo } from "react"
+import { Linking, StyleSheet, View, ActivityIndicator, TouchableOpacity } from "react-native"
 import { GiftedChat, Bubble } from "react-native-gifted-chat"
-import { Linking, StyleSheet, TouchableOpacity, View } from "react-native"
-import { Channel, User, MessageDraft, MixedTextTypedElement } from "@pubnub/chat"
+import { StackScreenProps } from "@react-navigation/stack"
+import {Channel, User, MessageDraft, MixedTextTypedElement, Message} from "@pubnub/chat"
+
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { ChatContext } from "../../../context"
-import { NativeStackScreenProps } from "@react-navigation/native-stack"
 import { HomeStackParamList } from "../../../types"
-import { useActionsMenu } from "../../../components/actions-menu"
-import { getRandomAvatar } from "../../../ui-components/random-avatar"
+import { useActionsMenu } from "../../../components"
+import { getRandomAvatar, colorPalette as colors } from "../../../ui-components"
 import { useNavigation } from "@react-navigation/native"
 import {Icon, Text, usePNTheme} from "../../../ui-components"
+import { useCommonChatRenderers } from "../../../hooks"
 
-export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList, "Chat">) {
+export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat">) {
   const { channelId } = route.params
   const navigation = useNavigation()
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null)
@@ -30,6 +32,11 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
     () => memberships.find((membership) => membership.channel.id === channelId),
     [memberships, channelId]
   )
+  const { renderFooter, renderMessageText } = useCommonChatRenderers({
+    chat,
+    typingData,
+    users,
+  })
 
   const { ActionsMenuComponent, handlePresentModalPress } = useActionsMenu()
 
@@ -75,6 +82,23 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
 
     init()
   }, [channelId])
+
+  useEffect(() => {
+    if (!giftedChatMappedMessages.length) {
+      return
+    }
+
+    const unstream = Message.streamUpdatesOn(
+      giftedChatMappedMessages.map((giftedMessage) => giftedMessage.originalPnMessage),
+      (newMessages) => {
+        setGiftedChatMappedMessages(
+          newMessages.map((newMessage) => mapPNMessageToGChatMessage(newMessage, users))
+        )
+      }
+    )
+
+    return unstream
+  }, [giftedChatMappedMessages])
 
   const loadEarlierMessages = async () => {
     if (!currentChannel) {
@@ -209,120 +233,6 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
     [messageDraft, currentChannel]
   )
 
-  const openLink = (link: string) => {
-    Linking.openURL(link)
-  }
-
-  const renderMessagePart = useCallback(
-    (messagePart: MixedTextTypedElement, index: number, userId: string | number) => {
-      if (messagePart.type === "text") {
-        return (
-          <Text
-            variant="body"
-            // style={[styles.text, userId === chat?.currentUser.id ? {} : styles.outgoingText]}
-            color={chat?.currentUser.id ? undefined : "neutral900"}
-            key={index}
-          >
-            {messagePart.content.text}
-          </Text>
-        )
-      }
-      if (messagePart.type === "plainLink") {
-        return (
-          <Text
-            key={index}
-            variant="body"
-            // style={styles.link}
-            onPress={() => openLink(messagePart.content.link)}
-          >
-            {messagePart.content.link}
-          </Text>
-        )
-      }
-      if (messagePart.type === "textLink") {
-        return (
-          <Text
-            key={index}
-            variant="body"
-            // style={styles.link}
-            onPress={() => openLink(messagePart.content.link)}
-          >
-            {messagePart.content.text}
-          </Text>
-        )
-      }
-      if (messagePart.type === "mention") {
-        return (
-          <Text
-            key={index}
-            variant="body"
-            // style={styles.link}
-            onPress={() => openLink(`https://pubnub.com/${messagePart.content.id}`)}
-          >
-            @{messagePart.content.name}
-          </Text>
-        )
-      }
-      if (messagePart.type === "channelReference") {
-        return (
-          <Text
-            key={index}
-            variant="body"
-            // style={styles.link}
-            onPress={() => openLink(`https://pubnub.com/${messagePart.content.id}`)}
-          >
-            #{messagePart.content.name}
-          </Text>
-        )
-      }
-
-      return null
-    },
-    [chat?.currentUser]
-  )
-
-  const renderMessageText = useCallback(
-    (props: Bubble<EnhancedIMessage>["props"]) => {
-      if (props.currentMessage?.originalPnMessage.getLinkedText()) {
-        return (
-          <Text style={styles.linkedMessage} variant="body">
-            {props.currentMessage.originalPnMessage
-              .getLinkedText()
-              .map((msgPart, index) =>
-                renderMessagePart(msgPart, index, props.currentMessage?.user._id || "")
-              )}
-          </Text>
-        )
-      }
-
-      return <Text variant="body" style={styles.text}>{props.currentMessage?.text}</Text>
-    },
-    [renderMessagePart]
-  )
-
-  const renderFooter = useCallback(() => {
-    if (!typingData.length) {
-      return null
-    }
-
-    if (typingData.length === 1) {
-      return (
-        <View>
-          <Text variant="body">{users.get(typingData[0])?.name || typingData[0]} is typing...</Text>
-        </View>
-      )
-    }
-
-    return (
-      <View>
-        <Text variant="body">
-          {typingData.map((typingPoint) => users.get(typingPoint)?.name || typingPoint).join(", ")}{" "}
-          are typing...
-        </Text>
-      </View>
-    )
-  }, [typingData, users])
-
   const renderBubble = (props: Bubble<EnhancedIMessage>["props"]) => {
     return (
       <View>
@@ -343,7 +253,9 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
             style={styles.threadRepliesContainer}
           >
             <Icon icon="chevron-down" iconColor="teal700" />
-            <Text variant="body" color="teal700">Thread replies</Text>
+            <Text variant="body" color="teal700">
+              replies
+            </Text>
           </TouchableOpacity>
         ) : null}
       </View>
@@ -351,7 +263,11 @@ export function ChatScreen({ route }: NativeStackScreenProps<HomeStackParamList,
   }
 
   if (!messageDraft || !chat) {
-    return <Text variant="body">Loading...</Text>
+    return (
+      <View style={{ justifyContent: "center", flex: 1 }}>
+        <ActivityIndicator size="large" color={colors.navy700} />
+      </View>
+    )
   }
 
   return (
