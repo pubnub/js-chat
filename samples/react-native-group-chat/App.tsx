@@ -9,7 +9,7 @@ import { createStackNavigator, StackScreenProps } from "@react-navigation/stack"
 import { PaperProvider } from "react-native-paper"
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons"
 import { StatusBar } from "expo-status-bar"
-import { Chat, Membership } from "@pubnub/chat"
+import { Chat, Membership, User } from "@pubnub/chat"
 import {
   useFonts,
   Roboto_400Regular,

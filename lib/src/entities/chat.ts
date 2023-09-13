@@ -9,6 +9,7 @@ import {
   ChannelType,
   ErrorLoggerImplementation,
   UserMentionData,
+  SendTextOptionParams,
 } from "../types"
 import { Message } from "./message"
 import { Event } from "./event"
@@ -361,7 +362,7 @@ export class Chat {
   }
 
   /** @internal */
-  async createThreadChannel(message: Message) {
+  async createThreadChannel(message: Message): Promise<ThreadChannel> {
     try {
       if (message.channelId.startsWith(MESSAGE_THREAD_ID_PREFIX)) {
         throw "Only one level of thread nesting is allowed"
@@ -370,30 +371,58 @@ export class Chat {
       const threadChannelId = this.getThreadId(message.channelId, message.timetoken)
 
       const existingThread = await this.getChannel(threadChannelId)
+
       if (existingThread) throw "Thread for this message already exists"
 
-      const response = await this.sdk.objects.setChannelMetadata({
-        channel: threadChannelId,
-        data: {
-          description: `Thread on channel ${message.channelId} with message timetoken ${message.timetoken}`,
+      const newThreadChannelDraft = new ThreadChannel(this, {
+        description: `Thread on channel ${message.channelId} with message timetoken ${message.timetoken}`,
+        id: threadChannelId,
+        parentChannelId: message.channelId,
+      })
+
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
+      const self = this
+
+      let isThreadCreated = false
+
+      return new Proxy(newThreadChannelDraft, {
+        get(target: ThreadChannel, prop: keyof ThreadChannel) {
+          if (prop !== "sendText" || isThreadCreated) {
+            return target[prop]
+          }
+
+          const originalSendText = target.sendText
+
+          return async function proxifiedSendText(
+            text: string,
+            options: SendTextOptionParams = {}
+          ) {
+            try {
+              await Promise.all([
+                self.sdk.objects.setChannelMetadata({
+                  channel: threadChannelId,
+                  data: {
+                    description: `Thread on channel ${message.channelId} with message timetoken ${message.timetoken}`,
+                  },
+                }),
+                self.sdk.addMessageAction({
+                  channel: message.channelId,
+                  messageTimetoken: message.timetoken,
+                  action: {
+                    type: "threadRootId",
+                    value: threadChannelId,
+                  },
+                }),
+              ])
+              isThreadCreated = true
+
+              return originalSendText.bind(this)(text, options)
+            } catch (e) {
+              throw e
+            }
+          }
         },
       })
-      const data = await Promise.all([
-        ThreadChannel.fromDTO(this, {
-          ...response.data,
-          parentChannelId: message.channelId,
-        }),
-        this.sdk.addMessageAction({
-          channel: message.channelId,
-          messageTimetoken: message.timetoken,
-          action: {
-            type: "threadRootId",
-            value: threadChannelId,
-          },
-        }),
-      ])
-
-      return data[0]
     } catch (e) {
       console.error(e)
       throw e

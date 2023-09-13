@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from "react"
+import React, {useCallback, useMemo, useRef, useState} from "react"
 import { StyleSheet, View } from "react-native"
 import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
 import { Gap, Text, usePNTheme, Button } from "../../ui-components"
@@ -9,16 +9,22 @@ import Emoji4 from "../../assets/emojis/emoji4.svg"
 import Emoji5 from "../../assets/emojis/emoji5.svg"
 import Emoji6 from "../../assets/emojis/emoji6.svg"
 import Emoji7 from "../../assets/emojis/emoji7.svg"
+import { useNavigation } from "@react-navigation/native"
+import { EnhancedIMessage } from "../../utils"
+import { HomeStackNavigation } from "../../types"
 
 export function useActionsMenu() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
   const theme = usePNTheme()
+  const navigation = useNavigation<HomeStackNavigation>()
+  const [currentlyFocusedMessage, setCurrentlyFocusedMessage] = useState<EnhancedIMessage | null>(null)
 
   // variables
   const snapPoints = useMemo(() => ["25%", "50%"], [])
 
   // callbacks
-  const handlePresentModalPress = useCallback(() => {
+  const handlePresentModalPress = useCallback(({ message }: { message: EnhancedIMessage }) => {
+    setCurrentlyFocusedMessage(message)
     bottomSheetModalRef.current?.present()
   }, [])
   const handleSheetChanges = useCallback((index: number) => {
@@ -64,7 +70,11 @@ export function useActionsMenu() {
         align="left"
         icon="subdirectory-arrow-right"
         variant="outlined"
-        onPress={() => console.log("Pressed")}
+        onPress={() => {
+          navigation.navigate("ThreadReply", { parentMessage: currentlyFocusedMessage })
+          setCurrentlyFocusedMessage(null)
+          bottomSheetModalRef.current?.dismiss()
+        }}
       >
         Reply in thread
       </Button>

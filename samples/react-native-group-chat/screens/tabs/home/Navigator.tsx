@@ -5,6 +5,7 @@ import { ChatScreen, NewChatScreen, NewGroupScreen } from "../../ordinary"
 import { BottomTabsParamList, HomeStackParamList } from "../../../types"
 import { colorPalette as colors } from "../../../ui-components"
 import { HomeScreen } from "./HomeScreen"
+import { ThreadReply } from "../../ordinary/thread-reply"
 
 const HomeStack = createStackNavigator<HomeStackParamList>()
 
@@ -33,6 +34,7 @@ export function HomeStackScreen({ route }: StackScreenProps<BottomTabsParamList,
         component={NewGroupScreen}
         options={{ title: "Group chat" }}
       />
+      <HomeStack.Screen name="ThreadReply" component={ThreadReply} />
     </HomeStack.Navigator>
   )
 }

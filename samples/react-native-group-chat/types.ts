@@ -1,5 +1,8 @@
 import type { StackScreenProps } from "@react-navigation/stack"
 import { NavigatorScreenParams } from "@react-navigation/native"
+import type { NativeStackScreenProps } from "@react-navigation/native-stack"
+import { NavigationProp } from "@react-navigation/native"
+import { EnhancedIMessage } from "./utils"
 
 export type RootStackParamList = {
   login: undefined
@@ -11,7 +14,10 @@ export type HomeStackParamList = {
   Chat: { channelId: string }
   NewChat: undefined
   NewGroup: undefined
+  ThreadReply: { parentMessage: EnhancedIMessage }
 }
+
+export type HomeStackNavigation = NavigationProp<HomeStackParamList>
 
 export type BottomTabsParamList = {
   HomeStack: NavigatorScreenParams<HomeStackParamList> & { name: string }

@@ -1,17 +1,21 @@
 import React, { useState, useCallback, useEffect, useContext, useMemo } from "react"
-import { Linking, StyleSheet, Text, View, ActivityIndicator } from "react-native"
+import { Linking, StyleSheet, View, ActivityIndicator, TouchableOpacity } from "react-native"
 import { GiftedChat, Bubble } from "react-native-gifted-chat"
 import { StackScreenProps } from "@react-navigation/stack"
-import { Channel, User, MessageDraft, MixedTextTypedElement } from "@pubnub/chat"
+import {Channel, User, MessageDraft, MixedTextTypedElement, Message} from "@pubnub/chat"
 
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { ChatContext } from "../../../context"
 import { HomeStackParamList } from "../../../types"
 import { useActionsMenu } from "../../../components"
 import { getRandomAvatar, colorPalette as colors } from "../../../ui-components"
+import { useNavigation } from "@react-navigation/native"
+import {Icon, Text, usePNTheme} from "../../../ui-components"
+import { useCommonChatRenderers } from "../../../hooks"
 
 export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat">) {
   const { channelId } = route.params
+  const navigation = useNavigation()
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null)
   const [isMoreMessages, setIsMoreMessages] = useState(true)
   const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false)
@@ -23,10 +27,16 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const [text, setText] = useState("")
   const { chat, memberships } = useContext(ChatContext)
+  const theme = usePNTheme()
   const currentChannelMembership = useMemo(
     () => memberships.find((membership) => membership.channel.id === channelId),
     [memberships, channelId]
   )
+  const { renderFooter, renderMessageText } = useCommonChatRenderers({
+    chat,
+    typingData,
+    users,
+  })
 
   const { ActionsMenuComponent, handlePresentModalPress } = useActionsMenu()
 
@@ -72,6 +82,23 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
 
     init()
   }, [channelId])
+
+  useEffect(() => {
+    if (!giftedChatMappedMessages.length) {
+      return
+    }
+
+    const unstream = Message.streamUpdatesOn(
+      giftedChatMappedMessages.map((giftedMessage) => giftedMessage.originalPnMessage),
+      (newMessages) => {
+        setGiftedChatMappedMessages(
+          newMessages.map((newMessage) => mapPNMessageToGChatMessage(newMessage, users))
+        )
+      }
+    )
+
+    return unstream
+  }, [giftedChatMappedMessages])
 
   const loadEarlierMessages = async () => {
     if (!currentChannel) {
@@ -206,105 +233,34 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
     [messageDraft, currentChannel]
   )
 
-  const openLink = (link: string) => {
-    Linking.openURL(link)
-  }
-
-  const renderMessagePart = useCallback(
-    (messagePart: MixedTextTypedElement, index: number, userId: string | number) => {
-      if (messagePart.type === "text") {
-        return (
-          <Text
-            style={[styles.text, userId === chat?.currentUser.id ? {} : styles.outgoingText]}
-            key={index}
-          >
-            {messagePart.content.text}
-          </Text>
-        )
-      }
-      if (messagePart.type === "plainLink") {
-        return (
-          <Text key={index} style={styles.link} onPress={() => openLink(messagePart.content.link)}>
-            {messagePart.content.link}
-          </Text>
-        )
-      }
-      if (messagePart.type === "textLink") {
-        return (
-          <Text key={index} style={styles.link} onPress={() => openLink(messagePart.content.link)}>
-            {messagePart.content.text}
-          </Text>
-        )
-      }
-      if (messagePart.type === "mention") {
-        return (
-          <Text
-            key={index}
-            style={styles.link}
-            onPress={() => openLink(`https://pubnub.com/${messagePart.content.id}`)}
-          >
-            @{messagePart.content.name}
-          </Text>
-        )
-      }
-      if (messagePart.type === "channelReference") {
-        return (
-          <Text
-            key={index}
-            style={styles.link}
-            onPress={() => openLink(`https://pubnub.com/${messagePart.content.id}`)}
-          >
-            #{messagePart.content.name}
-          </Text>
-        )
-      }
-
-      return null
-    },
-    [chat?.currentUser]
-  )
-
-  const renderMessageText = useCallback(
-    (props: Bubble<EnhancedIMessage>["props"]) => {
-      if (props.currentMessage?.originalPnMessage.getLinkedText()) {
-        return (
-          <Text style={styles.linkedMessage}>
-            {props.currentMessage.originalPnMessage
-              .getLinkedText()
-              .map((msgPart, index) =>
-                renderMessagePart(msgPart, index, props.currentMessage?.user._id || "")
-              )}
-          </Text>
-        )
-      }
-
-      return <Text style={styles.text}>{props.currentMessage?.text}</Text>
-    },
-    [renderMessagePart]
-  )
-
-  const renderFooter = useCallback(() => {
-    if (!typingData.length) {
-      return null
-    }
-
-    if (typingData.length === 1) {
-      return (
-        <View>
-          <Text>{users.get(typingData[0])?.name || typingData[0]} is typing...</Text>
-        </View>
-      )
-    }
-
+  const renderBubble = (props: Bubble<EnhancedIMessage>["props"]) => {
     return (
       <View>
-        <Text>
-          {typingData.map((typingPoint) => users.get(typingPoint)?.name || typingPoint).join(", ")}{" "}
-          are typing...
-        </Text>
+        <Bubble
+          {...props}
+          wrapperStyle={{
+            left: { padding: 12, backgroundColor: theme.colors.neutral50 },
+            right: { marginLeft: 0, padding: 12, backgroundColor: theme.colors.teal100 },
+          }}
+        />
+        {props.currentMessage?.originalPnMessage.hasThread ? (
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("ThreadReply", {
+                parentMessage: props.currentMessage,
+              })
+            }
+            style={styles.threadRepliesContainer}
+          >
+            <Icon icon="chevron-down" iconColor="teal700" />
+            <Text variant="body" color="teal700">
+              replies
+            </Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
     )
-  }, [typingData, users])
+  }
 
   if (!messageDraft || !chat) {
     return (
@@ -324,12 +280,16 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
         renderFooter={renderFooter}
         text={text}
         loadEarlier={isMoreMessages}
+        renderTime={() => null}
         isLoadingEarlier={isLoadingMoreMessages}
+        renderBubble={renderBubble}
         onLoadEarlier={loadEarlierMessages}
         user={{
           _id: chat.currentUser.id,
         }}
-        onLongPress={() => handlePresentModalPress()}
+        onLongPress={(_, giftedMessage: EnhancedIMessage) => {
+          handlePresentModalPress({ message: giftedMessage })
+        }}
       />
       <ActionsMenuComponent />
     </View>
@@ -344,4 +304,8 @@ const styles = StyleSheet.create({
   linkedMessage: { padding: 8 },
   text: { color: "#FFFFFF", padding: 8 },
   outgoingText: { color: "#000000" },
+  threadRepliesContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
 })
