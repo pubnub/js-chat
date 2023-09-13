@@ -213,7 +213,9 @@ describe("Channel test", () => {
     let sentMessage = history.messages[0]
     expect(sentMessage.hasThread).toBe(false)
 
-    await sentMessage.createThread()
+    const threadDraft = await sentMessage.createThread()
+
+    await threadDraft.sendText("Some random text in a thread")
 
     history = await channel.getHistory()
     sentMessage = history.messages[0]
