@@ -1,9 +1,9 @@
-import {Linking, View} from "react-native";
-import React, {useCallback} from "react";
-import {Chat, MixedTextTypedElement, User} from "@pubnub/chat";
-import {Text} from "../ui-components";
-import {Bubble} from "react-native-gifted-chat";
-import {EnhancedIMessage} from "../utils";
+import { Linking, View } from "react-native"
+import React, { useCallback } from "react"
+import { Chat, MixedTextTypedElement, User } from "@pubnub/chat"
+import { Text } from "../ui-components"
+import { Bubble } from "react-native-gifted-chat"
+import { EnhancedIMessage } from "../utils"
 
 type UseCommonChatRenderersProps = {
   chat: Chat | null
@@ -20,33 +20,21 @@ export function useCommonChatRenderers({ chat, typingData, users }: UseCommonCha
     (messagePart: MixedTextTypedElement, index: number, userId: string | number) => {
       if (messagePart.type === "text") {
         return (
-          <Text
-            variant="body"
-            color={chat?.currentUser.id ? undefined : "neutral900"}
-            key={index}
-          >
+          <Text variant="body" color={chat?.currentUser.id ? undefined : "neutral900"} key={index}>
             {messagePart.content.text}
           </Text>
         )
       }
       if (messagePart.type === "plainLink") {
         return (
-          <Text
-            key={index}
-            variant="body"
-            onPress={() => openLink(messagePart.content.link)}
-          >
+          <Text key={index} variant="body" onPress={() => openLink(messagePart.content.link)}>
             {messagePart.content.link}
           </Text>
         )
       }
       if (messagePart.type === "textLink") {
         return (
-          <Text
-            key={index}
-            variant="body"
-            onPress={() => openLink(messagePart.content.link)}
-          >
+          <Text key={index} variant="body" onPress={() => openLink(messagePart.content.link)}>
             {messagePart.content.text}
           </Text>
         )
