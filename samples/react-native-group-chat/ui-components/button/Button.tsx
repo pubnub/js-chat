@@ -8,6 +8,7 @@ type ButtonProps = {
   size?: "lg" | "md" | "sm"
   align?: "center" | "left"
   icon?: string
+  iconRight?: string
 }
 
 export function Button(props: ButtonProps & TouchableHighlightProps) {
@@ -17,6 +18,7 @@ export function Button(props: ButtonProps & TouchableHighlightProps) {
     align = "center",
     children,
     icon,
+    iconRight,
     style,
     disabled,
     ...rest
@@ -44,13 +46,30 @@ export function Button(props: ButtonProps & TouchableHighlightProps) {
             style={styles.icon}
           />
         ) : null}
-        <Text
-          variant={size === "sm" ? "smallBody" : "body"}
-          color={{ base: "neutral50", danger: "badge", outlined: "navy700" }[variant]}
-          style={{ flex: 1, width: "100%" }}
-        >
-          {children}
-        </Text>
+
+        <View style={align === "left" && { flex: 1 }}>
+          <Text
+            variant={size === "sm" ? "smallBody" : "body"}
+            color={{ base: "neutral50", danger: "badge", outlined: "navy700" }[variant]}
+          >
+            {children}
+          </Text>
+        </View>
+
+        {iconRight ? (
+          <MaterialIcons
+            name={iconRight}
+            color={
+              {
+                base: colors.neutral50,
+                danger: colors.badge,
+                outlined: colors.navy700,
+              }[variant]
+            }
+            size={20}
+            style={[styles.iconRight]}
+          />
+        ) : null}
       </View>
     </TouchableHighlight>
   )
@@ -75,6 +94,10 @@ const styles = StyleSheet.create({
       borderColor: colors.navy300,
       borderRadius: 6,
       borderWidth: 1,
+      justifyContent: "center",
+    },
+    list: {
+      borderRadius: 0,
       justifyContent: "center",
     },
     danger: {
@@ -113,5 +136,10 @@ const styles = StyleSheet.create({
     height: 20,
     marginLeft: -2,
     marginRight: 10,
+  },
+  iconRight: {
+    width: 20,
+    height: 20,
+    marginLeft: 10,
   },
 })

@@ -12,15 +12,15 @@ import { UnreadChannelsSection } from "../../../components/unread-channels-secti
 import { MaterialIcons } from "@expo/vector-icons"
 
 export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, "Home">) {
-  const { chat, setMemberships } = useContext(ChatContext)
+  const { chat, setMemberships, setUsers } = useContext(ChatContext)
   const [searchText, setSearchText] = useState("")
   const [currentUserGroupChannels, setCurrentUserGroupChannels] = useState<Channel[]>([])
   const [currentUserDirectChannels, setCurrentUserDirectChannels] = useState<Channel[]>([])
   const [currentUserPublicChannels, setCurrentUserPublicChannels] = useState<Channel[]>([])
-
   const [unreadChannels, setUnreadChannels] = useState<
     { channel: Channel; count: number; membership: Membership }[]
   >([])
+
   const fetchUnreadMessagesCount = useCallback(async () => {
     if (!chat) {
       return
@@ -36,10 +36,13 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
         return
       }
 
-      const [, membershipsObject] = await Promise.all([
+      const [, membershipsObject, usersObject] = await Promise.all([
         fetchUnreadMessagesCount(),
         chat.currentUser.getMemberships(),
+        chat.getUsers(),
       ])
+
+      setUsers(usersObject.users)
 
       const channels = membershipsObject.memberships.map((m) => m.channel)
       setMemberships(membershipsObject.memberships)

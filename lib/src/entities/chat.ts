@@ -505,7 +505,7 @@ export class Chat {
     channelId: string
     channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
   }) {
-    return this.createChannel(channelId, { ...channelData, type: "public" })
+    return this.createChannel(channelId, { name: channelId, ...channelData, type: "public" })
   }
 
   /**
@@ -661,11 +661,11 @@ export class Chat {
 
       const sortedUsers = [this.user.id, user.id].sort()
 
-      const channelName = `direct.${sortedUsers[0]}&${sortedUsers[1]}`
+      const channelId = `direct.${sortedUsers[0]}&${sortedUsers[1]}`
 
       const channel =
-        (await this.getChannel(channelName)) ||
-        (await this.createChannel(channelName, { ...channelData, type: "direct" }))
+        (await this.getChannel(channelId)) ||
+        (await this.createChannel(channelId, { name: channelId, ...channelData, type: "direct" }))
 
       const { custom, ...rest } = membershipData
       const hostMembershipPromise = this.sdk.objects.setMemberships({
@@ -718,7 +718,7 @@ export class Chat {
     try {
       const channel =
         (await this.getChannel(channelId)) ||
-        (await this.createChannel(channelId, { ...channelData, type: "group" }))
+        (await this.createChannel(channelId, { name: channelId, ...channelData, type: "group" }))
       const { custom, ...rest } = membershipData
       const hostMembershipPromise = this.sdk.objects.setMemberships({
         ...rest,

@@ -3,7 +3,7 @@ import { Text as RNText, TextProps as RNTextProps, StyleProp, TextStyle } from "
 
 import { defaultTheme, colorPalette } from "../defaultTheme"
 
-export type Variant = "headline" | "body" | "smallBody" | "label"
+export type Variant = "headline" | "body" | "smallBody" | "label" | "smallLabel"
 
 type TextProps = {
   variant: Variant

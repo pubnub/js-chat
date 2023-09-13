@@ -11,12 +11,7 @@ export function NewGroupScreen({ navigation }: StackScreenProps<HomeStackParamLi
   const [searchText, setSearchText] = useState("")
   const [groupName, setGroupName] = useState("")
   const [selectedUsers, setSelectedUsers] = useState<User[]>([])
-  const { chat, users, setUsers } = useContext(ChatContext)
-
-  async function fetchUsers() {
-    const { users } = await chat?.getUsers()
-    setUsers(users)
-  }
+  const { chat, users } = useContext(ChatContext)
 
   function toggleUser(user: User) {
     setSelectedUsers((selectedUsers) => {
@@ -35,10 +30,6 @@ export function NewGroupScreen({ navigation }: StackScreenProps<HomeStackParamLi
     })
     navigation.navigate("Chat", { channelId: channel.id })
   }
-
-  useEffect(() => {
-    if (!users.length) fetchUsers()
-  }, [])
 
   return (
     <View style={styles.container}>
