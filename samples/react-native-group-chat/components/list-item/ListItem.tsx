@@ -84,7 +84,6 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   title: {
-    // flex: 1,
     paddingHorizontal: 16,
   },
   badge: {

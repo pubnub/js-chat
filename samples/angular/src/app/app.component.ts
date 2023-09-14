@@ -47,10 +47,6 @@ export class AppComponent {
         channelData: { name: "test channel" },
       }))
 
-    // for (let i = 0; i < 20; i++) {
-    //   this.chat.createUser("Keith-" + i, { name: "Keith-" + i })
-    // }
-
     await this.stateService.toggleChannel(channel)
     this.channel = this.stateService.currentChannel
 
