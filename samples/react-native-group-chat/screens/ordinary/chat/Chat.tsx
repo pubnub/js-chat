@@ -39,7 +39,21 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
     users,
   })
 
-  const { ActionsMenuComponent, handlePresentModalPress } = useActionsMenu()
+  const handleQuote = useCallback(
+    (message: Message) => {
+      if (!messageDraft) {
+        return
+      }
+
+      messageDraft.addQuote(message)
+      setMessageDraft(messageDraft)
+    },
+    [messageDraft]
+  )
+
+  const { ActionsMenuComponent, handlePresentModalPress } = useActionsMenu({
+    onQuote: handleQuote,
+  })
 
   const updateUsersMap = useCallback((k: string, v: User | User[]) => {
     if (Array.isArray(v)) {
@@ -276,6 +290,10 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
       </View>
     )
   }
+
+  const renderChatFooter = useCallback(() => {
+
+  }, [messageDraft])
 
   if (!messageDraft || !chat) {
     return (

@@ -12,8 +12,13 @@ import Emoji7 from "../../assets/emojis/emoji7.svg"
 import { useNavigation } from "@react-navigation/native"
 import { EnhancedIMessage } from "../../utils"
 import { HomeStackNavigation } from "../../types"
+import { Message } from "@pubnub/chat";
 
-export function useActionsMenu() {
+type UseActionsMenuParams = {
+  onQuote: (message: Message) => void
+}
+
+export function useActionsMenu({ onQuote }: UseActionsMenuParams) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
   const theme = usePNTheme()
   const navigation = useNavigation<HomeStackNavigation>()
@@ -84,7 +89,11 @@ export function useActionsMenu() {
         align="left"
         icon="format-quote"
         variant="outlined"
-        onPress={() => console.log("Pressed")}
+        onPress={() => {
+          if (currentlyFocusedMessage) {
+            onQuote(currentlyFocusedMessage.originalPnMessage)
+          }
+        }}
       >
         Quote message
       </Button>
