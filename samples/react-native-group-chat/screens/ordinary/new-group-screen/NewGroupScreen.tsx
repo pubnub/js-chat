@@ -1,8 +1,10 @@
-import { useState, useContext, useEffect } from "react"
+import { useState, useContext } from "react"
 import { View, StyleSheet, FlatList } from "react-native"
 import { StackScreenProps } from "@react-navigation/stack"
 import { nanoid } from "nanoid"
+import { User } from "@pubnub/chat"
 
+import { HomeStackParamList } from "../../../types"
 import { ChatContext } from "../../../context"
 import { ListItem } from "../../../components"
 import { Button, Gap, Line, TextInput, colorPalette as colors } from "../../../ui-components"
@@ -23,7 +25,8 @@ export function NewGroupScreen({ navigation }: StackScreenProps<HomeStackParamLi
 
   async function openChat() {
     // TODO: this should ideally navigate first and create channel in the background
-    const { channel } = await chat?.createGroupConversation({
+    if (!chat) return
+    const { channel } = await chat.createGroupConversation({
       users: selectedUsers,
       channelId: nanoid(),
       channelData: { name: groupName },
@@ -52,10 +55,10 @@ export function NewGroupScreen({ navigation }: StackScreenProps<HomeStackParamLi
       <Gap value={12} />
 
       <FlatList
-        data={users.filter((user) => user.name.toLowerCase().includes(searchText.toLowerCase()))}
+        data={users.filter((user) => user.name?.toLowerCase().includes(searchText.toLowerCase()))}
         renderItem={({ item: user }) => (
           <ListItem
-            title={user.name}
+            title={user.name || user.id}
             onPress={() => toggleUser(user)}
             showCheckbox
             checked={!!selectedUsers.find((u) => u.id === user.id)}

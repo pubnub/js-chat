@@ -21,10 +21,10 @@ import "react-native-get-random-values"
 import { PeopleScreen, MentionsScreen, HomeStackScreen, ProfileScreen } from "./screens/tabs"
 import { LoginScreen } from "./screens/ordinary"
 import { ChatContext } from "./context"
-import { RootStackParamList } from "./types"
+import { RootStackParamList, BottomTabsParamList } from "./types"
 import { defaultTheme, colorPalette as colors } from "./ui-components"
 
-const Tab = createBottomTabNavigator()
+const Tab = createBottomTabNavigator<BottomTabsParamList>()
 const MainStack = createStackNavigator<RootStackParamList>()
 
 function TabNavigator({ route }: StackScreenProps<RootStackParamList, "tabs">) {
@@ -34,8 +34,8 @@ function TabNavigator({ route }: StackScreenProps<RootStackParamList, "tabs">) {
   useEffect(() => {
     async function init() {
       const chat = await Chat.init({
-        publishKey: process.env.EXPO_PUBLIC_PUBNUB_PUB_KEY,
-        subscribeKey: process.env.EXPO_PUBLIC_PUBNUB_SUB_KEY,
+        publishKey: process.env.EXPO_PUBLIC_PUBNUB_PUB_KEY || "demo",
+        subscribeKey: process.env.EXPO_PUBLIC_PUBNUB_SUB_KEY || "demo",
         userId: name || "test-user",
         typingTimeout: 2000,
         storeUserActivityTimestamps: true,
