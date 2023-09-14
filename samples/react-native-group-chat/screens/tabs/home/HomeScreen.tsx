@@ -39,7 +39,7 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
       const [, membershipsObject, usersObject] = await Promise.all([
         fetchUnreadMessagesCount(),
         chat.currentUser.getMemberships(),
-        chat.getUsers(),
+        chat.getUsers({}),
       ])
 
       setUsers(usersObject.users)

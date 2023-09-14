@@ -1,6 +1,6 @@
 import React, { useContext, useState, useRef } from "react"
 import { View, StyleSheet, Switch } from "react-native"
-import { StackScreenProps } from "@react-navigation/stack"
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs"
 import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
 
 import { BottomTabsParamList } from "../../../types"
@@ -15,7 +15,9 @@ import {
   colorPalette as colors,
 } from "../../../ui-components"
 
-export function ProfileScreen({ navigation }: StackScreenProps<BottomTabsParamList, "Profile">) {
+export function ProfileScreen({
+  navigation,
+}: BottomTabScreenProps<BottomTabsParamList, "Profile">) {
   const { chat, setMemberships, setChat } = useContext(ChatContext)
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
   const [notifications, setNotifications] = useState(true)
@@ -24,6 +26,7 @@ export function ProfileScreen({ navigation }: StackScreenProps<BottomTabsParamLi
   const [nameInput, setNameInput] = useState(userName)
 
   const logout = () => {
+    // TODO: fix navigation type error
     navigation.replace("login")
     setChat(null)
     setMemberships([])

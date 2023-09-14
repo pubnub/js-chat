@@ -6,7 +6,7 @@ import { defaultTheme, colorPalette } from "../defaultTheme"
 export type Variant = "headline" | "body" | "smallBody" | "label" | "smallLabel"
 
 type TextProps = {
-  variant: Variant
+  variant?: Variant
   fontFamily?: "Roboto_400Regular" | "Roboto_500Medium" | "Roboto_700Bold"
   color?: keyof typeof colorPalette
   textAlign?: "auto" | "left" | "right" | "center" | "justify" | undefined

@@ -28,10 +28,10 @@ export const colorPalette = {
   navy700: "#334155",
   navy800: "#1E293B",
   navy900: "#161C2D",
-  checkbox: "#065B6A",
   success: "#22C55E",
   teal100: "#D1E4E5",
   teal700: "#216F7B",
+  teal800: "#065B6A",
   badge: "#B91C1C",
 }
 
