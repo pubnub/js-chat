@@ -26,7 +26,10 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
       return
     }
 
-    const unreadMessagesCounts = await chat.getUnreadMessagesCounts()
+    const unreadMessagesCounts = await chat.getUnreadMessagesCounts({
+      filter: "channel.type == 'group'",
+    })
+
     setUnreadChannels(unreadMessagesCounts)
   }, [chat])
 
