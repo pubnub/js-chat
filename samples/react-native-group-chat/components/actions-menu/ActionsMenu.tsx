@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from "react"
+import React, { useCallback, useMemo, useRef, useState } from "react"
 import { StyleSheet, View } from "react-native"
 import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
 import { Gap, Text, usePNTheme, Button } from "../../ui-components"
@@ -12,12 +12,20 @@ import Emoji7 from "../../assets/emojis/emoji7.svg"
 import { useNavigation } from "@react-navigation/native"
 import { EnhancedIMessage } from "../../utils"
 import { HomeStackNavigation } from "../../types"
+import { Message } from "@pubnub/chat"
 
-export function useActionsMenu() {
+type UseActionsMenuParams = {
+  onQuote: (message: Message) => void
+  removeThreadReply?: boolean
+}
+
+export function useActionsMenu({ onQuote, removeThreadReply = false }: UseActionsMenuParams) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
   const theme = usePNTheme()
   const navigation = useNavigation<HomeStackNavigation>()
-  const [currentlyFocusedMessage, setCurrentlyFocusedMessage] = useState<EnhancedIMessage | null>(null)
+  const [currentlyFocusedMessage, setCurrentlyFocusedMessage] = useState<EnhancedIMessage | null>(
+    null
+  )
 
   // variables
   const snapPoints = useMemo(() => ["25%", "50%"], [])
@@ -65,26 +73,36 @@ export function useActionsMenu() {
         Copy message
       </Button>
       <Gap value={16} />
-      <Button
-        size="md"
-        align="left"
-        icon="subdirectory-arrow-right"
-        variant="outlined"
-        onPress={() => {
-          navigation.navigate("ThreadReply", { parentMessage: currentlyFocusedMessage })
-          setCurrentlyFocusedMessage(null)
-          bottomSheetModalRef.current?.dismiss()
-        }}
-      >
-        Reply in thread
-      </Button>
-      <Gap value={16} />
+      {!removeThreadReply ? (
+        <>
+          <Button
+            size="md"
+            align="left"
+            icon="subdirectory-arrow-right"
+            variant="outlined"
+            onPress={() => {
+              navigation.navigate("ThreadReply", { parentMessage: currentlyFocusedMessage })
+              setCurrentlyFocusedMessage(null)
+              bottomSheetModalRef.current?.dismiss()
+            }}
+          >
+            Reply in thread
+          </Button>
+          <Gap value={16} />
+        </>
+      ) : null}
       <Button
         size="md"
         align="left"
         icon="format-quote"
         variant="outlined"
-        onPress={() => console.log("Pressed")}
+        onPress={() => {
+          if (currentlyFocusedMessage) {
+            onQuote(currentlyFocusedMessage.originalPnMessage)
+            setCurrentlyFocusedMessage(null)
+            bottomSheetModalRef.current?.dismiss()
+          }
+        }}
       >
         Quote message
       </Button>

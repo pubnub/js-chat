@@ -39,8 +39,7 @@ export class MessageDraft {
   } = {}
   /** @internal */
   private textLinks: TextLink[] = []
-  /** @internal */
-  private quotedMessage: Message | undefined = undefined
+  public quotedMessage: Message | undefined = undefined
   readonly config: MessageDraftConfig
   files?: FileList | File[] | SendFileParameters["file"][] = undefined
 

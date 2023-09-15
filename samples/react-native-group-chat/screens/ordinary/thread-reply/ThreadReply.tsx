@@ -1,11 +1,11 @@
-import React, { useCallback, useContext, useEffect, useState } from "react"
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react"
 import { StackScreenProps } from "@react-navigation/stack"
 import { HomeStackParamList } from "../../../types"
 import { ChatContext } from "../../../context"
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
-import { MessageDraft, ThreadChannel, User } from "@pubnub/chat"
+import { Message, MessageDraft, ThreadChannel, User } from "@pubnub/chat"
 import { Bubble, GiftedChat } from "react-native-gifted-chat"
-import { StyleSheet, TouchableOpacity, View } from "react-native"
+import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native"
 import {
   Gap,
   Line,
@@ -17,7 +17,7 @@ import {
 } from "../../../ui-components"
 import { useNavigation } from "@react-navigation/native"
 import { useCommonChatRenderers } from "../../../hooks"
-import { UserSuggestionBox } from "../../../components"
+import { useActionsMenu } from "../../../components"
 
 export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "ThreadReply">) {
   const { parentMessage } = route.params
@@ -29,6 +29,7 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
   const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false)
   const [giftedChatMappedMessages, setGiftedChatMappedMessages] = useState<EnhancedIMessage[]>([])
   const [text, setText] = useState("")
+  const giftedChatRef = useRef<FlatList<EnhancedIMessage>>(null)
   const [typingData, setTypingData] = useState<string[]>([])
   const [isParentMessageCollapsed, setIsParentMessageCollapsed] = useState(false)
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([])
@@ -36,10 +37,35 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const theme = usePNTheme()
 
-  const { renderFooter, renderMessageText } = useCommonChatRenderers({
+  const { renderFooter, renderMessageText, renderChatFooter } = useCommonChatRenderers({
     chat,
     typingData,
     users: new Map(),
+    setText,
+    messageDraft,
+    suggestedUsers,
+    showSuggestedUsers,
+    setShowSuggestedUsers,
+    giftedChatMappedMessages,
+    giftedChatRef,
+    lastAffectedNameOccurrenceIndex,
+  })
+
+  const handleQuote = useCallback(
+    (message: Message) => {
+      if (!messageDraft) {
+        return
+      }
+
+      messageDraft.addQuote(message)
+      setMessageDraft(messageDraft)
+    },
+    [messageDraft]
+  )
+
+  const { ActionsMenuComponent, handlePresentModalPress } = useActionsMenu({
+    onQuote: handleQuote,
+    removeThreadReply: true,
   })
 
   useEffect(() => {
@@ -180,19 +206,6 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
     setIsMoreMessages(historicalMessagesObject.isMore)
   }
 
-  const handleUserToMention = useCallback(
-    (user: User) => {
-      if (!messageDraft) {
-        return
-      }
-
-      messageDraft.addMentionedUser(user, lastAffectedNameOccurrenceIndex)
-      setText(messageDraft.value)
-      setShowSuggestedUsers(false)
-    },
-    [messageDraft, lastAffectedNameOccurrenceIndex]
-  )
-
   const renderMessageBubble = useCallback((props: Bubble<EnhancedIMessage>["props"]) => {
     return (
       <Bubble
@@ -263,11 +276,6 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
           renderFooter={renderFooter}
           renderLoadEarlier={() => null}
           renderBubble={renderMessageBubble}
-          renderChatFooter={() =>
-            showSuggestedUsers ? (
-              <UserSuggestionBox users={suggestedUsers} onUserSelect={handleUserToMention} />
-            ) : null
-          }
           text={text}
           loadEarlier={isMoreMessages}
           isLoadingEarlier={isLoadingMoreMessages}
@@ -278,7 +286,13 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
           user={{
             _id: chat.currentUser.id,
           }}
+          messageContainerRef={giftedChatRef}
+          onLongPress={(_, giftedMessage: EnhancedIMessage) => {
+            handlePresentModalPress({ message: giftedMessage })
+          }}
+          renderChatFooter={renderChatFooter}
         />
+        <ActionsMenuComponent />
       </View>
     </View>
   )
