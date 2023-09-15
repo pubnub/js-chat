@@ -1,5 +1,5 @@
 import { TouchableHighlight, TouchableHighlightProps, StyleSheet, View } from "react-native"
-import { MaterialIcons } from "@expo/vector-icons"
+import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons"
 import { Text } from "../text"
 import { colorPalette as colors } from "../defaultTheme"
 
@@ -9,7 +9,9 @@ type ButtonProps = {
   size?: "lg" | "md" | "sm"
   align?: "center" | "left"
   icon?: keyof typeof MaterialIcons.glyphMap
+  iconCommunity?: keyof typeof MaterialCommunityIcons.glyphMap
   iconRight?: keyof typeof MaterialIcons.glyphMap
+  iconRightCommunity?: keyof typeof MaterialCommunityIcons.glyphMap
 }
 
 export function Button(props: ButtonProps & TouchableHighlightProps) {
@@ -19,7 +21,9 @@ export function Button(props: ButtonProps & TouchableHighlightProps) {
     align = "center",
     children,
     icon,
+    iconCommunity,
     iconRight,
+    iconRightCommunity,
     style,
     disabled = false,
     ...rest
@@ -35,21 +39,10 @@ export function Button(props: ButtonProps & TouchableHighlightProps) {
       {...rest}
     >
       <View style={styles.wrapper}>
-        {icon ? (
-          <MaterialIcons
-            name={icon}
-            color={
-              {
-                base: colors.neutral50,
-                danger: colors.badge,
-                outlined: colors.navy700,
-                list: colors.teal800,
-              }[variant]
-            }
-            size={20}
-            style={styles.icon}
-          />
-        ) : null}
+        {icon && <MaterialIcons name={icon} size={20} style={styles.icon} />}
+        {iconCommunity && (
+          <MaterialCommunityIcons name={iconCommunity} size={20} style={styles.icon} />
+        )}
 
         <View style={align === "left" && { flex: 1 }}>
           <Text
@@ -67,21 +60,10 @@ export function Button(props: ButtonProps & TouchableHighlightProps) {
           </Text>
         </View>
 
-        {iconRight ? (
-          <MaterialIcons
-            name={iconRight}
-            color={
-              {
-                base: colors.neutral50,
-                danger: colors.badge,
-                outlined: colors.navy700,
-                list: colors.teal800,
-              }[variant]
-            }
-            size={20}
-            style={[styles.iconRight]}
-          />
-        ) : null}
+        {iconRight && <MaterialIcons name={iconRight} size={20} style={[styles.iconRight]} />}
+        {iconRightCommunity && (
+          <MaterialCommunityIcons name={iconRightCommunity} size={20} style={[styles.iconRight]} />
+        )}
       </View>
     </TouchableHighlight>
   )
@@ -117,14 +99,16 @@ const createStyles = ({
       justifyContent: align === "center" ? "center" : "flex-start",
     },
     icon: {
-      width: 20,
-      height: 20,
       marginLeft: -2,
       marginRight: 10,
+      color: {
+        base: colors.neutral50,
+        danger: colors.badge,
+        outlined: colors.navy700,
+        list: colors.teal800,
+      }[variant],
     },
     iconRight: {
-      width: 20,
-      height: 20,
       marginLeft: 10,
     },
   })

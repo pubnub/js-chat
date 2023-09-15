@@ -1,31 +1,33 @@
 import React, { useCallback, useContext, useEffect, useState } from "react"
-import { StyleSheet, ScrollView, TouchableHighlight } from "react-native"
+import { StyleSheet, ScrollView, TouchableHighlight, TouchableOpacity } from "react-native"
 import { useFocusEffect } from "@react-navigation/native"
 import { StackScreenProps } from "@react-navigation/stack"
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons"
 import { Channel, Membership } from "@pubnub/chat"
 
-import { ChatContext } from "../../../context"
-import { Gap, Line, TextInput, colorPalette as colors } from "../../../ui-components"
+import { Gap, Line, TextInput, colorPalette as colors, Accordion } from "../../../ui-components"
+import { DirectChannels, ListItem, Avatar } from "../../../components"
 import { HomeStackParamList } from "../../../types"
-import { ChannelsSection } from "../../../components/channels-section"
-import { UnreadChannelsSection } from "../../../components/unread-channels-section"
-import { MaterialIcons } from "@expo/vector-icons"
+import { ChatContext } from "../../../context"
 
 export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, "Home">) {
-  const { chat, setMemberships, setUsers } = useContext(ChatContext)
+  const { chat, memberships, setCurrentChannel, setMemberships, setUsers } = useContext(ChatContext)
   const [searchText, setSearchText] = useState("")
-  const [currentUserGroupChannels, setCurrentUserGroupChannels] = useState<Channel[]>([])
-  const [currentUserDirectChannels, setCurrentUserDirectChannels] = useState<Channel[]>([])
-  const [currentUserPublicChannels, setCurrentUserPublicChannels] = useState<Channel[]>([])
   const [unreadChannels, setUnreadChannels] = useState<
     { channel: Channel; count: number; membership: Membership }[]
   >([])
 
-  const fetchUnreadMessagesCount = useCallback(async () => {
-    if (!chat) {
-      return
-    }
+  const channels = memberships.map((m) => m.channel)
+  const currentUserGroupChannels = channels.filter((c) => c.type === "group")
+  const currentUserPublicChannels = channels.filter((c) => c.type === "public")
 
+  function navigateToChat(channel: Channel) {
+    setCurrentChannel(channel)
+    navigation.navigate("Chat")
+  }
+
+  const fetchUnreadMessagesCount = useCallback(async () => {
+    if (!chat) return
     const unreadMessagesCounts = await chat.getUnreadMessagesCounts({
       filter: "channel.type == 'group'",
     })
@@ -35,28 +37,19 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
 
   useEffect(() => {
     async function init() {
-      if (!chat) {
-        return
-      }
-
-      const [, membershipsObject, usersObject] = await Promise.all([
+      if (!chat) return
+      const [, { memberships }, { users }] = await Promise.all([
         fetchUnreadMessagesCount(),
         chat.currentUser.getMemberships(),
         chat.getUsers({}),
       ])
 
-      setUsers(usersObject.users)
-
-      const channels = membershipsObject.memberships.map((m) => m.channel)
-      setMemberships(membershipsObject.memberships)
-
-      setCurrentUserGroupChannels(channels.filter((c) => c.type === "group"))
-      setCurrentUserDirectChannels(channels.filter((c) => c.type === "direct"))
-      setCurrentUserPublicChannels(channels.filter((c) => c.type === "public"))
+      setUsers(users)
+      setMemberships(memberships)
     }
 
     init()
-  }, [chat])
+  }, [chat, fetchUnreadMessagesCount, setMemberships, setUsers])
 
   useFocusEffect(
     React.useCallback(() => {
@@ -83,13 +76,10 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
   )
 
   const markAllMessagesAsRead = useCallback(async () => {
-    if (!chat) {
-      return
-    }
-
+    if (!chat) return
     await chat.markAllMessagesAsRead()
     await fetchUnreadMessagesCount()
-  }, [chat])
+  }, [chat, fetchUnreadMessagesCount])
 
   return (
     <>
@@ -101,42 +91,71 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
           icon="search"
           variant="search"
         />
+
         <Gap value={16} />
         <Line />
         <Gap value={8} />
-        <UnreadChannelsSection
-          onPress={(channelId) => navigation.navigate("Chat", { channelId })}
-          unreadChannels={getFilteredUnreadChannels(unreadChannels)}
-          markAllMessagesAsRead={markAllMessagesAsRead}
-        />
+
+        <Accordion
+          title="UNREAD"
+          icons={
+            <TouchableOpacity onPress={markAllMessagesAsRead} style={{ marginRight: 16 }}>
+              <MaterialCommunityIcons name="dots-horizontal" size={24} color={colors.neutral400} />
+            </TouchableOpacity>
+          }
+        >
+          {getFilteredUnreadChannels(unreadChannels).map(({ channel, count }) => (
+            <ListItem
+              key={channel.id}
+              title={channel.name || channel.id}
+              avatar={<Avatar source={channel} />}
+              onPress={() => navigateToChat(channel)}
+              badge={String(count)}
+            />
+          ))}
+        </Accordion>
+
         <Gap value={8} />
         <Line />
         <Gap value={8} />
-        <ChannelsSection
-          channels={getFilteredChannels(currentUserPublicChannels)}
-          title="PUBLIC CHANNELS"
-          onAddIconPress={() => null}
-          onChannelPress={(channelId) => navigation.navigate("Chat", { channelId })}
-        />
+
+        <Accordion title="PUBLIC CHANNELS">
+          {getFilteredChannels(currentUserPublicChannels).map((channel) => (
+            <ListItem
+              key={channel.id}
+              title={channel.name || channel.id}
+              avatar={<Avatar source={channel} />}
+              onPress={() => navigateToChat(channel)}
+            />
+          ))}
+        </Accordion>
+
         <Gap value={8} />
         <Line />
         <Gap value={8} />
-        <ChannelsSection
-          channels={getFilteredChannels(currentUserGroupChannels)}
-          title="GROUPS"
-          onAddIconPress={() => null}
-          onChannelPress={(channelId) => navigation.navigate("Chat", { channelId })}
-        />
+
+        <Accordion title="GROUPS">
+          {getFilteredChannels(currentUserGroupChannels).map((channel) => (
+            <ListItem
+              key={channel.id}
+              title={channel.name || channel.id}
+              avatar={<Avatar source={channel} />}
+              onPress={() => navigateToChat(channel)}
+            />
+          ))}
+        </Accordion>
+
         <Gap value={8} />
         <Line />
-        <Gap value={8} />
-        <ChannelsSection
-          channels={getFilteredChannels(currentUserDirectChannels)}
-          title="DIRECT MESSAGES"
-          onAddIconPress={() => null}
-          onChannelPress={(channelId) => navigation.navigate("Chat", { channelId })}
-        />
+        <Gap value={20} />
+
+        <Accordion title="DIRECT MESSAGES">
+          <DirectChannels searchText={searchText} sortByActive={false} />
+        </Accordion>
+
+        <Gap value={32} />
       </ScrollView>
+
       <TouchableHighlight
         underlayColor={colors.navy800}
         style={styles.fab}
@@ -152,11 +171,6 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.neutral0,
     flex: 1,
-    padding: 16,
-  },
-  screenContainer: {
-    flex: 1,
-    justifyContent: "center",
     padding: 16,
   },
   fab: {

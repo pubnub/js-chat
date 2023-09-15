@@ -9,7 +9,7 @@ import { createStackNavigator, StackScreenProps } from "@react-navigation/stack"
 import { PaperProvider } from "react-native-paper"
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons"
 import { StatusBar } from "expo-status-bar"
-import { Chat, Membership, User } from "@pubnub/chat"
+import { Channel, Chat, Membership, User } from "@pubnub/chat"
 import {
   useFonts,
   Roboto_400Regular,
@@ -45,7 +45,7 @@ function TabNavigator({ route }: StackScreenProps<RootStackParamList, "tabs">) {
     }
 
     init()
-  }, [name])
+  }, [name, setChat])
 
   if (!chat) {
     return (
@@ -119,7 +119,26 @@ function TabNavigator({ route }: StackScreenProps<RootStackParamList, "tabs">) {
 function App() {
   const [chat, setChat] = useState<Chat | null>(null)
   const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(false)
+  const [currentChannel, setCurrentChannel] = useState<Channel>()
+  const [currentChannelMembers, setCurrentChannelMembers] = useState<Membership[]>([])
   const [userMemberships, setUserMemberships] = useState<Membership[]>([])
+
+  async function setCurrentChannelWithMembers(channel: Channel) {
+    const { members } = await channel.getMembers()
+    setCurrentChannelMembers(members)
+    setCurrentChannel(channel)
+  }
+
+  function getUser(userId: string) {
+    const existingUser = users.find((u) => u.id === userId)
+    if (!existingUser) {
+      chat?.getUser(userId).then((fetchedUser) => {
+        if (fetchedUser) setUsers((users) => [...users, fetchedUser])
+      })
+    }
+    return existingUser
+  }
 
   const [fontsLoaded] = useFonts({
     Roboto_400Regular,
@@ -134,10 +153,16 @@ function App() {
   return (
     <ChatContext.Provider
       value={{
+        loading,
+        setLoading,
         chat,
         setChat,
+        currentChannel,
+        setCurrentChannel: setCurrentChannelWithMembers,
+        currentChannelMembers,
         users,
         setUsers,
+        getUser,
         memberships: userMemberships,
         setMemberships: setUserMemberships,
       }}

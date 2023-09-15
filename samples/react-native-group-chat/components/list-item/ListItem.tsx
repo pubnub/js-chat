@@ -1,27 +1,19 @@
+import { ReactNode } from "react"
 import { View, StyleSheet, TouchableHighlight } from "react-native"
 import { MaterialIcons } from "@expo/vector-icons"
 
-import { Text, colorPalette as colors, RandomAvatar } from "../../ui-components"
+import { Text, colorPalette as colors } from "../../ui-components"
 
 type ListItemProps = {
   title: string
-  showActive?: boolean
-  active?: boolean
+  avatar?: ReactNode
   badge?: string
   onPress?: () => unknown
   showCheckbox?: boolean
   checked?: boolean
 }
 
-export function ListItem({
-  title,
-  showActive,
-  active,
-  badge,
-  onPress,
-  showCheckbox,
-  checked,
-}: ListItemProps) {
+export function ListItem({ title, avatar, badge, onPress, showCheckbox, checked }: ListItemProps) {
   return (
     <TouchableHighlight style={styles.touchable} onPress={onPress} underlayColor={colors.navy100}>
       <View style={styles.wrapper}>
@@ -34,15 +26,7 @@ export function ListItem({
           />
         ) : null}
 
-        <RandomAvatar />
-        {showActive ? (
-          <View
-            style={[
-              styles.indicator,
-              { backgroundColor: active ? colors.success : colors.neutral300 },
-            ]}
-          ></View>
-        ) : null}
+        {avatar}
 
         <View style={styles.title}>
           <Text variant="smallBody">{title}</Text>
@@ -69,16 +53,6 @@ const styles = StyleSheet.create({
   wrapper: {
     alignItems: "center",
     flexDirection: "row",
-  },
-  indicator: {
-    borderColor: colors.neutral0,
-    borderRadius: 12,
-    borderWidth: 2,
-    bottom: -1,
-    height: 12,
-    left: 21,
-    position: "absolute",
-    width: 12,
   },
   checkbox: {
     paddingRight: 12,

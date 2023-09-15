@@ -6,14 +6,14 @@ import { User } from "@pubnub/chat"
 
 import { HomeStackParamList } from "../../../types"
 import { ChatContext } from "../../../context"
-import { ListItem } from "../../../components"
+import { ListItem, Avatar } from "../../../components"
 import { Button, Gap, Line, TextInput, colorPalette as colors } from "../../../ui-components"
 
 export function NewGroupScreen({ navigation }: StackScreenProps<HomeStackParamList, "NewGroup">) {
+  const { chat, users, setCurrentChannel, setLoading } = useContext(ChatContext)
   const [searchText, setSearchText] = useState("")
   const [groupName, setGroupName] = useState("")
   const [selectedUsers, setSelectedUsers] = useState<User[]>([])
-  const { chat, users } = useContext(ChatContext)
 
   function toggleUser(user: User) {
     setSelectedUsers((selectedUsers) => {
@@ -24,14 +24,17 @@ export function NewGroupScreen({ navigation }: StackScreenProps<HomeStackParamLi
   }
 
   async function openChat() {
-    // TODO: this should ideally navigate first and create channel in the background
     if (!chat) return
+    setLoading(true)
+    navigation.popToTop()
+    navigation.navigate("Chat")
     const { channel } = await chat.createGroupConversation({
       users: selectedUsers,
       channelId: nanoid(),
       channelData: { name: groupName },
     })
-    navigation.navigate("Chat", { channelId: channel.id })
+    setCurrentChannel(channel)
+    setLoading(false)
   }
 
   return (
@@ -58,6 +61,7 @@ export function NewGroupScreen({ navigation }: StackScreenProps<HomeStackParamLi
         data={users.filter((user) => user.name?.toLowerCase().includes(searchText.toLowerCase()))}
         renderItem={({ item: user }) => (
           <ListItem
+            avatar={<Avatar source={user} />}
             title={user.name || user.id}
             onPress={() => toggleUser(user)}
             showCheckbox
