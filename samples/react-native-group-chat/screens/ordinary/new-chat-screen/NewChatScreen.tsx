@@ -1,6 +1,7 @@
-import { useState, useContext, useEffect } from "react"
+import { useState, useContext } from "react"
 import { View, StyleSheet, FlatList } from "react-native"
 import { StackScreenProps } from "@react-navigation/stack"
+import { User } from "@pubnub/chat"
 
 import { HomeStackParamList } from "../../../types"
 import { ChatContext } from "../../../context"
@@ -13,7 +14,8 @@ export function NewChatScreen({ navigation }: StackScreenProps<HomeStackParamLis
 
   async function openChat(user: User) {
     // TODO: this should ideally navigate first and create channel in the background
-    const { channel } = await chat?.createDirectConversation({ user })
+    if (!chat) return
+    const { channel } = await chat.createDirectConversation({ user, channelData: {} })
     navigation.navigate("Chat", { channelId: channel.id })
   }
 
@@ -39,9 +41,9 @@ export function NewChatScreen({ navigation }: StackScreenProps<HomeStackParamLis
       <Line />
       <Gap value={20} />
       <FlatList
-        data={users.filter((user) => user.name.toLowerCase().includes(searchText.toLowerCase()))}
+        data={users.filter((user) => user.name?.toLowerCase().includes(searchText.toLowerCase()))}
         renderItem={({ item: user }) => (
-          <ListItem title={user.name} onPress={() => openChat(user)} />
+          <ListItem title={user.name || user.id} onPress={() => openChat(user)} />
         )}
         keyExtractor={(user) => user.id}
       />

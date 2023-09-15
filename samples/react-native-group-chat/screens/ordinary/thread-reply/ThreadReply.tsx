@@ -17,7 +17,7 @@ import {
 } from "../../../ui-components"
 import { useNavigation } from "@react-navigation/native"
 import { useCommonChatRenderers } from "../../../hooks"
-import { useActionsMenu, UserSuggestionBox } from "../../../components"
+import { useActionsMenu } from "../../../components"
 
 export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "ThreadReply">) {
   const { parentMessage } = route.params
@@ -205,19 +205,6 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
 
     setIsMoreMessages(historicalMessagesObject.isMore)
   }
-
-  const handleUserToMention = useCallback(
-    (user: User) => {
-      if (!messageDraft) {
-        return
-      }
-
-      messageDraft.addMentionedUser(user, lastAffectedNameOccurrenceIndex)
-      setText(messageDraft.value)
-      setShowSuggestedUsers(false)
-    },
-    [messageDraft, lastAffectedNameOccurrenceIndex]
-  )
 
   const renderMessageBubble = useCallback((props: Bubble<EnhancedIMessage>["props"]) => {
     return (

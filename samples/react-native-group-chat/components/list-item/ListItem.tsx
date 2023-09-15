@@ -27,7 +27,7 @@ export function ListItem({
       <View style={styles.wrapper}>
         {showCheckbox ? (
           <MaterialIcons
-            color={checked ? colors.checkbox : colors.neutral400}
+            color={checked ? colors.teal800 : colors.neutral400}
             size={20}
             style={styles.checkbox}
             name={checked ? "check-box" : "check-box-outline-blank"}

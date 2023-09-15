@@ -59,6 +59,9 @@ export function useCommonChatRenderers({
       const messageIndex = giftedChatMappedMessages.findIndex(
         (m) => m.originalPnMessage.timetoken === message.timetoken
       )
+      // console.log("giftedChatMappedMessages", giftedChatMappedMessages)
+      // console.log("message", message)
+      // console.log("messageIndex", messageIndex)
 
       if (messageIndex === -1) {
         console.warn("This message is not loaded")
@@ -106,6 +109,7 @@ export function useCommonChatRenderers({
 
   const renderMessagePart = useCallback(
     (messagePart: MixedTextTypedElement, index: number, userId: string | number) => {
+      // TODO make it look nice
       if (messagePart.type === "text") {
         return (
           <Text variant="body" color={chat?.currentUser.id ? undefined : "neutral900"} key={index}>
@@ -178,35 +182,32 @@ export function useCommonChatRenderers({
     )
   }, [typingData, users])
 
-  const renderMessageText = useCallback(
-    (props: Bubble<EnhancedIMessage>["props"]) => {
-      if (props.currentMessage?.originalPnMessage.getLinkedText()) {
-        return (
-          <View>
-            {props.currentMessage?.originalPnMessage.quotedMessage ? (
-              <Quote
-                message={props.currentMessage?.originalPnMessage.quotedMessage}
-                onGoToMessage={() =>
-                  scrollToMessage(props.currentMessage?.originalPnMessage.quotedMessage)
-                }
-                charactersLimit={50}
-              />
-            ) : null}
-            <Text variant="body">
-              {props.currentMessage.originalPnMessage
-                .getLinkedText()
-                .map((msgPart, index) =>
-                  renderMessagePart(msgPart, index, props.currentMessage?.user._id || "")
-                )}
-            </Text>
-          </View>
-        )
-      }
+  const renderMessageText = (props: Bubble<EnhancedIMessage>["props"]) => {
+    if (props.currentMessage?.originalPnMessage.getLinkedText()) {
+      return (
+        <View>
+          {props.currentMessage?.originalPnMessage.quotedMessage ? (
+            <Quote
+              message={props.currentMessage?.originalPnMessage.quotedMessage}
+              onGoToMessage={() => {
+                scrollToMessage(props.currentMessage?.originalPnMessage.quotedMessage)
+              }}
+              charactersLimit={50}
+            />
+          ) : null}
+          <Text variant="body">
+            {props.currentMessage.originalPnMessage
+              .getLinkedText()
+              .map((msgPart, index) =>
+                renderMessagePart(msgPart, index, props.currentMessage?.user._id || "")
+              )}
+          </Text>
+        </View>
+      )
+    }
 
-      return <Text variant="body">{props.currentMessage?.text}</Text>
-    },
-    [renderMessagePart, scrollToMessage]
-  )
+    return <Text variant="body">{props.currentMessage?.text}</Text>
+  }
 
   return {
     renderMessagePart,

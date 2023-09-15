@@ -1,7 +1,8 @@
-import { useContext, useState } from "react"
+import React, { useContext, useState } from "react"
 import { View, StyleSheet, FlatList, TouchableOpacity } from "react-native"
-import { StackScreenProps } from "@react-navigation/stack"
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs"
 import { MaterialIcons } from "@expo/vector-icons"
+import { Channel } from "@pubnub/chat"
 
 import { BottomTabsParamList } from "../../../types"
 import { ChatContext } from "../../../context"
@@ -14,23 +15,24 @@ type ListEntry = {
   channelId: string
 }
 
-export function PeopleScreen({ navigation }: StackScreenProps<BottomTabsParamList, "People">) {
+export function PeopleScreen({ navigation }: BottomTabScreenProps<BottomTabsParamList, "People">) {
   const [searchText, setSearchText] = useState("")
   const [tooltipShown, setTooltipShown] = useState(false)
   const [sortByActive, setSortByActive] = useState(true)
   const { chat, memberships, users } = useContext(ChatContext)
   const directChannels = memberships.map((m) => m.channel).filter((c) => c.type === "direct")
-  const entries: ListEntry[] = directChannels.map((c) => {
-    const { name, active } = getInterlocutor(c)
-    return { title: name, active, channelId: c.id }
+  const entries: ListEntry[] = directChannels.flatMap((c) => {
+    const userId = getInterlocutorId(c)
+    if (!userId) return []
+    const user = users.find((u) => u.id === userId)
+    return user
+      ? { title: user.name || user.id, active: !!user.active, channelId: c.id }
+      : { title: userId, active: false, channelId: c.id }
   })
 
-  function getInterlocutor(channel: Channel) {
-    const interlocutorId = channel.id
-      .replace("direct.", "")
-      .replace(chat?.currentUser.id, "")
-      .replace("&", "")
-    return users.find((u) => u.id === interlocutorId)
+  function getInterlocutorId(channel: Channel) {
+    if (!chat) return
+    return channel.id.replace("direct.", "").replace(chat.currentUser.id, "").replace("&", "")
   }
 
   function sortEntries(a: ListEntry, b: ListEntry) {
@@ -74,7 +76,7 @@ export function PeopleScreen({ navigation }: StackScreenProps<BottomTabsParamLis
                 setSortByActive(true)
                 setTooltipShown(false)
               }}
-              iconRight={sortByActive && "check"}
+              iconRight={sortByActive ? "check" : undefined}
             >
               Active
             </Button>
@@ -86,7 +88,7 @@ export function PeopleScreen({ navigation }: StackScreenProps<BottomTabsParamLis
                 setSortByActive(false)
                 setTooltipShown(false)
               }}
-              iconRight={!sortByActive && "check"}
+              iconRight={sortByActive ? undefined : "check"}
             >
               Name
             </Button>
@@ -106,6 +108,7 @@ export function PeopleScreen({ navigation }: StackScreenProps<BottomTabsParamLis
             title={entry.title}
             showActive
             active={entry.active}
+            // TODO: fix navigation type error
             onPress={() => navigation.navigate("Chat", { channelId: entry.channelId })}
             // TODO: unread messages count badge
           />

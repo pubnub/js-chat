@@ -1,7 +1,5 @@
 import type { StackScreenProps } from "@react-navigation/stack"
-import { NavigatorScreenParams } from "@react-navigation/native"
-import type { NativeStackScreenProps } from "@react-navigation/native-stack"
-import { NavigationProp } from "@react-navigation/native"
+import { NavigationProp, NavigatorScreenParams } from "@react-navigation/native"
 import { EnhancedIMessage } from "./utils"
 
 export type RootStackParamList = {
