@@ -16,9 +16,10 @@ import { Message } from "@pubnub/chat"
 
 type UseActionsMenuParams = {
   onQuote: (message: Message) => void
+  removeThreadReply?: boolean
 }
 
-export function useActionsMenu({ onQuote }: UseActionsMenuParams) {
+export function useActionsMenu({ onQuote, removeThreadReply = false }: UseActionsMenuParams) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
   const theme = usePNTheme()
   const navigation = useNavigation<HomeStackNavigation>()
@@ -72,20 +73,24 @@ export function useActionsMenu({ onQuote }: UseActionsMenuParams) {
         Copy message
       </Button>
       <Gap value={16} />
-      <Button
-        size="md"
-        align="left"
-        icon="subdirectory-arrow-right"
-        variant="outlined"
-        onPress={() => {
-          navigation.navigate("ThreadReply", { parentMessage: currentlyFocusedMessage })
-          setCurrentlyFocusedMessage(null)
-          bottomSheetModalRef.current?.dismiss()
-        }}
-      >
-        Reply in thread
-      </Button>
-      <Gap value={16} />
+      {!removeThreadReply ? (
+        <>
+          <Button
+            size="md"
+            align="left"
+            icon="subdirectory-arrow-right"
+            variant="outlined"
+            onPress={() => {
+              navigation.navigate("ThreadReply", { parentMessage: currentlyFocusedMessage })
+              setCurrentlyFocusedMessage(null)
+              bottomSheetModalRef.current?.dismiss()
+            }}
+          >
+            Reply in thread
+          </Button>
+          <Gap value={16} />
+        </>
+      ) : null}
       <Button
         size="md"
         align="left"
