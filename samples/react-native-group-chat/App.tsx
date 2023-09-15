@@ -13,7 +13,6 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
 import { NavigationContainer } from "@react-navigation/native"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { createStackNavigator, StackScreenProps } from "@react-navigation/stack"
-import { PaperProvider } from "react-native-paper"
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons"
 import { StatusBar } from "expo-status-bar"
 import { Channel, Chat, Membership, User } from "@pubnub/chat"
@@ -145,6 +144,7 @@ function App() {
       chat?.getUser(userId).then((fetchedUser) => {
         if (fetchedUser) setUsers((users) => [...users, fetchedUser])
       })
+      return null
     }
     return existingUser
   }
@@ -178,28 +178,26 @@ function App() {
     >
       <GestureHandlerRootView style={{ flex: 1 }}>
         <BottomSheetModalProvider>
-          <PaperProvider settings={{ rippleEffectEnabled: false }} theme={defaultTheme}>
-            <StatusBar style="inverted" backgroundColor={defaultTheme.colors.navy800} />
-            <SafeAreaProvider>
-              <SafeAreaView
-                style={[styles.safeArea, { backgroundColor: defaultTheme.colors.navy800 }]}
-                edges={["top", "left", "right"]}
+          <StatusBar style="inverted" backgroundColor={defaultTheme.colors.navy800} />
+          <SafeAreaProvider>
+            <SafeAreaView
+              style={[styles.safeArea, { backgroundColor: defaultTheme.colors.navy800 }]}
+              edges={["top", "left", "right"]}
+            >
+              {/* TODO: for some reason KeyboardAvoidingView doesn't work on any page other than login */}
+              <KeyboardAvoidingView
+                {...(Platform.OS === "ios" ? { behavior: "padding" } : {})}
+                style={{ flex: 1 }}
               >
-                {/* TODO: for some reason KeyboardAvoidingView doesn't work on any page other than login */}
-                <KeyboardAvoidingView
-                  {...(Platform.OS === "ios" ? { behavior: "padding" } : {})}
-                  style={{ flex: 1 }}
-                >
-                  <NavigationContainer>
-                    <MainStack.Navigator screenOptions={{ headerShown: false }}>
-                      <MainStack.Screen name="login" component={LoginScreen} />
-                      <MainStack.Screen name="tabs" component={TabNavigator} />
-                    </MainStack.Navigator>
-                  </NavigationContainer>
-                </KeyboardAvoidingView>
-              </SafeAreaView>
-            </SafeAreaProvider>
-          </PaperProvider>
+                <NavigationContainer>
+                  <MainStack.Navigator screenOptions={{ headerShown: false }}>
+                    <MainStack.Screen name="login" component={LoginScreen} />
+                    <MainStack.Screen name="tabs" component={TabNavigator} />
+                  </MainStack.Navigator>
+                </NavigationContainer>
+              </KeyboardAvoidingView>
+            </SafeAreaView>
+          </SafeAreaProvider>
         </BottomSheetModalProvider>
       </GestureHandlerRootView>
     </ChatContext.Provider>

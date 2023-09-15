@@ -8,9 +8,8 @@ import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { ChatContext } from "../../../context"
 import { HomeStackParamList } from "../../../types"
 import { Avatar, Quote, useActionsMenu, UserSuggestionBox } from "../../../components"
-import { colorPalette as colors } from "../../../ui-components"
+import { colorPalette as colors, Text } from "../../../ui-components"
 import { useNavigation } from "@react-navigation/native"
-import { Text, usePNTheme } from "../../../ui-components"
 import { useCommonChatRenderers } from "../../../hooks"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 
@@ -28,7 +27,6 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
   const giftedChatRef = useRef<FlatList<EnhancedIMessage>>(null)
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const [text, setText] = useState("")
-  const theme = usePNTheme()
   const currentChannelMembership = currentChannelMembers.find(
     (m) => m.user.id === currentChannel?.id
   )
@@ -253,8 +251,8 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
         <Bubble
           {...props}
           wrapperStyle={{
-            left: { padding: 12, backgroundColor: theme.colors.neutral50 },
-            right: { marginLeft: 0, padding: 12, backgroundColor: theme.colors.teal100 },
+            left: { padding: 12, backgroundColor: colors.neutral50 },
+            right: { marginLeft: 0, padding: 12, backgroundColor: colors.teal100 },
           }}
         />
         {props.currentMessage?.originalPnMessage.hasThread ? (

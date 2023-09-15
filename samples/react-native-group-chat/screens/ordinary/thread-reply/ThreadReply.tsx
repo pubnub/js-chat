@@ -6,11 +6,13 @@ import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { Message, MessageDraft, ThreadChannel, User } from "@pubnub/chat"
 import { Bubble, GiftedChat } from "react-native-gifted-chat"
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native"
-import { Gap, Line, usePNTheme, Text, colorPalette } from "../../../ui-components"
+import { Gap, Line, Text, defaultTheme } from "../../../ui-components"
 import { useNavigation } from "@react-navigation/native"
 import { useCommonChatRenderers } from "../../../hooks"
 import { Avatar, useActionsMenu } from "../../../components"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
+
+const { colors, textStyles } = defaultTheme
 
 export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "ThreadReply">) {
   const { parentMessage } = route.params
@@ -28,7 +30,6 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([])
   const [showSuggestedUsers, setShowSuggestedUsers] = useState(false)
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
-  const theme = usePNTheme()
 
   const { renderFooter, renderMessageText, renderChatFooter } = useCommonChatRenderers({
     chat,
@@ -211,10 +212,10 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
         containerToNextStyle={{ right: { marginRight: 0 } }}
         containerStyle={{ right: { marginRight: 0 } }}
         wrapperStyle={{
-          right: [styles.ownBubbleBackground, { backgroundColor: theme.colors.teal100 }],
+          right: [styles.ownBubbleBackground, { backgroundColor: colors.teal100 }],
           left: [styles.otherBubbleBackground],
         }}
-        textStyle={{ right: [styles.ownBubbleText, theme.textStyles.body] }}
+        textStyle={{ right: [styles.ownBubbleText, textStyles.body] }}
       />
     )
   }, [])
@@ -294,8 +295,8 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colorPalette.neutral100 },
-  content: { backgroundColor: colorPalette.neutral0, flex: 1 },
+  container: { flex: 1, backgroundColor: colors.neutral100 },
+  content: { backgroundColor: colors.neutral0, flex: 1 },
   bubbleContainer: {},
   ownBubbleBackground: { marginRight: 8, padding: 12 },
   otherBubbleBackground: { padding: 12 },

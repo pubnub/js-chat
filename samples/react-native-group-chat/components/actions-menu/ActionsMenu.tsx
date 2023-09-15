@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from "react"
 import { StyleSheet, View } from "react-native"
 import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
-import { Gap, Text, usePNTheme, Button } from "../../ui-components"
+import { Gap, Text, colorPalette as colors, Button } from "../../ui-components"
 import Emoji1 from "../../assets/emojis/emoji1.svg"
 import Emoji2 from "../../assets/emojis/emoji2.svg"
 import Emoji3 from "../../assets/emojis/emoji3.svg"
@@ -21,7 +21,6 @@ type UseActionsMenuParams = {
 
 export function useActionsMenu({ onQuote, removeThreadReply = false }: UseActionsMenuParams) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
-  const theme = usePNTheme()
   const navigation = useNavigation<HomeStackNavigation>()
   const [currentlyFocusedMessage, setCurrentlyFocusedMessage] = useState<EnhancedIMessage | null>(
     null
@@ -47,7 +46,7 @@ export function useActionsMenu({ onQuote, removeThreadReply = false }: UseAction
       onChange={handleSheetChanges}
       style={styles.container}
       backdropComponent={BottomSheetBackdrop}
-      handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: theme.colors.neutral500 }]}
+      handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: colors.neutral500 }]}
     >
       <View style={styles.emojisRow}>
         <Emoji1 width={48} height={48} />
