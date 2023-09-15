@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect, useContext, useMemo } from "react"
-import { StyleSheet, View, ActivityIndicator, TouchableOpacity } from "react-native"
+import React, { useState, useCallback, useEffect, useContext, useMemo, useRef } from "react"
+import { StyleSheet, View, ActivityIndicator, TouchableOpacity, FlatList } from "react-native"
 import { GiftedChat, Bubble } from "react-native-gifted-chat"
 import { StackScreenProps } from "@react-navigation/stack"
 import { Channel, User, MessageDraft, Message } from "@pubnub/chat"
@@ -7,7 +7,7 @@ import { Channel, User, MessageDraft, Message } from "@pubnub/chat"
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { ChatContext } from "../../../context"
 import { HomeStackParamList } from "../../../types"
-import { useActionsMenu, UserSuggestionBox } from "../../../components"
+import { Quote, useActionsMenu, UserSuggestionBox } from "../../../components"
 import { getRandomAvatar, colorPalette as colors } from "../../../ui-components"
 import { useNavigation } from "@react-navigation/native"
 import { Icon, Text, usePNTheme } from "../../../ui-components"
@@ -25,6 +25,7 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
   const [messageDraft, setMessageDraft] = useState<MessageDraft | null>(null)
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([])
   const [showSuggestedUsers, setShowSuggestedUsers] = useState(false)
+  const giftedChatRef = useRef<FlatList<EnhancedIMessage>>(null)
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const [text, setText] = useState("")
   const { chat, memberships } = useContext(ChatContext)
@@ -33,10 +34,18 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
     () => memberships.find((membership) => membership.channel.id === channelId),
     [memberships, channelId]
   )
-  const { renderFooter, renderMessageText } = useCommonChatRenderers({
+  const { renderFooter, renderMessageText, renderChatFooter } = useCommonChatRenderers({
     chat,
     typingData,
     users,
+    messageDraft,
+    lastAffectedNameOccurrenceIndex,
+    setText,
+    giftedChatRef,
+    giftedChatMappedMessages,
+    setShowSuggestedUsers,
+    showSuggestedUsers,
+    suggestedUsers,
   })
 
   const handleQuote = useCallback(
@@ -249,19 +258,6 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
     [messageDraft, currentChannel]
   )
 
-  const handleUserToMention = useCallback(
-    (user: User) => {
-      if (!messageDraft) {
-        return
-      }
-
-      messageDraft.addMentionedUser(user, lastAffectedNameOccurrenceIndex)
-      setText(messageDraft.value)
-      setShowSuggestedUsers(false)
-    },
-    [messageDraft, lastAffectedNameOccurrenceIndex]
-  )
-
   const renderBubble = (props: Bubble<EnhancedIMessage>["props"]) => {
     return (
       <View>
@@ -291,10 +287,6 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
     )
   }
 
-  const renderChatFooter = useCallback(() => {
-
-  }, [messageDraft])
-
   if (!messageDraft || !chat) {
     return (
       <View style={{ justifyContent: "center", flex: 1 }}>
@@ -316,11 +308,7 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
         renderTime={() => null}
         isLoadingEarlier={isLoadingMoreMessages}
         renderBubble={renderBubble}
-        renderChatFooter={() =>
-          showSuggestedUsers ? (
-            <UserSuggestionBox users={suggestedUsers} onUserSelect={handleUserToMention} />
-          ) : null
-        }
+        renderChatFooter={renderChatFooter}
         onLoadEarlier={loadEarlierMessages}
         user={{
           _id: chat.currentUser.id,
@@ -328,6 +316,7 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
         onLongPress={(_, giftedMessage: EnhancedIMessage) => {
           handlePresentModalPress({ message: giftedMessage })
         }}
+        messageContainerRef={giftedChatRef}
       />
       <ActionsMenuComponent />
     </View>
@@ -345,5 +334,8 @@ const styles = StyleSheet.create({
   threadRepliesContainer: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  footerContainer: {
+    marginLeft: 16,
   },
 })

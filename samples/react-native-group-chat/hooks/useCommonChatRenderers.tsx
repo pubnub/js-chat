@@ -1,20 +1,108 @@
-import { Linking, View } from "react-native"
+import { FlatList, Linking, View, StyleSheet } from "react-native"
 import React, { useCallback } from "react"
-import { Chat, MixedTextTypedElement, User } from "@pubnub/chat"
+import { Chat, Message, MessageDraft, MixedTextTypedElement, User } from "@pubnub/chat"
 import { Text } from "../ui-components"
 import { Bubble } from "react-native-gifted-chat"
 import { EnhancedIMessage } from "../utils"
+import { Quote, UserSuggestionBox } from "../components"
 
 type UseCommonChatRenderersProps = {
   chat: Chat | null
   typingData: string[]
   users: Map<string, User>
+  messageDraft: MessageDraft
+  lastAffectedNameOccurrenceIndex: number
+  setText: (text: string) => void
+  setShowSuggestedUsers: (value: boolean) => void
+  showSuggestedUsers: boolean
+  giftedChatRef: React.RefObject<FlatList<EnhancedIMessage>>
+  giftedChatMappedMessages: EnhancedIMessage[]
+  suggestedUsers: User[]
 }
 
-export function useCommonChatRenderers({ chat, typingData, users }: UseCommonChatRenderersProps) {
+export function useCommonChatRenderers({
+  chat,
+  typingData,
+  users,
+  messageDraft,
+  lastAffectedNameOccurrenceIndex,
+  setText,
+  setShowSuggestedUsers,
+  giftedChatRef,
+  giftedChatMappedMessages,
+  suggestedUsers,
+  showSuggestedUsers,
+}: UseCommonChatRenderersProps) {
   const openLink = (link: string) => {
     Linking.openURL(link)
   }
+
+  const handleUserToMention = useCallback(
+    (user: User) => {
+      if (!messageDraft) {
+        return
+      }
+
+      messageDraft.addMentionedUser(user, lastAffectedNameOccurrenceIndex)
+      setText(messageDraft.value)
+      setShowSuggestedUsers(false)
+    },
+    [messageDraft, lastAffectedNameOccurrenceIndex]
+  )
+
+  const scrollToMessage = useCallback(
+    (message: Message) => {
+      if (!giftedChatRef.current) {
+        return
+      }
+
+      const messageIndex = giftedChatMappedMessages.findIndex(
+        (m) => m.originalPnMessage.timetoken === message.timetoken
+      )
+
+      if (messageIndex === -1) {
+        console.warn("This message is not loaded")
+        return
+      }
+
+      giftedChatRef.current.scrollToIndex({ animated: true, index: messageIndex })
+    },
+    [giftedChatMappedMessages]
+  )
+
+  const renderChatFooter = useCallback(() => {
+    if (!messageDraft || !messageDraft.quotedMessage) {
+      return null
+    }
+
+    const quotedMessage = messageDraft.quotedMessage
+    let quotedMessageComponent = null
+    let userSuggestionComponent = null
+
+    if (quotedMessage) {
+      quotedMessageComponent = (
+        <View style={styles.footerContainer}>
+          <Quote
+            message={messageDraft.quotedMessage}
+            charactersLimit={100}
+            onGoToMessage={() => scrollToMessage(quotedMessage)}
+          />
+        </View>
+      )
+    }
+    if (showSuggestedUsers) {
+      userSuggestionComponent = (
+        <UserSuggestionBox users={suggestedUsers} onUserSelect={handleUserToMention} />
+      )
+    }
+
+    return (
+      <>
+        {quotedMessageComponent}
+        {userSuggestionComponent}
+      </>
+    )
+  }, [messageDraft, showSuggestedUsers, scrollToMessage])
 
   const renderMessagePart = useCallback(
     (messagePart: MixedTextTypedElement, index: number, userId: string | number) => {
@@ -94,24 +182,43 @@ export function useCommonChatRenderers({ chat, typingData, users }: UseCommonCha
     (props: Bubble<EnhancedIMessage>["props"]) => {
       if (props.currentMessage?.originalPnMessage.getLinkedText()) {
         return (
-          <Text variant="body">
-            {props.currentMessage.originalPnMessage
-              .getLinkedText()
-              .map((msgPart, index) =>
-                renderMessagePart(msgPart, index, props.currentMessage?.user._id || "")
-              )}
-          </Text>
+          <View>
+            {props.currentMessage?.originalPnMessage.quotedMessage ? (
+              <Quote
+                message={props.currentMessage?.originalPnMessage.quotedMessage}
+                onGoToMessage={() =>
+                  scrollToMessage(props.currentMessage?.originalPnMessage.quotedMessage)
+                }
+                charactersLimit={50}
+              />
+            ) : null}
+            <Text variant="body">
+              {props.currentMessage.originalPnMessage
+                .getLinkedText()
+                .map((msgPart, index) =>
+                  renderMessagePart(msgPart, index, props.currentMessage?.user._id || "")
+                )}
+            </Text>
+          </View>
         )
       }
 
       return <Text variant="body">{props.currentMessage?.text}</Text>
     },
-    [renderMessagePart]
+    [renderMessagePart, scrollToMessage]
   )
 
   return {
     renderMessagePart,
     renderFooter,
     renderMessageText,
+    renderChatFooter,
   }
 }
+
+const styles = StyleSheet.create({
+  footerContainer: {
+    marginLeft: 16,
+    paddingTop: 12,
+  },
+})

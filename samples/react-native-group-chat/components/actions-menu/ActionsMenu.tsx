@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from "react"
+import React, { useCallback, useMemo, useRef, useState } from "react"
 import { StyleSheet, View } from "react-native"
 import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
 import { Gap, Text, usePNTheme, Button } from "../../ui-components"
@@ -12,7 +12,7 @@ import Emoji7 from "../../assets/emojis/emoji7.svg"
 import { useNavigation } from "@react-navigation/native"
 import { EnhancedIMessage } from "../../utils"
 import { HomeStackNavigation } from "../../types"
-import { Message } from "@pubnub/chat";
+import { Message } from "@pubnub/chat"
 
 type UseActionsMenuParams = {
   onQuote: (message: Message) => void
@@ -22,7 +22,9 @@ export function useActionsMenu({ onQuote }: UseActionsMenuParams) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
   const theme = usePNTheme()
   const navigation = useNavigation<HomeStackNavigation>()
-  const [currentlyFocusedMessage, setCurrentlyFocusedMessage] = useState<EnhancedIMessage | null>(null)
+  const [currentlyFocusedMessage, setCurrentlyFocusedMessage] = useState<EnhancedIMessage | null>(
+    null
+  )
 
   // variables
   const snapPoints = useMemo(() => ["25%", "50%"], [])
@@ -92,6 +94,8 @@ export function useActionsMenu({ onQuote }: UseActionsMenuParams) {
         onPress={() => {
           if (currentlyFocusedMessage) {
             onQuote(currentlyFocusedMessage.originalPnMessage)
+            setCurrentlyFocusedMessage(null)
+            bottomSheetModalRef.current?.dismiss()
           }
         }}
       >
