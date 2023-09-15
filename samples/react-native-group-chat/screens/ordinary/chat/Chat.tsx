@@ -1,16 +1,16 @@
 import React, { useState, useCallback, useEffect, useContext, useMemo } from "react"
-import { Linking, StyleSheet, View, ActivityIndicator, TouchableOpacity } from "react-native"
+import { StyleSheet, View, ActivityIndicator, TouchableOpacity } from "react-native"
 import { GiftedChat, Bubble } from "react-native-gifted-chat"
 import { StackScreenProps } from "@react-navigation/stack"
-import {Channel, User, MessageDraft, MixedTextTypedElement, Message} from "@pubnub/chat"
+import { Channel, User, MessageDraft, Message } from "@pubnub/chat"
 
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { ChatContext } from "../../../context"
 import { HomeStackParamList } from "../../../types"
-import { useActionsMenu } from "../../../components"
+import { useActionsMenu, UserSuggestionBox } from "../../../components"
 import { getRandomAvatar, colorPalette as colors } from "../../../ui-components"
 import { useNavigation } from "@react-navigation/native"
-import {Icon, Text, usePNTheme} from "../../../ui-components"
+import { Icon, Text, usePNTheme } from "../../../ui-components"
 import { useCommonChatRenderers } from "../../../hooks"
 
 export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat">) {
@@ -24,6 +24,7 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
   const [typingData, setTypingData] = useState<string[]>([])
   const [messageDraft, setMessageDraft] = useState<MessageDraft | null>(null)
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([])
+  const [showSuggestedUsers, setShowSuggestedUsers] = useState(false)
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const [text, setText] = useState("")
   const { chat, memberships } = useContext(ChatContext)
@@ -229,8 +230,22 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
       })
 
       setText(messageDraft.value)
+      setShowSuggestedUsers(true)
     },
     [messageDraft, currentChannel]
+  )
+
+  const handleUserToMention = useCallback(
+    (user: User) => {
+      if (!messageDraft) {
+        return
+      }
+
+      messageDraft.addMentionedUser(user, lastAffectedNameOccurrenceIndex)
+      setText(messageDraft.value)
+      setShowSuggestedUsers(false)
+    },
+    [messageDraft, lastAffectedNameOccurrenceIndex]
   )
 
   const renderBubble = (props: Bubble<EnhancedIMessage>["props"]) => {
@@ -283,6 +298,11 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
         renderTime={() => null}
         isLoadingEarlier={isLoadingMoreMessages}
         renderBubble={renderBubble}
+        renderChatFooter={() =>
+          showSuggestedUsers ? (
+            <UserSuggestionBox users={suggestedUsers} onUserSelect={handleUserToMention} />
+          ) : null
+        }
         onLoadEarlier={loadEarlierMessages}
         user={{
           _id: chat.currentUser.id,

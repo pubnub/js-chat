@@ -18,6 +18,7 @@ export function useCommonChatRenderers({ chat, typingData, users }: UseCommonCha
 
   const renderMessagePart = useCallback(
     (messagePart: MixedTextTypedElement, index: number, userId: string | number) => {
+      // TODO make it look nice
       if (messagePart.type === "text") {
         return (
           <Text variant="body" color={chat?.currentUser.id ? undefined : "neutral900"} key={index}>

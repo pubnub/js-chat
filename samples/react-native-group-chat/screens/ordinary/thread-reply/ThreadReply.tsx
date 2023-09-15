@@ -17,6 +17,7 @@ import {
 } from "../../../ui-components"
 import { useNavigation } from "@react-navigation/native"
 import { useCommonChatRenderers } from "../../../hooks"
+import { UserSuggestionBox } from "../../../components"
 
 export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "ThreadReply">) {
   const { parentMessage } = route.params
@@ -31,6 +32,7 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
   const [typingData, setTypingData] = useState<string[]>([])
   const [isParentMessageCollapsed, setIsParentMessageCollapsed] = useState(false)
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([])
+  const [showSuggestedUsers, setShowSuggestedUsers] = useState(false)
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const theme = usePNTheme()
 
@@ -144,6 +146,7 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
       })
 
       setText(messageDraft.value)
+      setShowSuggestedUsers(true)
     },
     [messageDraft, currentThreadChannel]
   )
@@ -176,6 +179,19 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
 
     setIsMoreMessages(historicalMessagesObject.isMore)
   }
+
+  const handleUserToMention = useCallback(
+    (user: User) => {
+      if (!messageDraft) {
+        return
+      }
+
+      messageDraft.addMentionedUser(user, lastAffectedNameOccurrenceIndex)
+      setText(messageDraft.value)
+      setShowSuggestedUsers(false)
+    },
+    [messageDraft, lastAffectedNameOccurrenceIndex]
+  )
 
   const renderMessageBubble = useCallback((props: Bubble<EnhancedIMessage>["props"]) => {
     return (
@@ -247,6 +263,11 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
           renderFooter={renderFooter}
           renderLoadEarlier={() => null}
           renderBubble={renderMessageBubble}
+          renderChatFooter={() =>
+            showSuggestedUsers ? (
+              <UserSuggestionBox users={suggestedUsers} onUserSelect={handleUserToMention} />
+            ) : null
+          }
           text={text}
           loadEarlier={isMoreMessages}
           isLoadingEarlier={isLoadingMoreMessages}

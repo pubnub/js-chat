@@ -50,7 +50,9 @@ export function ListItem({
 
         {badge ? (
           <View style={styles.badge}>
-            <Text color="neutral0">5</Text>
+            <Text variant="body" color="neutral0">
+              5
+            </Text>
           </View>
         ) : null}
       </View>
@@ -82,7 +84,6 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   title: {
-    flex: 1,
     paddingHorizontal: 16,
   },
   badge: {
