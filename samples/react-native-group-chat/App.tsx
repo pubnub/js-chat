@@ -1,5 +1,12 @@
 import { useContext, useEffect, useState } from "react"
-import { View, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native"
+import {
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  LogBox,
+} from "react-native"
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
@@ -23,6 +30,8 @@ import { LoginScreen } from "./screens/ordinary"
 import { ChatContext } from "./context"
 import { RootStackParamList, BottomTabsParamList } from "./types"
 import { defaultTheme, colorPalette as colors } from "./ui-components"
+
+LogBox.ignoreLogs(["Require cycle:", "Sending"])
 
 const Tab = createBottomTabNavigator<BottomTabsParamList>()
 const MainStack = createStackNavigator<RootStackParamList>()

@@ -94,7 +94,7 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
 
         <Gap value={16} />
         <Line />
-        <Gap value={8} />
+        <Gap value={20} />
 
         <Accordion
           title="UNREAD"
@@ -117,7 +117,7 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
 
         <Gap value={8} />
         <Line />
-        <Gap value={8} />
+        <Gap value={20} />
 
         <Accordion title="PUBLIC CHANNELS">
           {getFilteredChannels(currentUserPublicChannels).map((channel) => (
@@ -132,7 +132,7 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
 
         <Gap value={8} />
         <Line />
-        <Gap value={8} />
+        <Gap value={20} />
 
         <Accordion title="GROUPS">
           {getFilteredChannels(currentUserGroupChannels).map((channel) => (

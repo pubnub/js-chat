@@ -117,7 +117,7 @@ export function ProfileScreen({
           index={1}
           snapPoints={["25%", "50%"]}
           backdropComponent={BottomSheetBackdrop}
-          style={styles.container}
+          style={[styles.container, { paddingTop: 0 }]}
         >
           <Gap value={24} />
           <Text variant="headline" textAlign="center">
