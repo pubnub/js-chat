@@ -59,9 +59,6 @@ export function useCommonChatRenderers({
       const messageIndex = giftedChatMappedMessages.findIndex(
         (m) => m.originalPnMessage.timetoken === message.timetoken
       )
-      // console.log("giftedChatMappedMessages", giftedChatMappedMessages)
-      // console.log("message", message)
-      // console.log("messageIndex", messageIndex)
 
       if (messageIndex === -1) {
         console.warn("This message is not loaded")
