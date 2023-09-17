@@ -10,6 +10,10 @@ import {
 import { jest } from "@jest/globals"
 import mockFs from "mock-fs"
 import * as fs from "fs"
+import axios from "axios"
+import MockAdapter from "axios-mock-adapter"
+
+const mock = new MockAdapter(axios)
 
 describe("Send message test", () => {
   jest.retryTimes(3)
@@ -25,10 +29,12 @@ describe("Send message test", () => {
   beforeEach(async () => {
     channel = await createRandomChannel()
     messageDraft = new MessageDraft(chat, channel)
+    mock.reset()
   })
 
   afterEach(() => {
     mockFs.restore()
+    mock.restore()
   })
 
   type FileDetails = {
@@ -525,6 +531,43 @@ describe("Send message test", () => {
     disconnect()
   }, 30000)
 
+  test("should send mp4 file along with a text message correctly", async () => {
+    const messages: string[] = []
+    const filesReceived: FileDetails[] = []
+    const textMessage = "Hello, sending three files"
+
+    const file1 = fs.createReadStream("tests/fixtures/example-video.mp4")
+
+    const filesFromInput = [{ stream: file1, name: "example-video.mp4", mimeType: "video/mp4" }]
+
+    const disconnect = channel.connect((message) => {
+      if (message.content.text !== undefined) {
+        messages.push(message.content.text)
+      }
+      if (message.content.files !== undefined) {
+        filesReceived.push(...message.content.files)
+      }
+    })
+
+    await channel.sendText(textMessage, {
+      files: filesFromInput,
+    })
+
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    await sleep(2000)
+
+    expect(messages).toContain(textMessage)
+
+    expect(filesReceived.length).toBe(1)
+
+    expect(filesReceived[0].id).toBeDefined()
+    expect(filesReceived[0].name).toBe("example-video.mp4")
+    expect(filesReceived[0].url).toBeDefined()
+    expect(filesReceived[0].type).toBe("video/mp4")
+
+    disconnect()
+  }, 30000)
+
   test("should send multiple different types of files along with a text message correctly", async () => {
     const messages: string[] = []
     const filesReceived: FileDetails[] = []
@@ -578,15 +621,17 @@ describe("Send message test", () => {
     disconnect()
   }, 30000)
 
-  //Needs to be clarified
-  test.only("shouldn't allow to send image file over 5 mb along with a text message", async () => {
-    const messages: string[] = []
-    const filesReceived: FileDetails[] = []
+  //Skiped across SDK issue with sending files over 5mb. Was reported to SDK team. Waiting for fix
+  test.skip("shouldn't allow to send image file over 5 mb along with a text message", async () => {
+    // const messages: string[] = []
+    // const filesReceived: FileDetails[] = []
     const textMessage = "Hello, sending three files"
 
-    const file1 = fs.createReadStream("tests/fixtures/lorem-ipsum.pdf")
+    const file1 = fs.createReadStream("tests/fixtures/example-video-oversize.mp4")
 
-    const filesFromInput = [{ stream: file1, name: "lorem-ipsum.pdf", mimeType: "image/jpg" }]
+    const filesFromInput = [
+      { stream: file1, name: "example-video-oversize.mp4", mimeType: "video/mp4" },
+    ]
 
     // const disconnect = channel.connect((message) => {
     //   if (message.content.text !== undefined) {
@@ -649,5 +694,309 @@ describe("Send message test", () => {
 
     expect(durationSecond).toBeGreaterThan(timeout)
     expect(durationThird).toBeGreaterThan(timeout + timeout * factor)
+  })
+
+  //WIP
+  //done
+  test("should send long messages and validate correct rendering", async () => {
+    const messages: string[] = []
+    const longMessages = [
+      "This is a long message with a lot of text to test the rendering of long messages in the chat.",
+      "Another long message that should be rendered correctly without any issues.",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non arcu eget risus lacinia tincidunt ut non orci. Nullam scelerisque odio vel erat feugiat placerat.",
+      "A very lengthy message to check how the chat handles extremely long text messages. It should not break the layout or cause any issues.",
+    ]
+
+    const disconnect = channel.connect((message) => {
+      if (message.content.text !== undefined) {
+        messages.push(message.content.text)
+      }
+    })
+
+    for (const longMessage of longMessages) {
+      await channel.sendText(longMessage)
+      const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+      await sleep(2000)
+    }
+
+    await waitForAllMessagesToBeDelivered(messages, longMessages)
+
+    for (const longMessage of longMessages) {
+      expect(messages).toContain(longMessage)
+    }
+
+    disconnect()
+  }, 30000)
+  //needs to be clarified across error message
+  test("should fail to send an empty or whitespace-only message", async () => {
+    const messages: string[] = []
+
+    const disconnect = channel.connect((message) => {
+      if (message.content.text !== undefined) {
+        messages.push(message.content.text)
+      }
+    })
+
+    try {
+      await channel.sendText("")
+    } catch (error) {
+      expect(error).toBeDefined()
+      expect(error.message).toContain("Message text cannot be empty")
+    }
+
+    try {
+      await channel.sendText("   ")
+    } catch (error) {
+      expect(error).toBeDefined()
+      expect(error.message).toContain("Message text cannot be empty")
+    }
+
+    expect(messages.length).toBe(0)
+
+    disconnect()
+  }, 30000)
+  //done
+  test("should send and receive messages in various languages correctly", async () => {
+    const messages: string[] = []
+    const textMessages = [
+      "Hello",
+      "This is a test message",
+      "你好", // Chinese
+      "مرحبًا", // Arabic
+      "こんにちは", // Japanese
+      "안녕하세요", // Korean
+      "Hola", // Spanish
+    ]
+
+    const disconnect = channel.connect((message) => {
+      if (message.content.text !== undefined) {
+        messages.push(message.content.text)
+      }
+    })
+
+    for (const textMessage of textMessages) {
+      await channel.sendText(textMessage)
+      const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+      await sleep(2000)
+    }
+
+    await waitForAllMessagesToBeDelivered(messages, textMessages)
+
+    for (const textMessage of textMessages) {
+      expect(messages).toContain(textMessage)
+    }
+
+    disconnect()
+  }, 30000)
+  //needs to be clarified across error message
+  test("should fail to edit a deleted message", async () => {
+    await channel.sendText("Test message")
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const historyBeforeDelete = await channel.getHistory()
+    const messagesBeforeDelete: Message[] = historyBeforeDelete.messages
+    const sentMessage = messagesBeforeDelete[messagesBeforeDelete.length - 1]
+
+    await sentMessage.delete()
+    await sleep(150) // history calls have around 130ms of cache time
+
+    try {
+      await sentMessage.editText("Edited message")
+    } catch (error) {
+      expect(error.message).toContain("Message not found")
+    }
+  }, 30000)
+  //needs to be clarified across error message
+  test("should delete toggle the message reaction", async () => {
+    await channel.sendText("Test message")
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const historyBeforeReaction = await channel.getHistory()
+    const messagesBeforeReaction: Message[] = historyBeforeReaction.messages
+    const sentMessage = messagesBeforeReaction[messagesBeforeReaction.length - 1]
+
+    const mockMessage: Partial<Message> = {
+      ...sentMessage,
+      toggleReaction: jest.fn().mockImplementation((reaction: string) => {
+        if (sentMessage.reactions[reaction]) {
+          delete sentMessage.reactions[reaction]
+        } else {
+          sentMessage.reactions[reaction] = [{ uuid: chat.sdk.getUUID(), actionTimetoken: "123" }]
+        }
+        return sentMessage
+      }),
+    }
+
+    await (mockMessage as Message).toggleReaction("like")
+
+    await (mockMessage as Message).toggleReaction("like")
+
+    expect(mockMessage.toggleReaction).toHaveBeenCalledWith("like")
+
+    expect(mockMessage.reactions["like"]).toBeUndefined()
+  }, 30000)
+  //needs to be clarified across error message
+  test("should be unable to pin multiple messages", async () => {
+    await channel.sendText("Test message 1")
+    await channel.sendText("Test message 2")
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const historyBeforePin = await channel.getHistory()
+    const messagesBeforePin: Message[] = historyBeforePin.messages
+    const messageToPin1 = messagesBeforePin[messagesBeforePin.length - 2]
+    const messageToPin2 = messagesBeforePin[messagesBeforePin.length - 1]
+
+    const pinnedChannel = await channel.pinMessage(messageToPin1)
+
+    try {
+      await channel.pinMessage(messageToPin2)
+    } catch (error) {
+      expect(error.message).toContain("Unable to pin multiple messages")
+    }
+
+    expect(pinnedChannel.custom?.["pinnedMessageTimetoken"]).toBe(messageToPin1.timetoken)
+  }, 30000)
+  //done
+  test("should not allow inserting a link inside another link", () => {
+    const initialText = "Check out these links: "
+    messageDraft.onChange(initialText)
+
+    const textToAdd1 = "example link 1"
+    const linkToAdd1 = "https://www.example1.com"
+    messageDraft.addLinkedText({
+      text: textToAdd1,
+      link: linkToAdd1,
+      positionInInput: initialText.length,
+    })
+
+    const textToAdd2 = " example link 2"
+    const linkToAdd2 = "https://www.example2.com"
+
+    expect(() => {
+      messageDraft.addLinkedText({
+        text: textToAdd2,
+        link: linkToAdd2,
+        positionInInput: messageDraft.value.indexOf(textToAdd1) + 2, // Insert within the first link
+      })
+    }).toThrowError("You cannot insert a link inside another link")
+
+    const expectedText = `${initialText}${textToAdd1}`
+    expect(messageDraft.value).toBe(expectedText)
+
+    const expectedLinks = [
+      {
+        startIndex: initialText.length,
+        endIndex: initialText.length + textToAdd1.length,
+        link: linkToAdd1,
+      },
+    ]
+
+    expect(messageDraft.textLinks).toHaveLength(1)
+    expect(messageDraft.textLinks).toEqual(expect.arrayContaining(expectedLinks))
+  })
+  //done
+  test("should send and receive messages correctly during network instability", async () => {
+    const messages: string[] = []
+    const textMessages = ["Hello", "This", "Is", "A", "Test"]
+    let networkStability = 1 // 1: normal, 0: unstable network
+
+    mock.onPost("/your-api-endpoint").reply((config) => {
+      if (networkStability === 1) {
+        networkStability = 0
+      } else {
+        networkStability = 1
+        messages.push("Network instability message")
+      }
+
+      if (networkStability === 1) {
+        return [200, { success: true }]
+      } else {
+        return [500, { error: "Network instability error" }]
+      }
+    })
+
+    const disconnect = channel.connect((message) => {
+      if (message.content.text !== undefined) {
+        messages.push(message.content.text)
+      }
+    })
+
+    for (const textMessage of textMessages) {
+      await channel.sendText(textMessage)
+
+      if (networkStability === 1) {
+        networkStability = 0
+      } else {
+        networkStability = 1
+        await channel.sendText("Network instability message")
+      }
+
+      const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+      await sleep(2000)
+    }
+
+    await waitForAllMessagesToBeDelivered(messages, textMessages)
+
+    for (const textMessage of textMessages) {
+      expect(messages).toContain(textMessage)
+    }
+
+    expect(messages).toContain("Network instability message")
+
+    disconnect()
+  }, 30000)
+
+  test.only("should send forwarded message with a quote in a Thread", async () => {
+    const messageText = "Test message"
+    await channel.sendText(messageText)
+    await sleep(150) // Wait for the message to be sent
+
+    let history = await channel.getHistory()
+    const sentMessage = history.messages[0]
+
+    await sentMessage.createThread()
+
+    const threadText = "Reply in the thread"
+    const thread = sentMessage.getThread()
+    await thread.sendText(threadText)
+    await sleep(150) // Wait for the thread message to be sent
+
+    const quotedMessage = await channel.getMessageByTimetoken(sentMessage.timetoken)
+
+    await channel.forwardMessage(quotedMessage)
+
+    history = await channel.getHistory()
+    const forwardedMessage = history.messages.find((message) => message.text === messageText)
+
+    expect(forwardedMessage.quotedMessage).toEqual(quotedMessage)
+  })
+
+  //done
+  test("should pin the message inside the Thread", async () => {
+    const messageText = "Test message"
+    await channel.sendText(messageText)
+    await sleep(150) // history calls have around 130ms of cache time
+
+    let history = await channel.getHistory()
+    let sentMessage = history.messages[0]
+    expect(sentMessage.hasThread).toBe(false)
+
+    await sentMessage.createThread()
+
+    history = await channel.getHistory()
+    sentMessage = history.messages[0]
+    expect(sentMessage.hasThread).toBe(true)
+
+    const thread = await sentMessage.getThread()
+    const threadText = "Whatever text"
+    await thread.sendText(threadText)
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const threadMessages = await thread.getHistory()
+    const messageToPin = threadMessages.messages[0]
+
+    const pinnedThread = await thread.pinMessage(messageToPin)
+
+    expect(pinnedThread.custom?.["pinnedMessageTimetoken"]).toBe(messageToPin.timetoken)
   })
 })

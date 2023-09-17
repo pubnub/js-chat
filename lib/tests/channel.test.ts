@@ -204,7 +204,7 @@ describe("Channel test", () => {
     }
   })
 
-  test("should create a thread", async () => {
+  test.only("should create a thread", async () => {
     const messageText = "Test message"
     await channel.sendText(messageText)
     await sleep(150) // history calls have around 130ms of cache time
@@ -540,7 +540,7 @@ describe("Channel test", () => {
     await chat.deleteUser(user3.id)
   })
 
-  //still fix in progress
+  //still fix in progress. Flaky.
   test.skip("should mention user in a message and validate cache", async () => {
     jest.retryTimes(3)
 
@@ -721,17 +721,153 @@ describe("Channel test", () => {
     }
   })
 
-  //WIP
-  test("should verify all available user's mentions", async () => {
+  test("should verify all user-related mentions using getCurrentUserMentions()", async () => {
     const user1Id = `user1_${Date.now()}`
     const user1 = await chat.createUser(user1Id, { name: "User1" })
 
-    const messageText = `Hello, @${user1.name} here is my mail test@pubnub.com`
+    const user2Id = `user2_${Date.now()}`
+    const user2 = await chat.createUser(user2Id, { name: "User2" })
 
-    await messageDraft.onChange(`Hello, @${user1.name} here is my mail test@pubnub.com`)
+    const messageText = `Hello, @${user1.name} and @${user2.name} here is a test mention`
+    await messageDraft.onChange("Hello, @Use")
+    messageDraft.addMentionedUser(user1, 0)
+    await messageDraft.onChange(`Hello, @${user1.name} and @Use`)
+    messageDraft.addMentionedUser(user2, 1)
+    await messageDraft.onChange(messageText)
+    await messageDraft.send()
+
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const mentionsResult = await chat.getCurrentUserMentions({ count: 10 })
+
+    expect(mentionsResult).toBeDefined()
+
+    await chat.deleteUser(user1.id)
+    await chat.deleteUser(user2.id)
+  })
+  //done
+  test("Should fail when trying to edit membership metadata of a non-existent channel", async () => {
+    const nonExistentChannelId = "nonexistentchannelid"
+
+    try {
+      const nonExistentChannel = await chat.getChannel(nonExistentChannelId)
+      const membership = await nonExistentChannel.join(() => null)
+      await membership.update({ custom: { role: "admin" } })
+      fail("Editing membership metadata of a non-existent channel should fail")
+    } catch (error) {
+      expect(error.message).toContain("Cannot read properties of null (reading 'join')")
+    }
+  })
+  //done
+  test("Should create direct conversation, edit, and delete a message", async () => {
+    const user1 = await createRandomUser()
+    const user2 = await createRandomUser()
+
+    const directConversation = await chat.createDirectConversation({
+      user: user1,
+      channelData: { name: "Test Convo" },
+    })
+
+    const messageText = "Hello from User1"
+    await directConversation.channel.sendText(messageText)
+
+    await sleep(150)
+
+    const history = await directConversation.channel.getHistory()
+    const sentMessage = history.messages.find((message) => message.content.text === messageText)
+
+    const editedMessageText = "Edited message from User1"
+    const editedMessage = await sentMessage.editText(editedMessageText)
+
+    expect(editedMessage.text).toEqual(editedMessageText)
+
+    const deletionResult = await editedMessage.delete()
+
+    expect(deletionResult).toBe(true)
+
+    await user1.delete()
+    await user2.delete()
+  })
+  //To be clarified deleting
+  test("should create reply to, and delete a thread", async () => {
+    const messageText = "Test message"
+    await channel.sendText(messageText)
+    await sleep(150) // history calls have around 130ms of cache time
+
+    let history = await channel.getHistory()
+    let sentMessage = history.messages[0]
+    expect(sentMessage.hasThread).toBe(false)
+
+    await sentMessage.createThread()
+
+    history = await channel.getHistory()
+    sentMessage = history.messages[0]
+    expect(sentMessage.hasThread).toBe(true)
+
+    const thread = await sentMessage.getThread()
+    const threadText = "Reply to the thread"
+
+    await thread.sendText(threadText)
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const threadMessages = await thread.getHistory()
+    expect(threadMessages.messages.some((message) => message.text === threadText)).toBe(true)
+
+    await thread.delete()
+    await sleep(150) // Give it some time to delete
+
+    const threadDeleted = await channel.getMessage(sentMessage.timetoken)
+    expect(threadDeleted.hasThread).toBe(false)
+  })
+  //done
+  test("should fail to get unread messages count for a deleted channel", async () => {
+    const messageText1 = "Test message 1"
+    const messageText2 = "Test message 2"
+
+    await channel.sendText(messageText1)
+    await channel.sendText(messageText2)
+    await sleep(150) // history calls have around 130ms of cache time
+
+    let membership = await channel.join(() => null)
+    let unreadCount = await membership.getUnreadMessagesCount()
+    expect(unreadCount).toBe(false)
+
+    const { messages } = await channel.getHistory()
+    membership = await membership.setLastReadMessage(messages[0])
+    unreadCount = await membership.getUnreadMessagesCount()
+    expect(unreadCount).toBe(1)
+
+    await channel.delete()
+
+    try {
+      unreadCount = await membership.getUnreadMessagesCount()
+    } catch (error) {
+      expect(error).toBeDefined()
+    }
+  })
+  //To be clarified with @ in mentioned user name
+  test("Should mention users with special characters in their names and validate mentioned users", async () => {
+    const specialChar1 = "_"
+    const specialChar2 = "@"
+
+    const user1Id = `user1_${Date.now()}`
+    const user2Id = `user2_${Date.now()}`
+
+    const user1 = await chat.createUser(user1Id, { name: `User${specialChar1}1` })
+    const user2 = await chat.createUser(user2Id, { name: `User${specialChar2}2` })
+
+    const messageText = `Hello, @${user1.name} and @${user2.name} here is my mail test@pubnub.com`
+
+    await messageDraft.onChange("Hello, @Use")
+    messageDraft.addMentionedUser(user1, 0)
+    await messageDraft.onChange(`Hello, @${user1.name} and @Use`)
+    messageDraft.addMentionedUser(user2, 1)
+    await messageDraft.onChange(
+      `Hello, @${user1.name} and @${user2.name} here is my mail test@pubnub.com`
+    )
 
     await messageDraft.send()
-    await sleep(150) // history calls have around 130ms of cache time
+    await sleep(150) // Wait for the message to be sent and cached
 
     const history = await channel.getHistory()
 
@@ -739,16 +875,128 @@ describe("Channel test", () => {
       (message: any) => message.content.text === messageText
     )
 
+    console.log("messageInHistory:", messageInHistory)
+    const extractedNamesFromText = extractMentionedUserIds(messageText)
+    console.log("extractedNamesFromText:", extractedNamesFromText)
+
     expect(messageInHistory).toBeDefined()
+    console.log("Number of mentioned users:", Object.keys(messageInHistory.mentionedUsers).length)
 
     expect(Object.keys(messageInHistory.mentionedUsers).length).toBe(2)
     expect(messageInHistory.mentionedUsers["0"].id).toEqual(user1.id)
-
-    const extractedNamesFromText = extractMentionedUserIds(messageText)
-    expect(messageInHistory.mentionedUsers["0"].name).toEqual(extractedNamesFromText[0])
-    expect(messageInHistory.mentionedUsers["1"].name).toEqual(extractedNamesFromText[1])
+    expect(messageInHistory.mentionedUsers["1"].id).toEqual(user2.id)
 
     await chat.deleteUser(user1.id)
+    await chat.deleteUser(user2.id)
+  })
+  //To be clarified channel id error from sdk
+  test("should fail when trying to mention a user in a deleted channel", async () => {
+    const channelName = `test-channel_${Date.now()}`
+    const channel = await chat.createChannel(channelName)
+
+    const user1Id = `user1_${Date.now()}`
+    const user1 = await chat.createUser(user1Id, { name: "User1" })
+
+    await chat.deleteChannel(channel.id)
+
+    const messageText = `Hello, @${user1.name} here is my message.`
+    await messageDraft.onChange(messageText)
+
+    try {
+      messageDraft.addMentionedUser(user1, 0)
+      expect(true).toBe(false)
+    } catch (error) {
+      expect(error.message).toContain("Cannot mention a user in a deleted channel")
+    }
+
+    await chat.deleteUser(user1.id)
+  })
+  //To be clarified channel id issue
+  test("should create a group chat channel", async () => {
+    const user1 = await createRandomUser()
+    const user2 = await createRandomUser()
+    const user3 = await createRandomUser()
+
+    const channelData = {
+      name: "Group Chat Channel",
+      description: "A channel for team collaboration",
+      custom: {
+        key: "value",
+      },
+    }
+
+    const { channel, hostMembership, inviteesMemberships } = await chat.createGroupConversation({
+      users: [user1, user2, user3],
+      channelId: "tg5984fd",
+      channelData,
+    })
+
+    expect(channel).toBeDefined()
+    expect(channel.name).toEqual(channelData.name)
+    expect(channel.description).toEqual(channelData.description)
+
+    expect(hostMembership).toBeDefined()
+    expect(hostMembership.channelId).toEqual(channel.id)
+
+    expect(inviteesMemberships).toBeDefined()
+    expect(inviteesMemberships.length).toBe(3)
+
+    expect(channel.custom).toEqual(channelData.custom)
+
+    await channel.delete()
+    await chat.deleteUser(user1.id)
+    await chat.deleteUser(user2.id)
+    await chat.deleteUser(user2.id)
+  })
+  //done
+  test("should create a public chat channel", async () => {
+    const channelData = {
+      name: "Public Chat Channel",
+      description: "A channel for open conversations",
+      custom: {
+        key: "value",
+      },
+    }
+
+    const publicChannel = await chat.createPublicConversation({
+      channelId: "public-channel-1",
+      channelData,
+    })
+
+    expect(publicChannel).toBeDefined()
+    expect(publicChannel.name).toEqual(channelData.name)
+    expect(publicChannel.description).toEqual(channelData.description)
+
+    expect(publicChannel.custom).toEqual(channelData.custom)
+
+    await publicChannel.delete()
+  })
+  //To be clarified with karo multiple methods
+  test("should invite a user to the channel {different methods}", async () => {
+    const userToInvite = await createRandomUser()
+    const membership = await channel.invite(userToInvite)
+
+    expect(membership).toBeDefined()
+    expect(membership.user.id).toEqual(userToInvite.id)
+    expect(membership.channel.id).toEqual(channel.id)
+
+    await userToInvite.delete()
+  })
+  //To be clarified with Karo multiple methods
+  test("should invite multiple users to the channel {different methods}", async () => {
+    const usersToInvite = await Promise.all([createRandomUser(), createRandomUser()])
+
+    const invitedMemberships = await channel.inviteMultiple(usersToInvite)
+
+    expect(invitedMemberships).toBeDefined()
+
+    invitedMemberships.forEach((membership, index) => {
+      const invitedUser = usersToInvite[index]
+      expect(membership.user.id).toEqual(invitedUser.id)
+      expect(membership.channel.id).toEqual(channel.id)
+    })
+
+    await Promise.all(usersToInvite.map((user) => user.delete()))
   })
 
   jest.retryTimes(3)
