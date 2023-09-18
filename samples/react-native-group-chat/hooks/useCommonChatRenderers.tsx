@@ -5,9 +5,9 @@ import { Text } from "../ui-components"
 import { Bubble } from "react-native-gifted-chat"
 import { EnhancedIMessage } from "../utils"
 import { Quote, UserSuggestionBox } from "../components"
+import {MessageText} from "../components/message-text";
 
 type UseCommonChatRenderersProps = {
-  chat: Chat | null
   typingData: string[]
   users: Map<string, User>
   messageDraft: MessageDraft
@@ -21,7 +21,6 @@ type UseCommonChatRenderersProps = {
 }
 
 export function useCommonChatRenderers({
-  chat,
   typingData,
   users,
   messageDraft,
@@ -33,10 +32,6 @@ export function useCommonChatRenderers({
   suggestedUsers,
   showSuggestedUsers,
 }: UseCommonChatRenderersProps) {
-  const openLink = (link: string) => {
-    Linking.openURL(link)
-  }
-
   const handleUserToMention = useCallback(
     (user: User) => {
       if (!messageDraft) {
@@ -104,58 +99,6 @@ export function useCommonChatRenderers({
     )
   }, [messageDraft, showSuggestedUsers, scrollToMessage])
 
-  const renderMessagePart = useCallback(
-    (messagePart: MixedTextTypedElement, index: number, userId: string | number) => {
-      // TODO make it look nice
-      if (messagePart.type === "text") {
-        return (
-          <Text variant="body" color={chat?.currentUser.id ? undefined : "neutral900"} key={index}>
-            {messagePart.content.text}
-          </Text>
-        )
-      }
-      if (messagePart.type === "plainLink") {
-        return (
-          <Text key={index} variant="body" onPress={() => openLink(messagePart.content.link)}>
-            {messagePart.content.link}
-          </Text>
-        )
-      }
-      if (messagePart.type === "textLink") {
-        return (
-          <Text key={index} variant="body" onPress={() => openLink(messagePart.content.link)}>
-            {messagePart.content.text}
-          </Text>
-        )
-      }
-      if (messagePart.type === "mention") {
-        return (
-          <Text
-            key={index}
-            variant="body"
-            onPress={() => openLink(`https://pubnub.com/${messagePart.content.id}`)}
-          >
-            @{messagePart.content.name}
-          </Text>
-        )
-      }
-      if (messagePart.type === "channelReference") {
-        return (
-          <Text
-            key={index}
-            variant="body"
-            onPress={() => openLink(`https://pubnub.com/${messagePart.content.id}`)}
-          >
-            #{messagePart.content.name}
-          </Text>
-        )
-      }
-
-      return null
-    },
-    [chat?.currentUser]
-  )
-
   const renderFooter = useCallback(() => {
     if (!typingData.length) {
       return null
@@ -179,37 +122,11 @@ export function useCommonChatRenderers({
     )
   }, [typingData, users])
 
-  const renderMessageText = (props: Bubble<EnhancedIMessage>["props"]) => {
-    if (props.currentMessage?.originalPnMessage.getLinkedText()) {
-      return (
-        <View>
-          {props.currentMessage?.originalPnMessage.quotedMessage ? (
-            <Quote
-              message={props.currentMessage?.originalPnMessage.quotedMessage}
-              onGoToMessage={() => {
-                scrollToMessage(props.currentMessage?.originalPnMessage.quotedMessage)
-              }}
-              charactersLimit={50}
-            />
-          ) : null}
-          <Text variant="body">
-            {props.currentMessage.originalPnMessage
-              .getLinkedText()
-              .map((msgPart, index) =>
-                renderMessagePart(msgPart, index, props.currentMessage?.user._id || "")
-              )}
-          </Text>
-        </View>
-      )
-    }
-
-    return <Text variant="body">{props.currentMessage?.text}</Text>
-  }
-
   return {
-    renderMessagePart,
     renderFooter,
-    renderMessageText,
+    renderMessageText: (props: Bubble<EnhancedIMessage>["props"]) => (
+      <MessageText messageProps={props} onGoToMessage={scrollToMessage} />
+    ),
     renderChatFooter,
   }
 }

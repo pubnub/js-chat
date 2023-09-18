@@ -1,7 +1,7 @@
 import React from "react"
 import { createStackNavigator, StackScreenProps } from "@react-navigation/stack"
 
-import { ChatScreen, NewChatScreen, NewGroupScreen } from "../../ordinary"
+import {ChatScreen, NewChatScreen, NewGroupScreen, PinnedMessage} from "../../ordinary"
 import { BottomTabsParamList, HomeStackParamList } from "../../../types"
 import { colorPalette as colors } from "../../../ui-components"
 import { HomeScreen } from "./HomeScreen"
@@ -35,6 +35,7 @@ export function HomeStackScreen({ route }: StackScreenProps<BottomTabsParamList,
         options={{ title: "Group chat" }}
       />
       <HomeStack.Screen name="ThreadReply" component={ThreadReply} />
+      <HomeStack.Screen name="PinnedMessage" component={PinnedMessage} />
     </HomeStack.Navigator>
   )
 }

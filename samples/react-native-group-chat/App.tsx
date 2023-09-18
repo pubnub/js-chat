@@ -34,8 +34,8 @@ function TabNavigator({ route }: StackScreenProps<RootStackParamList, "tabs">) {
   useEffect(() => {
     async function init() {
       const chat = await Chat.init({
-        publishKey: process.env.EXPO_PUBLIC_PUBNUB_PUB_KEY || "demo",
-        subscribeKey: process.env.EXPO_PUBLIC_PUBNUB_SUB_KEY || "demo",
+        publishKey: process.env.EXPO_PUBLIC_PUBNUB_PUB_KEY || "pub-c-0457cb83-0786-43df-bc70-723b16a6e816",
+        subscribeKey: process.env.EXPO_PUBLIC_PUBNUB_SUB_KEY || "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de",
         userId: name || "test-user",
         typingTimeout: 2000,
         storeUserActivityTimestamps: true,

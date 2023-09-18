@@ -17,9 +17,10 @@ import { Message } from "@pubnub/chat"
 type UseActionsMenuParams = {
   onQuote: (message: Message) => void
   removeThreadReply?: boolean
+  onPinMessage: (message: Message) => void
 }
 
-export function useActionsMenu({ onQuote, removeThreadReply = false }: UseActionsMenuParams) {
+export function useActionsMenu({ onQuote, removeThreadReply = false, onPinMessage }: UseActionsMenuParams) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
   const theme = usePNTheme()
   const navigation = useNavigation<HomeStackNavigation>()
@@ -112,7 +113,13 @@ export function useActionsMenu({ onQuote, removeThreadReply = false }: UseAction
         align="left"
         icon="push-pin"
         variant="outlined"
-        onPress={() => console.log("Pressed")}
+        onPress={() => {
+          if (currentlyFocusedMessage) {
+            onPinMessage(currentlyFocusedMessage.originalPnMessage)
+            setCurrentlyFocusedMessage(null)
+            bottomSheetModalRef.current?.dismiss()
+          }
+        }}
       >
         Pin message
       </Button>

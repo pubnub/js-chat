@@ -48,6 +48,19 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
     suggestedUsers,
   })
 
+  navigation.setOptions({
+    headerRight: () => {
+      return (
+        <TouchableOpacity
+          onPress={() => navigation.navigate("PinnedMessage", { channelId: currentChannel?.id })}
+          style={{ paddingRight: 24 }}
+        >
+          <Icon icon="pin-outline" iconColor="neutral0" />
+        </TouchableOpacity>
+      )
+    },
+  })
+
   const handleQuote = useCallback(
     (message: Message) => {
       if (!messageDraft) {
@@ -60,8 +73,22 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
     [messageDraft]
   )
 
+  const handlePin = useCallback(
+    async (message: Message) => {
+      if (!chat || !currentChannel) {
+        return
+      }
+
+      await message.pin()
+      const refreshedChannel = await chat.getChannel(currentChannel.id)
+      setCurrentChannel(refreshedChannel)
+    },
+    [chat, currentChannel]
+  )
+
   const { ActionsMenuComponent, handlePresentModalPress } = useActionsMenu({
     onQuote: handleQuote,
+    onPinMessage: handlePin,
   })
 
   const updateUsersMap = useCallback((k: string, v: User | User[]) => {
