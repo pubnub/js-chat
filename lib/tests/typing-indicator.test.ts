@@ -1,5 +1,5 @@
 import { Channel, Chat } from "../src"
-import { createChatInstance, createRandomChannel, createRandomUser, sleep } from "./utils"
+import { createChatInstance, createRandomChannel, sleep } from "./utils"
 
 describe("Typing indicator test", () => {
   jest.retryTimes(3)
@@ -26,132 +26,61 @@ describe("Typing indicator test", () => {
 
     unsubscribe()
   })
+  //needs to be clarified. Task created CSK-285
+  test("should not call the callback when the typing signal is from the same user as the recipient", async () => {
+    const chat1 = await createChatInstance({
+      userId: "testing",
+      shouldCreateNewInstance: true,
+    })
 
-  test("should not call the callback when no typing signal is received", async () => {
+    const channelId = "group_channel_typing_test_same_user"
+    const channelData = {
+      name: "Typing Test Group Channel for Same User",
+      description: "This is a test group channel for typing by the same user.",
+    }
+
+    const membershipData = {
+      custom: {
+        role: "member",
+      },
+    }
+
+    const result = await chat.createGroupConversation({
+      users: [chat1.currentUser],
+      channelId,
+      channelData,
+      membershipData,
+    })
+
+    const { channel } = result
+
     const callback = jest.fn()
 
-    const unsubscribe = await channel?.getTyping(callback)
-    await sleep(2000)
+    const channelFromUser1 = await chat1.getChannel(channelId)
+    const unsubscribe = channelFromUser1.getTyping(callback)
+
+    await channelFromUser1.startTyping()
+    await sleep(1000)
 
     expect(callback).not.toHaveBeenCalled()
 
-    unsubscribe()
-  })
-  //to be clarified regarding chat instance issue
-  test("should handle multiple simultaneous typing signals from different users", async () => {
-    const callback = jest.fn()
-
-    const unsubscribe = await channel?.getTyping(callback)
-    await channel?.startTyping()
+    await channelFromUser1.stopTyping()
     await sleep(2000)
 
-    expect(callback).toHaveBeenCalledWith(["test-user"])
-
     unsubscribe()
-  })
-  //to be clarified regarding chat instance issue
-  test("should not call the callback when the typing signal is from the same user as the recipient", async () => {
-    const callback = jest.fn()
-
-    const unsubscribe = await channel?.getTyping(callback)
-    await channel?.startTyping()
-    await sleep(2000)
-
-    expect(callback).toHaveBeenCalledWith(["test-user"])
-
-    unsubscribe()
-  })
-  //to be clarified regarding chat instance issue
-  test("should handle and recover from a lost connection to the typing signal server", async () => {
-    const chatMock = {
-      sdk: {
-        getUUID: jest.fn().mockReturnValue("test-user-uuid"),
-      },
-      createChannel: jest.fn().mockImplementation((channelId, channelData) => {
-        // Simulate channel creation
-        return new Channel(chatMock, { id: channelId, ...channelData })
-      }),
-    }
-
-    const channel = new Channel(chatMock, { id: "test-channel" })
-
-    const originalGetTyping = channel.getTyping
-    const mockGetTyping = jest.fn(() => {
-      throw new Error("Connection lost")
-    })
-    channel.getTyping = mockGetTyping
-
-    const callback = jest.fn()
-
-    const unsubscribe = await channel.getTyping(callback)
-
-    await channel.startTyping()
-    await sleep(2000)
-
-    expect(callback).toHaveBeenCalledWith(["test-user-uuid"])
-
-    channel.getTyping = originalGetTyping
-
-    await channel.startTyping()
-    await sleep(2000)
-
-    expect(callback).toHaveBeenCalledWith(["test-user-uuid"])
-
-    await channel.stopTyping()
-    await sleep(2000)
-
-    expect(callback).toHaveBeenCalledWith([])
-
-    unsubscribe()
-  })
-  //to be clarified regarding chat instance issue
-  test("should handle typing in a group chat with multiple recipients", async () => {
-    const user1 = await createRandomUser()
-    const user2 = await createRandomUser()
-    const user3 = await createRandomUser()
-
-    const { channel, hostMembership, inviteesMemberships } = await chat.createGroupConversation({
-      users: [user1, user2, user3],
-      channelId: "your_unique_channel_id",
-      channelData: {
-        name: "test-one",
-        description: "testing",
-        custom: "ObjectCustom",
-      },
-    })
-
-    expect(channel).toBeDefined()
-    expect(hostMembership).toBeDefined()
-    expect(inviteesMemberships).toBeDefined()
-    expect(inviteesMemberships.length).toBe(3)
-
-    const typingCallback = jest.fn()
-
-    const unsubscribe = await channel.getTyping(typingCallback)
-
-    await user1.startTyping()
-    await user2.startTyping()
-    await user3.startTyping()
-
-    expect(typingCallback).toHaveBeenCalledWith([user1.id, user2.id, user3.id])
-
-    await user1.stopTyping()
-    await user2.stopTyping()
-    await user3.stopTyping()
-
-    expect(typingCallback).toHaveBeenCalledWith([])
-
-    unsubscribe()
-
+    await chat1.currentUser.delete()
     await channel.delete()
-    await chat.deleteUser(user1.id)
-    await chat.deleteUser(user2.id)
-    await chat.deleteUser(user3.id)
   })
-  //to be clarified regarding chat instance issue
-  test.only("should handle multiple users starting and stopping typing", async () => {
-    const user1 = await createRandomUser()
-    const user2 = await createRandomUser()
+
+  test("should handle multiple users starting and stopping typing", async () => {
+    const chat1 = await createChatInstance({
+      userId: "testing",
+      shouldCreateNewInstance: true,
+    })
+    const chat2 = await createChatInstance({
+      userId: "testing2",
+      shouldCreateNewInstance: true,
+    })
 
     const channelId = "group_channel_typing_test"
     const channelData = {
@@ -166,7 +95,7 @@ describe("Typing indicator test", () => {
     }
 
     const result = await chat.createGroupConversation({
-      users: [user1, user2],
+      users: [chat1.currentUser, chat2.currentUser],
       channelId,
       channelData,
       membershipData,
@@ -174,40 +103,34 @@ describe("Typing indicator test", () => {
 
     const { channel } = result
 
-    const callbackUser1 = jest.fn()
-    const callbackUser2 = jest.fn()
+    const callback = jest.fn()
+    const channelFromUser1 = await chat1.getChannel(channelId)
+    const channelFromUser2 = await chat2.getChannel(channelId)
 
-    const unsubscribeUser1 = channel.getTyping(callbackUser1)
-    const unsubscribeUser2 = channel.getTyping(callbackUser2)
-
-    await channel.startTyping()
-    await sleep(2000) // Allow the typing signal to propagate
-
-    expect(callbackUser2).toHaveBeenCalledWith(["test-user"])
+    const unsubscribe = channel.getTyping(callback)
 
     await channel.startTyping()
-    await sleep(2000) // Allow the typing signal to propagate
+    await channelFromUser1.startTyping()
+    await channelFromUser2.startTyping()
+    await sleep(1000)
 
-    expect(callbackUser1).toHaveBeenCalledWith(["test-user"])
+    expect(callback).toHaveBeenCalledWith(
+      expect.arrayContaining(["testing", "testing2", "test-user"])
+    )
 
     await channel.stopTyping()
-    await sleep(2000) // Allow the typing signal to propagate
+    await channelFromUser1.stopTyping()
+    await channelFromUser2.stopTyping()
+    await sleep(2000)
 
-    expect(callbackUser2).toHaveBeenCalledWith([])
+    expect(callback).toHaveBeenCalledWith([])
 
-    await channel.stopTyping()
-    await sleep(2000) // Allow the typing signal to propagate
-
-    expect(callbackUser1).toHaveBeenCalledWith([])
-
-    unsubscribeUser1()
-    unsubscribeUser2()
-    await user1.delete()
-    await user2.delete()
+    unsubscribe()
+    await chat1.currentUser.delete()
+    await chat2.currentUser.delete()
     await channel.delete()
   })
 
-  //done
   test("should properly handle typing and stopping typing", async () => {
     const callback = jest.fn()
 

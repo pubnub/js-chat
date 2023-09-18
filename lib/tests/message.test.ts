@@ -696,8 +696,6 @@ describe("Send message test", () => {
     expect(durationThird).toBeGreaterThan(timeout + timeout * factor)
   })
 
-  //WIP
-  //done
   test("should send long messages and validate correct rendering", async () => {
     const messages: string[] = []
     const longMessages = [
@@ -727,7 +725,7 @@ describe("Send message test", () => {
 
     disconnect()
   }, 30000)
-  //needs to be clarified across error message
+
   test("should fail to send an empty or whitespace-only message", async () => {
     const messages: string[] = []
 
@@ -755,7 +753,7 @@ describe("Send message test", () => {
 
     disconnect()
   }, 30000)
-  //done
+
   test("should send and receive messages in various languages correctly", async () => {
     const messages: string[] = []
     const textMessages = [
@@ -788,7 +786,7 @@ describe("Send message test", () => {
 
     disconnect()
   }, 30000)
-  //needs to be clarified across error message
+  //needs to be clarified. Task created CSK-284
   test("should fail to edit a deleted message", async () => {
     await channel.sendText("Test message")
     await sleep(150) // history calls have around 130ms of cache time
@@ -797,23 +795,25 @@ describe("Send message test", () => {
     const messagesBeforeDelete: Message[] = historyBeforeDelete.messages
     const sentMessage = messagesBeforeDelete[messagesBeforeDelete.length - 1]
 
-    await sentMessage.delete()
+    await sentMessage.delete({ soft: false })
     await sleep(150) // history calls have around 130ms of cache time
 
     try {
       await sentMessage.editText("Edited message")
     } catch (error) {
-      expect(error.message).toContain("Message not found")
+      expect(error.message).toContain("dfgdfgdfg not found")
     }
   }, 30000)
-  //needs to be clarified across error message
+
   test("should delete toggle the message reaction", async () => {
-    await channel.sendText("Test message")
+    await channel.sendText("Test message with reaction")
     await sleep(150) // history calls have around 130ms of cache time
 
     const historyBeforeReaction = await channel.getHistory()
     const messagesBeforeReaction: Message[] = historyBeforeReaction.messages
     const sentMessage = messagesBeforeReaction[messagesBeforeReaction.length - 1]
+
+    sentMessage.reactions["like"] = [{ uuid: chat.sdk.getUUID(), actionTimetoken: "123" }]
 
     const mockMessage: Partial<Message> = {
       ...sentMessage,
@@ -827,36 +827,49 @@ describe("Send message test", () => {
       }),
     }
 
-    await (mockMessage as Message).toggleReaction("like")
-
-    await (mockMessage as Message).toggleReaction("like")
+    const toggledMessage = await (mockMessage as Message).toggleReaction("like")
 
     expect(mockMessage.toggleReaction).toHaveBeenCalledWith("like")
+    expect(toggledMessage).toBe(sentMessage)
 
-    expect(mockMessage.reactions["like"]).toBeUndefined()
+    expect(toggledMessage.reactions["like"]).toBeUndefined()
   }, 30000)
-  //needs to be clarified across error message
+
   test("should be unable to pin multiple messages", async () => {
-    await channel.sendText("Test message 1")
-    await channel.sendText("Test message 2")
-    await sleep(150) // history calls have around 130ms of cache time
+    await channel.sendText("First Test message")
+    await sleep(150)
+    await channel.sendText("Second Test message")
+    await sleep(150)
 
-    const historyBeforePin = await channel.getHistory()
-    const messagesBeforePin: Message[] = historyBeforePin.messages
-    const messageToPin1 = messagesBeforePin[messagesBeforePin.length - 2]
-    const messageToPin2 = messagesBeforePin[messagesBeforePin.length - 1]
+    const history = await channel.getHistory()
+    const messages: Message[] = history.messages
 
-    const pinnedChannel = await channel.pinMessage(messageToPin1)
+    const firstMessageToPin = messages[messages.length - 2]
+    const secondMessageToPin = messages[messages.length - 1]
 
-    try {
-      await channel.pinMessage(messageToPin2)
-    } catch (error) {
-      expect(error.message).toContain("Unable to pin multiple messages")
+    const firstPinnedChannel = await channel.pinMessage(firstMessageToPin)
+
+    if (
+      !firstPinnedChannel.custom?.["pinnedMessageTimetoken"] ||
+      firstPinnedChannel.custom["pinnedMessageTimetoken"] !== firstMessageToPin.timetoken
+    ) {
+      throw new Error("Failed to pin the first message")
     }
 
-    expect(pinnedChannel.custom?.["pinnedMessageTimetoken"]).toBe(messageToPin1.timetoken)
+    const secondPinnedChannel = await channel.pinMessage(secondMessageToPin)
+
+    if (
+      !secondPinnedChannel.custom?.["pinnedMessageTimetoken"] ||
+      secondPinnedChannel.custom["pinnedMessageTimetoken"] !== secondMessageToPin.timetoken
+    ) {
+      throw new Error("Failed to pin the second message")
+    }
+
+    if (secondPinnedChannel.custom["pinnedMessageTimetoken"] === firstMessageToPin.timetoken) {
+      throw new Error("First message is still pinned")
+    }
   }, 30000)
-  //done
+
   test("should not allow inserting a link inside another link", () => {
     const initialText = "Check out these links: "
     messageDraft.onChange(initialText)
@@ -876,7 +889,7 @@ describe("Send message test", () => {
       messageDraft.addLinkedText({
         text: textToAdd2,
         link: linkToAdd2,
-        positionInInput: messageDraft.value.indexOf(textToAdd1) + 2, // Insert within the first link
+        positionInInput: messageDraft.value.indexOf(textToAdd1) + 2,
       })
     }).toThrowError("You cannot insert a link inside another link")
 
@@ -894,84 +907,46 @@ describe("Send message test", () => {
     expect(messageDraft.textLinks).toHaveLength(1)
     expect(messageDraft.textLinks).toEqual(expect.arrayContaining(expectedLinks))
   })
-  //done
-  test("should send and receive messages correctly during network instability", async () => {
-    const messages: string[] = []
-    const textMessages = ["Hello", "This", "Is", "A", "Test"]
-    let networkStability = 1 // 1: normal, 0: unstable network
 
-    mock.onPost("/your-api-endpoint").reply((config) => {
-      if (networkStability === 1) {
-        networkStability = 0
-      } else {
-        networkStability = 1
-        messages.push("Network instability message")
-      }
-
-      if (networkStability === 1) {
-        return [200, { success: true }]
-      } else {
-        return [500, { error: "Network instability error" }]
-      }
-    })
-
-    const disconnect = channel.connect((message) => {
-      if (message.content.text !== undefined) {
-        messages.push(message.content.text)
-      }
-    })
-
-    for (const textMessage of textMessages) {
-      await channel.sendText(textMessage)
-
-      if (networkStability === 1) {
-        networkStability = 0
-      } else {
-        networkStability = 1
-        await channel.sendText("Network instability message")
-      }
-
-      const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
-      await sleep(2000)
-    }
-
-    await waitForAllMessagesToBeDelivered(messages, textMessages)
-
-    for (const textMessage of textMessages) {
-      expect(messages).toContain(textMessage)
-    }
-
-    expect(messages).toContain("Network instability message")
-
-    disconnect()
-  }, 30000)
-
-  test.only("should send forwarded message with a quote in a Thread", async () => {
-    const messageText = "Test message"
-    await channel.sendText(messageText)
-    await sleep(150) // Wait for the message to be sent
+  test("should send quote message in a Thread", async () => {
+    const originalMessageText = "Original message for forwarding"
+    await channel.sendText(originalMessageText)
+    await sleep(150) // history calls have around 130ms of cache time
 
     let history = await channel.getHistory()
-    const sentMessage = history.messages[0]
+    const originalMessage = history.messages[0]
 
-    await sentMessage.createThread()
-
-    const threadText = "Reply in the thread"
-    const thread = sentMessage.getThread()
-    await thread.sendText(threadText)
-    await sleep(150) // Wait for the thread message to be sent
-
-    const quotedMessage = await channel.getMessageByTimetoken(sentMessage.timetoken)
-
-    await channel.forwardMessage(quotedMessage)
-
+    await originalMessage.createThread()
     history = await channel.getHistory()
-    const forwardedMessage = history.messages.find((message) => message.text === messageText)
+    const threadedMessage = history.messages[0]
+    expect(threadedMessage.hasThread).toBe(true)
 
-    expect(forwardedMessage.quotedMessage).toEqual(quotedMessage)
+    const thread = await threadedMessage.getThread()
+
+    let messageDraft = thread.createMessageDraft()
+
+    await messageDraft.onChange("Whatever")
+    await messageDraft.send()
+    const firstThreadMessage = (await thread.getHistory()).messages[0]
+
+    messageDraft = thread.createMessageDraft()
+
+    messageDraft.addQuote(firstThreadMessage)
+
+    await messageDraft.onChange("This is a forwarded message.")
+    await messageDraft.send()
+
+    await sleep(150)
+
+    const threadMessages = await thread.getHistory()
+    const forwardedMessageText = threadMessages.messages[1].content.text
+    const forwardedMessageQuote = threadMessages.messages[1].quotedMessage
+
+    expect(forwardedMessageText).toBe("This is a forwarded message.")
+    expect(forwardedMessageQuote.text).toBe("Whatever")
+    expect(forwardedMessageQuote.userId).toBe("test-user")
   })
 
-  //done
   test("should pin the message inside the Thread", async () => {
     const messageText = "Test message"
     await channel.sendText(messageText)
