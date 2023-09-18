@@ -1,15 +1,21 @@
 import { useContext, useEffect, useState } from "react"
-import { View, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native"
+import {
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  LogBox,
+} from "react-native"
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
 import { NavigationContainer } from "@react-navigation/native"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { createStackNavigator, StackScreenProps } from "@react-navigation/stack"
-import { PaperProvider } from "react-native-paper"
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons"
 import { StatusBar } from "expo-status-bar"
-import { Chat, Membership, User } from "@pubnub/chat"
+import { Channel, Chat, Membership, User } from "@pubnub/chat"
 import {
   useFonts,
   Roboto_400Regular,
@@ -23,6 +29,8 @@ import { LoginScreen } from "./screens/ordinary"
 import { ChatContext } from "./context"
 import { RootStackParamList, BottomTabsParamList } from "./types"
 import { defaultTheme, colorPalette as colors } from "./ui-components"
+
+LogBox.ignoreLogs(["Require cycle:", "Sending"])
 
 const Tab = createBottomTabNavigator<BottomTabsParamList>()
 const MainStack = createStackNavigator<RootStackParamList>()
@@ -45,7 +53,7 @@ function TabNavigator({ route }: StackScreenProps<RootStackParamList, "tabs">) {
     }
 
     init()
-  }, [name])
+  }, [name, setChat])
 
   if (!chat) {
     return (
@@ -119,7 +127,27 @@ function TabNavigator({ route }: StackScreenProps<RootStackParamList, "tabs">) {
 function App() {
   const [chat, setChat] = useState<Chat | null>(null)
   const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(false)
+  const [currentChannel, setCurrentChannel] = useState<Channel>()
+  const [currentChannelMembers, setCurrentChannelMembers] = useState<Membership[]>([])
   const [userMemberships, setUserMemberships] = useState<Membership[]>([])
+
+  async function setCurrentChannelWithMembers(channel: Channel) {
+    const { members } = await channel.getMembers()
+    setCurrentChannelMembers(members)
+    setCurrentChannel(channel)
+  }
+
+  function getUser(userId: string) {
+    const existingUser = users.find((u) => u.id === userId)
+    if (!existingUser) {
+      chat?.getUser(userId).then((fetchedUser) => {
+        if (fetchedUser) setUsers((users) => [...users, fetchedUser])
+      })
+      return null
+    }
+    return existingUser
+  }
 
   const [fontsLoaded] = useFonts({
     Roboto_400Regular,
@@ -134,38 +162,42 @@ function App() {
   return (
     <ChatContext.Provider
       value={{
+        loading,
+        setLoading,
         chat,
         setChat,
+        currentChannel,
+        setCurrentChannel: setCurrentChannelWithMembers,
+        currentChannelMembers,
         users,
         setUsers,
+        getUser,
         memberships: userMemberships,
         setMemberships: setUserMemberships,
       }}
     >
       <GestureHandlerRootView style={{ flex: 1 }}>
         <BottomSheetModalProvider>
-          <PaperProvider settings={{ rippleEffectEnabled: false }} theme={defaultTheme}>
-            <StatusBar style="inverted" backgroundColor={defaultTheme.colors.navy800} />
-            <SafeAreaProvider>
-              <SafeAreaView
-                style={[styles.safeArea, { backgroundColor: defaultTheme.colors.navy800 }]}
-                edges={["top", "left", "right"]}
+          <StatusBar style="inverted" backgroundColor={defaultTheme.colors.navy800} />
+          <SafeAreaProvider>
+            <SafeAreaView
+              style={[styles.safeArea, { backgroundColor: defaultTheme.colors.navy800 }]}
+              edges={["top", "left", "right"]}
+            >
+              {/* TODO: for some reason KeyboardAvoidingView doesn't work on any page other than login */}
+              <KeyboardAvoidingView
+                {...(Platform.OS === "ios" ? { behavior: "padding" } : {})}
+                style={{ flex: 1 }}
               >
-                {/* TODO: for some reason KeyboardAvoidingView doesn't work on any page other than login */}
-                <KeyboardAvoidingView
-                  {...(Platform.OS === "ios" ? { behavior: "padding" } : {})}
-                  style={{ flex: 1 }}
-                >
-                  <NavigationContainer>
-                    <MainStack.Navigator screenOptions={{ headerShown: false }}>
-                      <MainStack.Screen name="login" component={LoginScreen} />
-                      <MainStack.Screen name="tabs" component={TabNavigator} />
-                    </MainStack.Navigator>
-                  </NavigationContainer>
-                </KeyboardAvoidingView>
-              </SafeAreaView>
-            </SafeAreaProvider>
-          </PaperProvider>
+                <NavigationContainer>
+                  <MainStack.Navigator screenOptions={{ headerShown: false }}>
+                    <MainStack.Screen name="login" component={LoginScreen} />
+                    <MainStack.Screen name="tabs" component={TabNavigator} />
+                  </MainStack.Navigator>
+                </NavigationContainer>
+              </KeyboardAvoidingView>
+            </SafeAreaView>
+          </SafeAreaProvider>
         </BottomSheetModalProvider>
       </GestureHandlerRootView>
     </ChatContext.Provider>

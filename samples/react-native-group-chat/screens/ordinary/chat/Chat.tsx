@@ -1,22 +1,21 @@
-import React, { useState, useCallback, useEffect, useContext, useMemo, useRef } from "react"
+import React, { useState, useCallback, useEffect, useContext, useRef } from "react"
 import { StyleSheet, View, ActivityIndicator, TouchableOpacity, FlatList } from "react-native"
 import { GiftedChat, Bubble } from "react-native-gifted-chat"
 import { StackScreenProps } from "@react-navigation/stack"
-import { Channel, User, MessageDraft, Message } from "@pubnub/chat"
+import { User, MessageDraft, Message } from "@pubnub/chat"
 
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { ChatContext } from "../../../context"
 import { HomeStackParamList } from "../../../types"
-import { Quote, useActionsMenu, UserSuggestionBox } from "../../../components"
-import { getRandomAvatar, colorPalette as colors } from "../../../ui-components"
+import { Avatar, Quote, useActionsMenu, UserSuggestionBox } from "../../../components"
+import { colorPalette as colors, Text } from "../../../ui-components"
 import { useNavigation } from "@react-navigation/native"
-import { Icon, Text, usePNTheme } from "../../../ui-components"
 import { useCommonChatRenderers } from "../../../hooks"
+import { MaterialCommunityIcons } from "@expo/vector-icons"
 
-export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat">) {
-  const { channelId } = route.params
+export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
+  const { chat, currentChannel, getUser, currentChannelMembers } = useContext(ChatContext)
   const navigation = useNavigation()
-  const [currentChannel, setCurrentChannel] = useState<Channel | null>(null)
   const [isMoreMessages, setIsMoreMessages] = useState(true)
   const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false)
   const [giftedChatMappedMessages, setGiftedChatMappedMessages] = useState<EnhancedIMessage[]>([])
@@ -28,12 +27,10 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
   const giftedChatRef = useRef<FlatList<EnhancedIMessage>>(null)
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const [text, setText] = useState("")
-  const { chat, memberships } = useContext(ChatContext)
-  const theme = usePNTheme()
-  const currentChannelMembership = useMemo(
-    () => memberships.find((membership) => membership.channel.id === channelId),
-    [memberships, channelId]
+  const currentChannelMembership = currentChannelMembers.find(
+    (m) => m.user.id === currentChannel?.id
   )
+
   const { renderFooter, renderMessageText, renderChatFooter } = useCommonChatRenderers({
     chat,
     typingData,
@@ -71,7 +68,6 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
       v.forEach((user) => {
         newUsers.set(user.id, {
           ...user,
-          thumbnail: getRandomAvatar(),
         })
       })
 
@@ -79,7 +75,7 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
       return
     }
 
-    setUsers(new Map(users.set(k, { ...v, thumbnail: getRandomAvatar() })))
+    setUsers(new Map(users.set(k, { ...v })))
   }, [])
 
   useEffect(() => {
@@ -87,15 +83,6 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
       if (!chat) {
         return
       }
-
-      const channel =
-        (await chat.getChannel(channelId)) ||
-        (await chat.createPublicConversation({
-          channelId,
-          channelData: { name: "Some test channel" },
-        }))
-
-      setCurrentChannel(channel)
 
       chat.getUsers({}).then((usersObject) => {
         updateUsersMap("1", usersObject.users)
@@ -105,7 +92,7 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
     }
 
     init()
-  }, [channelId])
+  }, [currentChannel])
 
   useEffect(() => {
     if (!giftedChatMappedMessages.length) {
@@ -264,8 +251,8 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
         <Bubble
           {...props}
           wrapperStyle={{
-            left: { padding: 12, backgroundColor: theme.colors.neutral50 },
-            right: { marginLeft: 0, padding: 12, backgroundColor: theme.colors.teal100 },
+            left: { padding: 12, backgroundColor: colors.neutral50 },
+            right: { marginLeft: 0, padding: 12, backgroundColor: colors.teal100 },
           }}
         />
         {props.currentMessage?.originalPnMessage.hasThread ? (
@@ -277,7 +264,7 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
             }
             style={styles.threadRepliesContainer}
           >
-            <Icon icon="chevron-down" iconColor="teal700" />
+            <MaterialCommunityIcons name="chevron-down" color={colors.teal700} size={24} />
             <Text variant="body" color="teal700">
               replies
             </Text>
@@ -310,6 +297,10 @@ export function ChatScreen({ route }: StackScreenProps<HomeStackParamList, "Chat
         renderBubble={renderBubble}
         renderChatFooter={renderChatFooter}
         onLoadEarlier={loadEarlierMessages}
+        renderAvatar={(props) => {
+          const user = getUser(props.currentMessage?.originalPnMessage.userId)
+          return user && <Avatar source={user} size="md" />
+        }}
         user={{
           _id: chat.currentUser.id,
         }}
