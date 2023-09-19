@@ -35,7 +35,7 @@ export function ListItem({ title, avatar, badge, onPress, showCheckbox, checked 
         {badge ? (
           <View style={styles.badge}>
             <Text variant="body" color="neutral0">
-              5
+              {badge}
             </Text>
           </View>
         ) : null}
@@ -59,6 +59,7 @@ const styles = StyleSheet.create({
   },
   title: {
     paddingHorizontal: 16,
+    flexGrow: 1,
   },
   badge: {
     backgroundColor: colors.badge,
