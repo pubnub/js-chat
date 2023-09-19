@@ -1,11 +1,18 @@
 import React, { useCallback, useContext, useEffect, useState } from "react"
-import { StyleSheet, ScrollView, TouchableHighlight, TouchableOpacity } from "react-native"
+import { StyleSheet, ScrollView, TouchableHighlight, TouchableOpacity, View } from "react-native"
 import { useFocusEffect } from "@react-navigation/native"
 import { StackScreenProps } from "@react-navigation/stack"
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons"
 import { Channel, Membership } from "@pubnub/chat"
 
-import { Gap, Line, TextInput, colorPalette as colors, Accordion } from "../../../ui-components"
+import {
+  Gap,
+  Line,
+  TextInput,
+  colorPalette as colors,
+  Accordion,
+  Text,
+} from "../../../ui-components"
 import { DirectChannels, ListItem, Avatar } from "../../../components"
 import { HomeStackParamList } from "../../../types"
 import { ChatContext } from "../../../context"
@@ -16,6 +23,8 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
   const [unreadChannels, setUnreadChannels] = useState<
     { channel: Channel; count: number; membership: Membership }[]
   >([])
+  const [otherChannels, setOtherChannels] = useState<Channel[]>([])
+  const [connectedChannels, setConnectedChannels] = useState([])
 
   const channels = memberships.map((m) => m.channel)
   const currentUserGroupChannels = channels.filter((c) => c.type === "group")
@@ -38,14 +47,18 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
   useEffect(() => {
     async function init() {
       if (!chat) return
-      const [, { memberships }, { users }] = await Promise.all([
+      const [, { memberships }, { users }, channelsData] = await Promise.all([
         fetchUnreadMessagesCount(),
         chat.currentUser.getMemberships(),
         chat.getUsers({}),
+        chat.getChannels({}),
       ])
 
       setUsers(users)
       setMemberships(memberships)
+      setOtherChannels(
+        channelsData.channels.filter((ch) => !memberships.find((m) => m.channel.id === ch.id))
+      )
     }
 
     init()
@@ -149,6 +162,32 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
         <Line />
         <Gap value={20} />
 
+        <Accordion title="OTHER">
+          {getFilteredChannels(otherChannels).map((channel) => (
+            <ListItem
+              key={channel.id}
+              title={channel.id}
+              avatar={<Avatar source={channel} />}
+              onPress={async () => {
+                // response.disconnect()
+                if (chat?.currentUser.id === "test-user2") {
+                  navigateToChat(channel)
+                } else {
+                  const response = await channel.join((msg) => {
+                    console.log("msg: ", msg)
+                  })
+                  setConnectedChannels((curr) => [...curr, response])
+                  console.log("response", response)
+                }
+              }}
+            />
+          ))}
+        </Accordion>
+
+        <Gap value={8} />
+        <Line />
+        <Gap value={20} />
+
         <Accordion title="DIRECT MESSAGES">
           <DirectChannels searchText={searchText} sortByActive={false} />
         </Accordion>
@@ -163,6 +202,27 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
       >
         <MaterialIcons name="chat-bubble" size={32} color={colors.neutral0} />
       </TouchableHighlight>
+      <View>
+        <Text>Currently connected to channels:</Text>
+        {connectedChannels.map((connectedChannel) => (
+          <View style={{ flexDirection: "row" }} key={connectedChannel.membership.channel.id}>
+            <Text>{connectedChannel.membership.channel.id}</Text>
+            <Text> ----- </Text>
+            <Text
+              onPress={() => {
+                connectedChannel.disconnect()
+                setConnectedChannels((curr) =>
+                  curr.filter(
+                    (c) => c.membership.channel.id !== connectedChannel.membership.channel.id
+                  )
+                )
+              }}
+            >
+              Click here to disconnect
+            </Text>
+          </View>
+        ))}
+      </View>
     </>
   )
 }
