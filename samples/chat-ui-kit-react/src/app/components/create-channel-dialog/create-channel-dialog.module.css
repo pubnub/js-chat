@@ -1,0 +1,14 @@
+.create-new-conversation-popup-container {
+    position: fixed;
+    width: 300px;
+    min-height: 300px;
+    background-color: #9d9dd3;
+    z-index: 2;
+    left: calc(50% - 150px);
+    top: calc(50% - 150px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    border-radius: 16px;
+    padding: 16px;
+}

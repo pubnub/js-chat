@@ -1,0 +1,50 @@
+.thread-messages-label {
+    color: #b27fff;
+    cursor: pointer;
+}
+
+.cs-message__content-wrapper .any-link {
+    text-decoration: underline;
+}
+
+.file-image {
+    width: 150px;
+    height: 150px;
+}
+
+.message-custom-content {
+    position: relative;
+}
+
+.icons-box {
+    position: absolute;
+    right: -80px;
+    bottom: 0;
+}
+
+.quote-icon {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.thread-icon {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.trash-icon {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.message-quote-box {
+    background-color: white;
+    border: solid 1px #d1dbe3;
+    margin-bottom: 8px;
+    padding: 8px;
+}
+
+

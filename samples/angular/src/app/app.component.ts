@@ -38,6 +38,7 @@ export class AppComponent {
       subscribeKey,
       userId,
       typingTimeout: 2000,
+      storeUserActivityTimestamps: true,
     })
 
     const channel =
