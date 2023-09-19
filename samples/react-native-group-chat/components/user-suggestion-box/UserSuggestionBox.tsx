@@ -13,7 +13,7 @@ export function UserSuggestionBox({ users, onUserSelect }: UserSuggestionBoxProp
   return (
     <View style={styles.container}>
       {users.map((user) => (
-        <ListItem title={user.name} key={user.id} onPress={() => onUserSelect(user)} />
+        <ListItem title={user.name || user.id} key={user.id} onPress={() => onUserSelect(user)} />
       ))}
     </View>
   )

@@ -71,7 +71,7 @@ export function useCommonChatRenderers({
   )
 
   const renderChatFooter = useCallback(() => {
-    if (!messageDraft || !messageDraft.quotedMessage) {
+    if (!messageDraft) {
       return null
     }
 
@@ -83,7 +83,7 @@ export function useCommonChatRenderers({
       quotedMessageComponent = (
         <View style={styles.footerContainer}>
           <Quote
-            message={messageDraft.quotedMessage}
+            message={quotedMessage}
             charactersLimit={100}
             onGoToMessage={() => scrollToMessage(quotedMessage)}
           />
@@ -102,7 +102,7 @@ export function useCommonChatRenderers({
         {userSuggestionComponent}
       </>
     )
-  }, [messageDraft, showSuggestedUsers, scrollToMessage])
+  }, [messageDraft, showSuggestedUsers, scrollToMessage, handleUserToMention, suggestedUsers])
 
   const renderMessagePart = useCallback(
     (messagePart: MixedTextTypedElement, index: number, userId: string | number) => {
