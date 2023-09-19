@@ -350,6 +350,7 @@ export class Chat {
       })
       return ThreadChannel.fromDTO(this, {
         ...response.data,
+        parentMessage: message,
         parentChannelId: message.channelId,
       })
     } catch (error) {
@@ -381,6 +382,7 @@ export class Chat {
       const data = await Promise.all([
         ThreadChannel.fromDTO(this, {
           ...response.data,
+          parentMessage: message,
           parentChannelId: message.channelId,
         }),
         this.sdk.addMessageAction({
@@ -398,6 +400,26 @@ export class Chat {
       console.error(e)
       throw e
     }
+  }
+
+  /** @internal */
+  async removeThreadChannel(message: Message) {
+    if (!message.hasThread) {
+      throw "There is no thread to be deleted"
+    }
+
+    const actionTimetoken =
+      message.actions?.threadRootId[this.getThreadId(message.channelId, message.timetoken)][0]
+        .actionTimetoken
+    if (!actionTimetoken) {
+      throw "There is no action timetoken corresponding to the thread"
+    }
+
+    return this.sdk.removeMessageAction({
+      channel: message.channelId,
+      messageTimetoken: message.timetoken,
+      actionTimetoken: String(actionTimetoken),
+    })
   }
 
   /**
@@ -885,6 +907,7 @@ export class Chat {
             threadChannel: ThreadChannel.fromDTO(this, {
               id: (channel as Channel).id,
               parentChannelId: parentChannel.id,
+              parentMessage: message,
             }),
             message: message as Message,
             user: user as User,

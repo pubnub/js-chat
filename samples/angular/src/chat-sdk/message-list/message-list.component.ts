@@ -129,6 +129,7 @@ export class MessageListComponentChat {
     }
 
     const thread = await message.getThread()
+
     const threadMessages = await thread!.getHistory()
     await this.getPinnedMessage(thread!)
     this.threadMessages[message.timetoken] = threadMessages.messages
@@ -169,5 +170,9 @@ export class MessageListComponentChat {
     }
 
     this.threadInputOpen = message.timetoken
+  }
+
+  async removeThread(message: Message) {
+    message.removeThread()
   }
 }
