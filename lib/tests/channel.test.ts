@@ -789,7 +789,7 @@ describe("Channel test", () => {
     await user2.delete()
   })
   //To be clarified deleting
-  test.only("should create reply to, and delete a thread", async () => {
+  test("should create reply to, and delete a thread", async () => {
     const messageText = "Test message"
     await channel.sendText(messageText)
     await sleep(150) // history calls have around 130ms of cache time
