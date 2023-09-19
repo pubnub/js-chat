@@ -13,6 +13,7 @@ import {
   NewGroupScreen,
   ThreadReply,
   ChatSettings,
+  PinnedMessage,
 } from "../../ordinary"
 
 const HomeStack = createStackNavigator<HomeStackParamList>()
@@ -77,6 +78,7 @@ export function HomeStackScreen({ route }: StackScreenProps<BottomTabsParamList,
         component={ChatSettings}
         options={{ title: "Chat settings" }}
       />
+      <HomeStack.Screen name="PinnedMessage" component={PinnedMessage} />
     </HomeStack.Navigator>
   )
 }
