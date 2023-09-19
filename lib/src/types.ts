@@ -109,7 +109,10 @@ export type ChannelDTOParams = OptionalAllBut<ChannelMetadataObject<ObjectCustom
   type?: ChannelType
 }
 
-export type ThreadChannelDTOParams = ChannelDTOParams & { parentChannelId: string }
+export type ThreadChannelDTOParams = ChannelDTOParams & {
+  parentChannelId: string
+  parentMessage: Message
+}
 
 export type MessageDraftConfig = {
   userSuggestionSource: "channel" | "global"

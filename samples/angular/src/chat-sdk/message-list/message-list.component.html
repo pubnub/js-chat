@@ -42,6 +42,7 @@
                 <div *ngIf="message.hasThread">
                     <span>Thread pinned message: </span>
                     <span>{{ pinnedMessages[threadMessages[message.timetoken][0].channelId] }}</span>
+                    <button (click)="removeThread(message)">Remove this thread</button>
                 </div>
                 <div *ngFor="let threadMessage of threadMessages[message.timetoken]">
                     <div class="message-row">

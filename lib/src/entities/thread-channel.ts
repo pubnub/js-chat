@@ -1,17 +1,25 @@
 import { ObjectCustom, SetChannelMetadataResponse } from "pubnub"
 import { Channel, ChannelFields } from "./channel"
 import { Chat } from "./chat"
-import { ThreadChannelDTOParams } from "../types"
+import { DeleteParameters, ThreadChannelDTOParams } from "../types"
 import { ThreadMessage } from "./thread-message"
 import { getErrorProxiedEntity } from "../error-logging"
+import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
+import { Message } from "./message"
 
 export class ThreadChannel extends Channel {
   readonly parentChannelId: string
+  /** @internal */
+  readonly parentMessage: Message
 
   /** @internal */
-  constructor(chat: Chat, params: ChannelFields & { parentChannelId: string }) {
+  constructor(
+    chat: Chat,
+    params: ChannelFields & { parentChannelId: string; parentMessage: Message }
+  ) {
     super(chat, params)
     this.parentChannelId = params.parentChannelId
+    this.parentMessage = params.parentMessage
   }
 
   /** @internal */
@@ -19,6 +27,7 @@ export class ThreadChannel extends Channel {
     const data = {
       id: params.id,
       parentChannelId: params.parentChannelId,
+      parentMessage: params.parentMessage,
       name: params.name || undefined,
       custom: params.custom || undefined,
       description: params.description || undefined,
@@ -37,6 +46,7 @@ export class ThreadChannel extends Channel {
     )) as SetChannelMetadataResponse<ObjectCustom>
     return ThreadChannel.fromDTO(this.chat, {
       ...response.data,
+      parentMessage: this.parentMessage,
       parentChannelId: this.parentChannelId,
     })
   }
@@ -45,6 +55,7 @@ export class ThreadChannel extends Channel {
     const response = await this.chat.pinMessageToChannel(null, this)
     return ThreadChannel.fromDTO(this.chat, {
       ...response.data,
+      parentMessage: this.parentMessage,
       parentChannelId: this.parentChannelId,
     })
   }
@@ -87,6 +98,15 @@ export class ThreadChannel extends Channel {
       ),
       isMore: messagesResponse.isMore,
     }
+  }
+
+  override async delete(options: DeleteParameters = {}) {
+    const data = await Promise.all([
+      this.chat.removeThreadChannel(this.parentMessage),
+      super.delete(options),
+    ])
+
+    return data[1]
   }
 
   /** @internal */
