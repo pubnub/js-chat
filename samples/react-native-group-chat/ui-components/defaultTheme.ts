@@ -1,5 +1,4 @@
 import { TextStyle } from "react-native"
-import { useTheme, MD3LightTheme as DefaultTheme } from "react-native-paper"
 
 export const colorPalette = {
   sky50: "#F0F9FF",
@@ -69,15 +68,9 @@ const textStyles = {
 } as { [variant: string]: TextStyle }
 
 export const defaultTheme = {
-  ...DefaultTheme,
   colors: {
-    ...DefaultTheme.colors,
     ...colorPalette,
     primary: colorPalette.neutral900,
   },
   textStyles,
-}
-
-export function usePNTheme() {
-  return useTheme() as typeof defaultTheme
 }

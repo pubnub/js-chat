@@ -5,15 +5,8 @@ import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
 
 import { BottomTabsParamList } from "../../../types"
 import { ChatContext } from "../../../context"
-import {
-  Line,
-  Button,
-  Text,
-  Gap,
-  RandomAvatar,
-  TextInput,
-  colorPalette as colors,
-} from "../../../ui-components"
+import { Line, Button, Text, Gap, TextInput, colorPalette as colors } from "../../../ui-components"
+import { Avatar } from "../../../components"
 
 export function ProfileScreen({
   navigation,
@@ -41,106 +34,106 @@ export function ProfileScreen({
   }
 
   return (
-    <View style={styles.container}>
-      <Gap value={24} />
-
-      <View style={{ alignItems: "center" }}>
-        <RandomAvatar size={88} />
-      </View>
-
-      <Gap value={24} />
-
-      <View style={styles.row}>
-        <View>
-          <Text variant="headline" fontFamily="Roboto_400Regular">
-            Name
-          </Text>
-          <Text variant="headline">{userName}</Text>
+    chat?.currentUser && (
+      <View style={styles.container}>
+        <View style={{ alignItems: "center" }}>
+          <Avatar source={chat?.currentUser} size="xl" />
         </View>
 
-        <Button
-          variant="outlined"
-          size="md"
-          onPress={() => bottomSheetModalRef.current?.present()}
-          style={{ width: 120 }}
-        >
-          Change
-        </Button>
-      </View>
-
-      <Gap value={24} />
-      <Line />
-      <Gap value={24} />
-
-      <View style={styles.row}>
-        <Text variant="headline" fontFamily="Roboto_400Regular">
-          Notifications
-        </Text>
-        <Switch
-          disabled
-          trackColor={{ true: colors.neutral900 }}
-          value={notifications}
-          onValueChange={setNotifications}
-        />
-      </View>
-
-      <Gap value={12} />
-
-      <Text variant="body" color="neutral600">
-        Get notified about new messages and mentions from chats
-      </Text>
-
-      <Gap value={24} />
-      <Line />
-      <Gap value={24} />
-
-      <View style={styles.row}>
-        <Text variant="headline" fontFamily="Roboto_400Regular">
-          Read receipts
-        </Text>
-        <Switch
-          disabled
-          trackColor={{ true: colors.neutral900 }}
-          value={receipts}
-          onValueChange={setReceipts}
-        />
-      </View>
-
-      <Gap value={12} />
-
-      <Text variant="body" color="neutral600">
-        You will see send or receive receipts
-      </Text>
-
-      <Gap value={24} />
-      <Line />
-      <Gap value={24} />
-
-      <Button variant="danger" size="lg" onPress={logout} icon="logout" align="left">
-        Logout
-      </Button>
-
-      <BottomSheetModal
-        ref={bottomSheetModalRef}
-        index={1}
-        snapPoints={["25%", "50%"]}
-        backdropComponent={BottomSheetBackdrop}
-        style={styles.container}
-      >
         <Gap value={24} />
-        <Text variant="headline" textAlign="center">
-          Change your name
+
+        <View style={styles.row}>
+          <View>
+            <Text variant="headline" fontFamily="Roboto_400Regular">
+              Name
+            </Text>
+            <Text variant="headline">{userName}</Text>
+          </View>
+
+          <Button
+            variant="outlined"
+            size="md"
+            onPress={() => bottomSheetModalRef.current?.present()}
+            style={{ width: 120 }}
+          >
+            Change
+          </Button>
+        </View>
+
+        <Gap value={24} />
+        <Line />
+        <Gap value={24} />
+
+        <View style={styles.row}>
+          <Text variant="headline" fontFamily="Roboto_400Regular">
+            Notifications
+          </Text>
+          <Switch
+            disabled
+            trackColor={{ true: colors.neutral900 }}
+            value={notifications}
+            onValueChange={setNotifications}
+          />
+        </View>
+
+        <Gap value={12} />
+
+        <Text variant="body" color="neutral600">
+          Get notified about new messages and mentions from chats
         </Text>
-        <Gap value={36} />
-        <TextInput label="Name" value={nameInput} onChangeText={setNameInput} />
-        <Gap value={36} />
-        <Button onPress={saveName}>Save</Button>
-        <Gap value={16} />
-        <Button variant="outlined" onPress={() => bottomSheetModalRef.current?.dismiss()}>
-          Cancel
+
+        <Gap value={24} />
+        <Line />
+        <Gap value={24} />
+
+        <View style={styles.row}>
+          <Text variant="headline" fontFamily="Roboto_400Regular">
+            Read receipts
+          </Text>
+          <Switch
+            disabled
+            trackColor={{ true: colors.neutral900 }}
+            value={receipts}
+            onValueChange={setReceipts}
+          />
+        </View>
+
+        <Gap value={12} />
+
+        <Text variant="body" color="neutral600">
+          You will see send or receive receipts
+        </Text>
+
+        <Gap value={24} />
+        <Line />
+        <Gap value={24} />
+
+        <Button variant="danger" size="lg" onPress={logout} icon="logout" align="left">
+          Logout
         </Button>
-      </BottomSheetModal>
-    </View>
+
+        <BottomSheetModal
+          ref={bottomSheetModalRef}
+          index={1}
+          snapPoints={["25%", "50%"]}
+          backdropComponent={BottomSheetBackdrop}
+          style={[styles.container, { paddingTop: 0 }]}
+        >
+          <Gap value={24} />
+          <Text variant="headline" textAlign="center">
+            Change your name
+          </Text>
+          <Gap value={36} />
+          <TextInput label="Name" value={nameInput} onChangeText={setNameInput} />
+          <Gap value={36} />
+          <Button onPress={saveName}>Save</Button>
+          <Gap value={16} />
+          <Button variant="outlined" onPress={() => bottomSheetModalRef.current?.dismiss()}>
+            Cancel
+          </Button>
+        </BottomSheetModal>
+      </View>
+    )
   )
 }
 
@@ -148,7 +141,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.neutral0,
     flex: 1,
-    paddingHorizontal: 32,
+    padding: 32,
   },
   row: {
     alignItems: "center",

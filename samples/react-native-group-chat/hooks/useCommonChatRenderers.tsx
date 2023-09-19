@@ -1,16 +1,16 @@
-import { FlatList, Linking, View, StyleSheet } from "react-native"
+import { FlatList, View, StyleSheet } from "react-native"
 import React, { useCallback } from "react"
-import { Chat, Message, MessageDraft, MixedTextTypedElement, User } from "@pubnub/chat"
+import { Message, MessageDraft, User } from "@pubnub/chat"
 import { Text } from "../ui-components"
 import { Bubble } from "react-native-gifted-chat"
 import { EnhancedIMessage } from "../utils"
 import { Quote, UserSuggestionBox } from "../components"
-import {MessageText} from "../components/message-text";
+import { MessageText } from "../components/message-text"
 
 type UseCommonChatRenderersProps = {
   typingData: string[]
   users: Map<string, User>
-  messageDraft: MessageDraft
+  messageDraft: MessageDraft | null
   lastAffectedNameOccurrenceIndex: number
   setText: (text: string) => void
   setShowSuggestedUsers: (value: boolean) => void
@@ -66,7 +66,7 @@ export function useCommonChatRenderers({
   )
 
   const renderChatFooter = useCallback(() => {
-    if (!messageDraft || !messageDraft.quotedMessage) {
+    if (!messageDraft) {
       return null
     }
 
@@ -78,7 +78,7 @@ export function useCommonChatRenderers({
       quotedMessageComponent = (
         <View style={styles.footerContainer}>
           <Quote
-            message={messageDraft.quotedMessage}
+            message={quotedMessage}
             charactersLimit={100}
             onGoToMessage={() => scrollToMessage(quotedMessage)}
           />
@@ -97,7 +97,7 @@ export function useCommonChatRenderers({
         {userSuggestionComponent}
       </>
     )
-  }, [messageDraft, showSuggestedUsers, scrollToMessage])
+  }, [messageDraft, showSuggestedUsers, scrollToMessage, suggestedUsers])
 
   const renderFooter = useCallback(() => {
     if (!typingData.length) {

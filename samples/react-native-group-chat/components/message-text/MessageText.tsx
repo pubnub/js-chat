@@ -1,11 +1,11 @@
-import React, {useCallback, useContext} from "react"
-import {Bubble} from "react-native-gifted-chat";
-import {EnhancedIMessage} from "../../utils";
-import {Linking, View} from "react-native";
-import {Quote} from "../quote";
-import {Text} from "../../ui-components";
-import {Message, MixedTextTypedElement} from "@pubnub/chat";
-import {ChatContext} from "../../context";
+import React, { useCallback, useContext } from "react"
+import { Bubble } from "react-native-gifted-chat"
+import { EnhancedIMessage } from "../../utils"
+import { Linking, View } from "react-native"
+import { Quote } from "../quote"
+import { Text } from "../../ui-components"
+import { Message, MixedTextTypedElement } from "@pubnub/chat"
+import { ChatContext } from "../../context"
 
 type MessageTextProps = {
   onGoToMessage: (message: Message) => void
@@ -80,7 +80,9 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
             // onGoToMessage={() => {
             //   scrollToMessage(props.currentMessage?.originalPnMessage.quotedMessage)
             // }}
-            onGoToMessage={() => onGoToMessage(messageProps.currentMessage?.originalPnMessage.quotedMessage)}
+            onGoToMessage={() =>
+              onGoToMessage(messageProps.currentMessage?.originalPnMessage.quotedMessage)
+            }
             charactersLimit={50}
           />
         ) : null}
@@ -88,7 +90,11 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
           {messageProps.currentMessage.originalPnMessage
             .getLinkedText()
             .map((msgPart, index) =>
-              renderMessagePart(msgPart, index, messageProps.currentMessage?.user._id || "")
+              renderMessagePart(
+                msgPart,
+                index,
+                messageProps.currentMessage?.originalPnMessage.userId || ""
+              )
             )}
         </Text>
       </View>

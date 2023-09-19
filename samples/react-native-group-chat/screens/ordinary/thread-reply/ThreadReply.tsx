@@ -3,25 +3,20 @@ import { StackScreenProps } from "@react-navigation/stack"
 import { HomeStackParamList } from "../../../types"
 import { ChatContext } from "../../../context"
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
-import { Message, MessageDraft, ThreadChannel, User } from "@pubnub/chat"
+import { Message, MessageDraft, ThreadChannel, ThreadMessage, User } from "@pubnub/chat"
 import { Bubble, GiftedChat } from "react-native-gifted-chat"
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native"
-import {
-  Gap,
-  Line,
-  RandomAvatar,
-  usePNTheme,
-  Text,
-  Icon,
-  colorPalette,
-} from "../../../ui-components"
+import { Gap, Line, Text, defaultTheme } from "../../../ui-components"
 import { useNavigation } from "@react-navigation/native"
 import { useCommonChatRenderers } from "../../../hooks"
-import { useActionsMenu } from "../../../components"
+import { Avatar, useActionsMenu } from "../../../components"
+import { MaterialCommunityIcons } from "@expo/vector-icons"
+
+const { colors, textStyles } = defaultTheme
 
 export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "ThreadReply">) {
   const { parentMessage } = route.params
-  const { chat } = useContext(ChatContext)
+  const { chat, getUser } = useContext(ChatContext)
   const navigation = useNavigation()
   const [currentThreadChannel, setCurrentThreadChannel] = useState<ThreadChannel | null>(null)
   const [messageDraft, setMessageDraft] = useState<MessageDraft | null>(null)
@@ -35,10 +30,8 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([])
   const [showSuggestedUsers, setShowSuggestedUsers] = useState(false)
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
-  const theme = usePNTheme()
 
   const { renderFooter, renderMessageText, renderChatFooter } = useCommonChatRenderers({
-    chat,
     typingData,
     users: new Map(),
     setText,
@@ -63,9 +56,22 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
     [messageDraft]
   )
 
+  const handlePin = useCallback(
+    async (message: ThreadMessage | Message) => {
+      if (!chat) {
+        return
+      }
+      if (message instanceof ThreadMessage) {
+        await message.pinToParentChannel()
+      }
+    },
+    [chat]
+  )
+
   const { ActionsMenuComponent, handlePresentModalPress } = useActionsMenu({
     onQuote: handleQuote,
     removeThreadReply: true,
+    onPinMessage: handlePin,
   })
 
   useEffect(() => {
@@ -174,7 +180,7 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
       setText(messageDraft.value)
       setShowSuggestedUsers(true)
     },
-    [messageDraft, currentThreadChannel]
+    [messageDraft]
   )
 
   const loadEarlierMessages = async () => {
@@ -218,18 +224,17 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
         containerToNextStyle={{ right: { marginRight: 0 } }}
         containerStyle={{ right: { marginRight: 0 } }}
         wrapperStyle={{
-          right: [styles.ownBubbleBackground, { backgroundColor: theme.colors.teal100 }],
+          right: [styles.ownBubbleBackground, { backgroundColor: colors.teal100 }],
           left: [styles.otherBubbleBackground],
         }}
-        textStyle={{ right: [styles.ownBubbleText, theme.textStyles.body] }}
+        textStyle={{ right: [styles.ownBubbleText, textStyles.body] }}
       />
     )
   }, [])
 
   const renderParentMessageBubble = useCallback(() => {
-    if (!chat) {
-      return null
-    }
+    if (!chat) return null
+    const sender = getUser(parentMessage.originalPnMessage.userId)
 
     return (
       <View style={{ flexGrow: 1, paddingHorizontal: 16 }}>
@@ -239,7 +244,7 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
         <Line />
         <Gap value={24} />
         <View style={{ flexDirection: "row" }}>
-          <RandomAvatar size={32} />
+          {sender && <Avatar source={sender} size="md" />}
           <View style={{ marginRight: 8 }} />
           {renderMessageBubble({ currentMessage: parentMessage })}
         </View>
@@ -247,7 +252,7 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
           style={styles.collapseButtonContainer}
           onPress={() => setIsParentMessageCollapsed(!isParentMessageCollapsed)}
         >
-          <Icon icon="chevron-down" />
+          <MaterialCommunityIcons name="chevron-down" size={24} />
           <Text variant="body">{isParentMessageCollapsed ? "Expand" : "Collapse"}</Text>
         </TouchableOpacity>
         <Gap value={32} />
@@ -282,7 +287,10 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
           onLoadEarlier={loadEarlierMessages}
           renderDay={() => null}
           renderTime={() => null}
-          renderAvatar={() => <RandomAvatar size={36} />}
+          renderAvatar={(props) => {
+            const user = getUser(props.currentMessage?.originalPnMessage.userId)
+            return user && <Avatar source={user} size="md" />
+          }}
           user={{
             _id: chat.currentUser.id,
           }}
@@ -299,8 +307,8 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colorPalette.neutral100 },
-  content: { backgroundColor: colorPalette.neutral0, flex: 1 },
+  container: { flex: 1, backgroundColor: colors.neutral100 },
+  content: { backgroundColor: colors.neutral0, flex: 1 },
   bubbleContainer: {},
   ownBubbleBackground: { marginRight: 8, padding: 12 },
   otherBubbleBackground: { padding: 12 },
