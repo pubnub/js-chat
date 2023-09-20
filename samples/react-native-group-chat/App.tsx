@@ -24,7 +24,7 @@ import {
 } from "@expo-google-fonts/roboto"
 import "react-native-get-random-values"
 
-import { PeopleScreen, MentionsScreen, HomeStackScreen, ProfileScreen } from "./screens/tabs"
+import { MentionsScreen, HomeStackScreen, ProfileScreen } from "./screens/tabs"
 import { LoginScreen } from "./screens/ordinary"
 import { ChatContext } from "./context"
 import { RootStackParamList, BottomTabsParamList } from "./types"
@@ -87,16 +87,6 @@ function TabNavigator({ route }: StackScreenProps<RootStackParamList, "tabs">) {
           headerShown: false,
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons name="home-outline" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="People"
-        component={PeopleScreen}
-        options={{
-          tabBarLabel: "People",
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons name="people-outline" size={24} color={color} />
           ),
         }}
       />

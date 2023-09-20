@@ -1,11 +1,11 @@
 import React, { useContext, useState, useRef } from "react"
-import { View, StyleSheet, Switch } from "react-native"
+import { View, StyleSheet } from "react-native"
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs"
 import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
 
 import { BottomTabsParamList } from "../../../types"
 import { ChatContext } from "../../../context"
-import { Line, Button, Text, Gap, TextInput, colorPalette as colors } from "../../../ui-components"
+import { Button, Text, Gap, TextInput, colorPalette as colors } from "../../../ui-components"
 import { Avatar } from "../../../components"
 
 export function ProfileScreen({
@@ -13,8 +13,6 @@ export function ProfileScreen({
 }: BottomTabScreenProps<BottomTabsParamList, "Profile">) {
   const { chat, setMemberships, setChat } = useContext(ChatContext)
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
-  const [notifications, setNotifications] = useState(false)
-  const [receipts, setReceipts] = useState(false)
   const [userName, setUserName] = useState(chat?.currentUser.name)
   const [nameInput, setNameInput] = useState(userName)
 
@@ -60,53 +58,7 @@ export function ProfileScreen({
           </Button>
         </View>
 
-        <Gap value={24} />
-        <Line />
-        <Gap value={24} />
-
-        <View style={styles.row}>
-          <Text variant="headline" fontFamily="Roboto_400Regular">
-            Notifications
-          </Text>
-          <Switch
-            disabled
-            trackColor={{ true: colors.neutral900 }}
-            value={notifications}
-            onValueChange={setNotifications}
-          />
-        </View>
-
-        <Gap value={12} />
-
-        <Text variant="body" color="neutral600">
-          Get notified about new messages and mentions from chats
-        </Text>
-
-        <Gap value={24} />
-        <Line />
-        <Gap value={24} />
-
-        <View style={styles.row}>
-          <Text variant="headline" fontFamily="Roboto_400Regular">
-            Read receipts
-          </Text>
-          <Switch
-            disabled
-            trackColor={{ true: colors.neutral900 }}
-            value={receipts}
-            onValueChange={setReceipts}
-          />
-        </View>
-
-        <Gap value={12} />
-
-        <Text variant="body" color="neutral600">
-          You will see send or receive receipts
-        </Text>
-
-        <Gap value={24} />
-        <Line />
-        <Gap value={24} />
+        <Gap value={36} />
 
         <Button variant="danger" size="lg" onPress={logout} icon="logout" align="left">
           Logout
