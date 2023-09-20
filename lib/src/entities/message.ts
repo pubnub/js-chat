@@ -324,6 +324,10 @@ export class Message {
     return this.chat.createThreadChannel(this)
   }
 
+  removeThread() {
+    return this.chat.removeThreadChannel(this)
+  }
+
   /** @internal */
   private async deleteThread(params: DeleteParameters = {}) {
     if (this.hasThread) {
