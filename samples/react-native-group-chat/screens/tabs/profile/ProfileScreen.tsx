@@ -13,8 +13,8 @@ export function ProfileScreen({
 }: BottomTabScreenProps<BottomTabsParamList, "Profile">) {
   const { chat, setMemberships, setChat } = useContext(ChatContext)
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
-  const [notifications, setNotifications] = useState(true)
-  const [receipts, setReceipts] = useState(true)
+  const [notifications, setNotifications] = useState(false)
+  const [receipts, setReceipts] = useState(false)
   const [userName, setUserName] = useState(chat?.currentUser.name)
   const [nameInput, setNameInput] = useState(userName)
 

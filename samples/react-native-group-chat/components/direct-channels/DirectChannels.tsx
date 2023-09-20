@@ -17,7 +17,7 @@ export function DirectChannels({
   sortByActive = false,
   showIndicators = false,
 }: DirectChannelsProps) {
-  const { chat, users, memberships, setCurrentChannel } = useContext(ChatContext)
+  const { chat, memberships, setCurrentChannel, getInterlocutor } = useContext(ChatContext)
   const navigation = useNavigation()
 
   const entries = memberships.flatMap((m) => {
@@ -29,15 +29,6 @@ export function DirectChannels({
 
   function userName(user: User) {
     return user.name || user.id
-  }
-
-  function getInterlocutor(channel: Channel) {
-    if (!chat) return
-    const userId = channel.id
-      .replace("direct.", "")
-      .replace(chat?.currentUser.id, "")
-      .replace("&", "")
-    return users.find((u) => u.id === userId)
   }
 
   function openChat(channel: Channel) {
@@ -63,7 +54,6 @@ export function DirectChannels({
               avatar={<Avatar source={user} showIndicator={showIndicators} />}
               title={userName(user)}
               onPress={() => openChat(channel)}
-              // TODO: unread messages count badge
             />
           ))}
       </View>

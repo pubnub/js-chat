@@ -29,7 +29,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const [text, setText] = useState("")
   const currentChannelMembership = currentChannelMembers.find(
-    (m) => m.user.id === currentChannel?.id
+    (m) => m.user.id === chat?.currentUser.id
   )
   const { renderFooter, renderMessageText, renderChatFooter } = useCommonChatRenderers({
     typingData,
@@ -42,19 +42,6 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     setShowSuggestedUsers,
     showSuggestedUsers,
     suggestedUsers,
-  })
-
-  navigation.setOptions({
-    headerRight: () => {
-      return (
-        <TouchableOpacity
-          onPress={() => navigation.navigate("PinnedMessage", { channelId: currentChannel?.id })}
-          style={{ paddingRight: 24 }}
-        >
-          <MaterialCommunityIcons name="pin-outline" color={colors.neutral0} size={32} />
-        </TouchableOpacity>
-      )
-    },
   })
 
   const handleQuote = useCallback(
@@ -178,7 +165,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
       const historicalMessagesObject = await currentChannel.getHistory({ count: 5 })
 
       if (currentChannelMembership && historicalMessagesObject.messages.length) {
-        currentChannelMembership.setLastReadMessage(
+        await currentChannelMembership.setLastReadMessage(
           historicalMessagesObject.messages[historicalMessagesObject.messages.length - 1]
         )
       }
