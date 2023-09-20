@@ -3,7 +3,7 @@ import { StackScreenProps } from "@react-navigation/stack"
 import { HomeStackParamList } from "../../../types"
 import { ChatContext } from "../../../context"
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
-import { Message, MessageDraft, ThreadChannel, User } from "@pubnub/chat"
+import { Message, MessageDraft, ThreadChannel, ThreadMessage, User } from "@pubnub/chat"
 import { Bubble, GiftedChat } from "react-native-gifted-chat"
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native"
 import { Gap, Line, Text, defaultTheme } from "../../../ui-components"
@@ -32,7 +32,6 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
 
   const { renderFooter, renderMessageText, renderChatFooter } = useCommonChatRenderers({
-    chat,
     typingData,
     users: new Map(),
     setText,
@@ -57,9 +56,22 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
     [messageDraft]
   )
 
+  const handlePin = useCallback(
+    async (message: ThreadMessage | Message) => {
+      if (!chat) {
+        return
+      }
+      if (message instanceof ThreadMessage) {
+        await message.pinToParentChannel()
+      }
+    },
+    [chat]
+  )
+
   const { ActionsMenuComponent, handlePresentModalPress } = useActionsMenu({
     onQuote: handleQuote,
     removeThreadReply: true,
+    onPinMessage: handlePin,
   })
 
   useEffect(() => {
@@ -168,7 +180,7 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
       setText(messageDraft.value)
       setShowSuggestedUsers(true)
     },
-    [messageDraft, currentThreadChannel]
+    [messageDraft]
   )
 
   const loadEarlierMessages = async () => {

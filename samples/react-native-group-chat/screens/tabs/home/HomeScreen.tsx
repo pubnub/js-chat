@@ -11,7 +11,8 @@ import { HomeStackParamList } from "../../../types"
 import { ChatContext } from "../../../context"
 
 export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, "Home">) {
-  const { chat, memberships, setCurrentChannel, setMemberships, setUsers } = useContext(ChatContext)
+  const { chat, memberships, setCurrentChannel, setMemberships, setUsers, getInterlocutor } =
+    useContext(ChatContext)
   const [searchText, setSearchText] = useState("")
   const [unreadChannels, setUnreadChannels] = useState<
     { channel: Channel; count: number; membership: Membership }[]
@@ -28,10 +29,7 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
 
   const fetchUnreadMessagesCount = useCallback(async () => {
     if (!chat) return
-    const unreadMessagesCounts = await chat.getUnreadMessagesCounts({
-      filter: "channel.type == 'group'",
-    })
-
+    const unreadMessagesCounts = await chat.getUnreadMessagesCounts()
     setUnreadChannels(unreadMessagesCounts)
   }, [chat])
 
@@ -104,15 +102,20 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
             </TouchableOpacity>
           }
         >
-          {getFilteredUnreadChannels(unreadChannels).map(({ channel, count }) => (
-            <ListItem
-              key={channel.id}
-              title={channel.name || channel.id}
-              avatar={<Avatar source={channel} />}
-              onPress={() => navigateToChat(channel)}
-              badge={String(count)}
-            />
-          ))}
+          {getFilteredUnreadChannels(unreadChannels).map(({ channel, count }) => {
+            const interlocutor = channel.type === "direct" && getInterlocutor(channel)
+            const source = interlocutor || channel
+
+            return (
+              <ListItem
+                key={channel.id}
+                title={source.name || source.id}
+                avatar={<Avatar source={source} />}
+                onPress={() => navigateToChat(channel)}
+                badge={String(count)}
+              />
+            )
+          })}
         </Accordion>
 
         <Gap value={8} />

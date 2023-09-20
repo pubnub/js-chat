@@ -7,14 +7,15 @@ import { User, MessageDraft, Message } from "@pubnub/chat"
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { ChatContext } from "../../../context"
 import { HomeStackParamList } from "../../../types"
-import { Avatar, Quote, useActionsMenu, UserSuggestionBox } from "../../../components"
+import { Avatar, useActionsMenu } from "../../../components"
 import { colorPalette as colors, Text } from "../../../ui-components"
 import { useNavigation } from "@react-navigation/native"
 import { useCommonChatRenderers } from "../../../hooks"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 
 export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
-  const { chat, currentChannel, getUser, currentChannelMembers } = useContext(ChatContext)
+  const { chat, setCurrentChannel, currentChannel, getUser, currentChannelMembers } =
+    useContext(ChatContext)
   const navigation = useNavigation()
   const [isMoreMessages, setIsMoreMessages] = useState(true)
   const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false)
@@ -28,11 +29,9 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const [text, setText] = useState("")
   const currentChannelMembership = currentChannelMembers.find(
-    (m) => m.user.id === currentChannel?.id
+    (m) => m.user.id === chat?.currentUser.id
   )
-
   const { renderFooter, renderMessageText, renderChatFooter } = useCommonChatRenderers({
-    chat,
     typingData,
     users,
     messageDraft,
@@ -57,8 +56,24 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     [messageDraft]
   )
 
+  const handlePin = useCallback(
+    async (message: Message) => {
+      if (!chat || !currentChannel) {
+        return
+      }
+
+      await message.pin()
+      const refreshedChannel = await chat.getChannel(currentChannel.id)
+      if (refreshedChannel) {
+        setCurrentChannel(refreshedChannel)
+      }
+    },
+    [chat, currentChannel, setCurrentChannel]
+  )
+
   const { ActionsMenuComponent, handlePresentModalPress } = useActionsMenu({
     onQuote: handleQuote,
+    onPinMessage: handlePin,
   })
 
   const updateUsersMap = useCallback((k: string, v: User | User[]) => {
@@ -109,7 +124,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     )
 
     return unstream
-  }, [giftedChatMappedMessages])
+  }, [giftedChatMappedMessages, users])
 
   const loadEarlierMessages = async () => {
     if (!currentChannel) {
@@ -150,7 +165,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
       const historicalMessagesObject = await currentChannel.getHistory({ count: 5 })
 
       if (currentChannelMembership && historicalMessagesObject.messages.length) {
-        currentChannelMembership.setLastReadMessage(
+        await currentChannelMembership.setLastReadMessage(
           historicalMessagesObject.messages[historicalMessagesObject.messages.length - 1]
         )
       }
@@ -179,7 +194,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     }
 
     switchChannelImplementation()
-  }, [currentChannel, currentChannelMembership])
+  }, [currentChannel, currentChannelMembership, users])
 
   useEffect(() => {
     if (!currentChannel) {
@@ -235,6 +250,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
       }
 
       messageDraft.onChange(text).then((suggestionObject) => {
+        console.log("suggestionObject", suggestionObject)
         setSuggestedUsers(suggestionObject.users.suggestedUsers)
         setLastAffectedNameOccurrenceIndex(suggestionObject.users.nameOccurrenceIndex)
       })

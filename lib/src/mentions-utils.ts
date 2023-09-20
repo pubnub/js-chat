@@ -150,6 +150,12 @@ export class MentionsUtils {
                 link: word,
               },
             })
+            arrayOfTextElements.push({
+              type: "text",
+              content: {
+                text: " ",
+              },
+            })
           }
           return
         }

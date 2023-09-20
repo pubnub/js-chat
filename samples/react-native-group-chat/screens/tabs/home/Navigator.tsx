@@ -1,6 +1,7 @@
 import React, { useContext } from "react"
 import { createStackNavigator, StackScreenProps } from "@react-navigation/stack"
-import { View, TouchableHighlight } from "react-native"
+import { View, TouchableHighlight, TouchableOpacity } from "react-native"
+import { MaterialCommunityIcons } from "@expo/vector-icons"
 
 import { BottomTabsParamList, HomeStackParamList } from "../../../types"
 import { Text, colorPalette as colors } from "../../../ui-components"
@@ -13,6 +14,7 @@ import {
   NewGroupScreen,
   ThreadReply,
   ChatSettings,
+  PinnedMessage,
 } from "../../ordinary"
 
 const HomeStack = createStackNavigator<HomeStackParamList>()
@@ -38,7 +40,22 @@ export function HomeStackScreen({ route }: StackScreenProps<BottomTabsParamList,
         name="Home"
         component={HomeScreen}
         initialParams={{ name: route.params.name }}
-        options={{}}
+        options={() => ({
+          title: "",
+          headerLeft: () =>
+            chat?.currentUser && (
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Avatar
+                  source={chat?.currentUser}
+                  style={{ marginLeft: 26, marginRight: 16 }}
+                  size="md"
+                />
+                <Text variant="headline" color="neutral0">
+                  {chat.currentUser.name}
+                </Text>
+              </View>
+            ),
+        })}
       />
       <HomeStack.Screen
         name="Chat"
@@ -63,6 +80,18 @@ export function HomeStackScreen({ route }: StackScreenProps<BottomTabsParamList,
                 </View>
               </TouchableHighlight>
             ),
+          headerRight: () => {
+            return (
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate("PinnedMessage", { channelId: currentChannel?.id })
+                }
+                style={{ paddingRight: 24 }}
+              >
+                <MaterialCommunityIcons name="pin-outline" color={colors.neutral0} size={26} />
+              </TouchableOpacity>
+            )
+          },
         })}
       />
       <HomeStack.Screen name="NewChat" component={NewChatScreen} options={{ title: "New chat" }} />
@@ -76,6 +105,11 @@ export function HomeStackScreen({ route }: StackScreenProps<BottomTabsParamList,
         name="ChatSettings"
         component={ChatSettings}
         options={{ title: "Chat settings" }}
+      />
+      <HomeStack.Screen
+        name="PinnedMessage"
+        component={PinnedMessage}
+        options={{ title: "Pinned message" }}
       />
     </HomeStack.Navigator>
   )
