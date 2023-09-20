@@ -8,12 +8,7 @@ import {
   makeid,
 } from "./utils"
 import { jest } from "@jest/globals"
-import mockFs from "mock-fs"
 import * as fs from "fs"
-import axios from "axios"
-import MockAdapter from "axios-mock-adapter"
-
-const mock = new MockAdapter(axios)
 
 describe("Send message test", () => {
   jest.retryTimes(3)
@@ -29,12 +24,6 @@ describe("Send message test", () => {
   beforeEach(async () => {
     channel = await createRandomChannel()
     messageDraft = new MessageDraft(chat, channel)
-    mock.reset()
-  })
-
-  afterEach(() => {
-    mockFs.restore()
-    mock.restore()
   })
 
   type FileDetails = {
@@ -623,8 +612,8 @@ describe("Send message test", () => {
 
   //Skiped across SDK issue with sending files over 5mb. Was reported to SDK team. Waiting for fix
   test.skip("shouldn't allow to send image file over 5 mb along with a text message", async () => {
-    // const messages: string[] = []
-    // const filesReceived: FileDetails[] = []
+    const messages: string[] = []
+    const filesReceived: FileDetails[] = []
     const textMessage = "Hello, sending three files"
 
     const file1 = fs.createReadStream("tests/fixtures/example-video-oversize.mp4")
@@ -633,14 +622,14 @@ describe("Send message test", () => {
       { stream: file1, name: "example-video-oversize.mp4", mimeType: "video/mp4" },
     ]
 
-    // const disconnect = channel.connect((message) => {
-    //   if (message.content.text !== undefined) {
-    //     messages.push(message.content.text)
-    //   }
-    //   if (message.content.files !== undefined) {
-    //     filesReceived.push(...message.content.files)
-    //   }
-    // })
+    const disconnect = channel.connect((message) => {
+      if (message.content.text !== undefined) {
+        messages.push(message.content.text)
+      }
+      if (message.content.files !== undefined) {
+        filesReceived.push(...message.content.files)
+      }
+    })
 
     try {
       await channel.sendText(textMessage, {
@@ -650,19 +639,19 @@ describe("Send message test", () => {
       expect(error).toBeTruthy()
     }
 
-    // const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
-    // await sleep(2000)
-    //
-    // expect(messages).toContain(textMessage)
-    //
-    // expect(filesReceived.length).toBe(1)
-    //
-    // expect(filesReceived[0].id).toBeDefined()
-    // expect(filesReceived[0].name).toBe("oversize.jpg")
-    // expect(filesReceived[0].url).toBeDefined()
-    // expect(filesReceived[0].type).toBe("image/jpg")
-    //
-    // disconnect()
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    await sleep(2000)
+
+    expect(messages).toContain(textMessage)
+
+    expect(filesReceived.length).toBe(1)
+
+    expect(filesReceived[0].id).toBeDefined()
+    expect(filesReceived[0].name).toBe("oversize.jpg")
+    expect(filesReceived[0].url).toBeDefined()
+    expect(filesReceived[0].type).toBe("image/jpg")
+
+    disconnect()
   }, 30000)
 
   test("should send 3 messages with proper delays and verify rate limiter", async () => {
