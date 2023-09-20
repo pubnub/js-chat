@@ -12,6 +12,7 @@ type ChatContextParams = {
   users: User[]
   setUsers: (users: User[]) => void
   getUser: (userId: string) => User | null
+  getInterlocutor: (channel: Channel) => User | null
   memberships: Membership[]
   setMemberships: (memberships: Membership[]) => void
 }
@@ -27,6 +28,7 @@ export const ChatContext = React.createContext<ChatContextParams>({
   users: [],
   setUsers: () => null,
   getUser: () => null,
+  getInterlocutor: () => null,
   memberships: [],
   setMemberships: () => null,
 })

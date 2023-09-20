@@ -54,7 +54,7 @@ export class User {
   }
 
   get active() {
-    return (
+    return !!(
       this.lastActiveTimestamp &&
       new Date().getTime() - this.lastActiveTimestamp <= this.chat.config.storeUserActivityInterval
     )

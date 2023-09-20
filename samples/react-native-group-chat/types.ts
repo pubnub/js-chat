@@ -15,7 +15,7 @@ export type HomeStackParamList = {
   NewGroup: undefined
   ThreadReply: { parentMessage: EnhancedIMessage }
   ChatSettings: undefined
-  PinnedMessage: { channelId: string }
+  PinnedMessage: undefined
 }
 
 export type HomeStackNavigation = NavigationProp<HomeStackParamList>

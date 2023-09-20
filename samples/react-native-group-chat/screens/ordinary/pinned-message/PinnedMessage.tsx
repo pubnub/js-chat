@@ -9,23 +9,18 @@ import { MessageText } from "../../../components/message-text"
 import { StackScreenProps } from "@react-navigation/stack"
 import { HomeStackParamList } from "../../../types"
 
-export function PinnedMessage({ route }: StackScreenProps<HomeStackParamList, "PinnedMessage">) {
+export function PinnedMessage({}: StackScreenProps<HomeStackParamList, "PinnedMessage">) {
   const [message, setMessage] = useState<Message | null>(null)
-  const { chat, getUser } = useContext(ChatContext)
-  const { channelId } = route.params
+  const { chat, getUser, currentChannel } = useContext(ChatContext)
 
   useEffect(() => {
     async function init() {
-      if (!chat) {
-        return
-      }
-
-      const channel = await chat.getChannel(channelId)
-      setMessage(await channel.getPinnedMessage())
+      if (!chat || !currentChannel) return
+      setMessage(await currentChannel.getPinnedMessage())
     }
 
     init()
-  }, [chat])
+  }, [chat, currentChannel])
 
   const renderMessageBubble = useCallback(
     (props: Bubble<EnhancedIMessage>["props"]) => {

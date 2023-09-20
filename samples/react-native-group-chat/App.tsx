@@ -149,6 +149,15 @@ function App() {
     return existingUser
   }
 
+  function getInterlocutor(channel: Channel) {
+    if (!chat) return null
+    const userId = channel.id
+      .replace("direct.", "")
+      .replace(chat?.currentUser.id, "")
+      .replace("&", "")
+    return getUser(userId)
+  }
+
   const [fontsLoaded] = useFonts({
     Roboto_400Regular,
     Roboto_500Medium,
@@ -172,6 +181,7 @@ function App() {
         users,
         setUsers,
         getUser,
+        getInterlocutor,
         memberships: userMemberships,
         setMemberships: setUserMemberships,
       }}
