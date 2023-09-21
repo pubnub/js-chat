@@ -72,8 +72,8 @@ export class Chat {
     this.errorLogger = new ErrorLogger(errorLogger)
 
     try {
-      if (storeUserActivityInterval && storeUserActivityInterval < 600000) {
-        throw "storeUserActivityInterval must be at least 600000ms"
+      if (storeUserActivityInterval && storeUserActivityInterval < 60000) {
+        throw "storeUserActivityInterval must be at least 60000ms"
       }
 
       if (pushNotifications?.deviceGateway === "apns2" && !pushNotifications?.apnsTopic) {

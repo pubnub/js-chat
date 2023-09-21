@@ -51,7 +51,7 @@ export function NewChatScreen({ navigation }: StackScreenProps<HomeStackParamLis
         data={users.filter((user) => user.name?.toLowerCase().includes(searchText.toLowerCase()))}
         renderItem={({ item: user }) => (
           <ListItem
-            avatar={<Avatar source={user} />}
+            avatar={<Avatar source={user} showIndicator />}
             title={user.name || user.id}
             onPress={() => openChat(user)}
           />
