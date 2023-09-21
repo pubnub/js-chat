@@ -31,14 +31,24 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
       }
       if (messagePart.type === "plainLink") {
         return (
-          <Text key={index} variant="body" onPress={() => openLink(messagePart.content.link)}>
+          <Text
+            key={index}
+            variant="body"
+            onPress={() => openLink(messagePart.content.link)}
+            color="sky150"
+          >
             {messagePart.content.link}
           </Text>
         )
       }
       if (messagePart.type === "textLink") {
         return (
-          <Text key={index} variant="body" onPress={() => openLink(messagePart.content.link)}>
+          <Text
+            key={index}
+            variant="body"
+            onPress={() => openLink(messagePart.content.link)}
+            color="sky150"
+          >
             {messagePart.content.text}
           </Text>
         )
@@ -49,6 +59,7 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
             key={index}
             variant="body"
             onPress={() => openLink(`https://pubnub.com/${messagePart.content.id}`)}
+            color="sky150"
           >
             @{messagePart.content.name}
           </Text>
@@ -60,6 +71,7 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
             key={index}
             variant="body"
             onPress={() => openLink(`https://pubnub.com/${messagePart.content.id}`)}
+            color="sky150"
           >
             #{messagePart.content.name}
           </Text>

@@ -1,5 +1,5 @@
 export * from "./actions-menu"
 export * from "./list-item"
-export * from "./user-suggestion-box"
+export * from "./data-suggestion-box"
 export * from "./quote"
 export * from "./avatar"
