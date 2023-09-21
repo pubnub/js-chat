@@ -40,17 +40,24 @@ export class ChannelsRelevantToUserComponent {
     return ""
   }
 
-  renderUserMention(userMentionItem: UserMentionData) {
-    const channelName =
-      "channel" in userMentionItem
-        ? userMentionItem["channel"].name
-        : userMentionItem["parentChannel"].name
+  async renderUserMention(userMentionItem: UserMentionData) {
+    const channelId =
+      "channelId" in userMentionItem
+        ? userMentionItem["channelId"]
+        : userMentionItem["parentChannelId"]
 
     const threadTextSuffix =
-      "channel" in userMentionItem
+      "channelId" in userMentionItem
         ? ""
-        : `. This message was posted in a thread with id: ${userMentionItem["threadChannel"].id}.`
+        : `. This message was posted in a thread with id: ${userMentionItem["threadChannelId"]}.`
 
-    return `${userMentionItem.user.name} mentioned you in #${channelName}${threadTextSuffix}`
+    const [user, channel] = await Promise.all([
+      this.chat.getUser(userMentionItem.userId),
+      this.chat.getChannel(channelId),
+    ])
+
+    return `${user ? user.name || user.id : "[Removed user]"} mentioned you in #${
+      channel ? channel.name || channel.id : "[Removed channel]"
+    }${threadTextSuffix}`
   }
 }
