@@ -12,7 +12,7 @@ import { BottomTabsParamList } from "../../../types"
 export function MentionsScreen({
   navigation,
 }: BottomTabScreenProps<BottomTabsParamList, "Mentions">) {
-  const { chat, setCurrentChannel, users } = useContext(ChatContext)
+  const { chat, setCurrentChannel, getUser } = useContext(ChatContext)
   const [mentions, setMentions] = useState<UserMentionData[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -54,7 +54,7 @@ export function MentionsScreen({
   return (
     <ScrollView style={styles.container}>
       {mentions.map((mention, index) => {
-        const user = users.find((u) => u.id === mention.userId)
+        const user = getUser(mention.userId)
 
         return (
           <View key={mention.event.timetoken}>
