@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect, useRef } from "react"
-import { View, ScrollView, StyleSheet, Switch } from "react-native"
+import { View, ScrollView, StyleSheet } from "react-native"
 import { StackScreenProps } from "@react-navigation/stack"
 import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
 
@@ -11,7 +11,6 @@ import { Avatar } from "../../../components"
 export function ChatSettings({ navigation }: StackScreenProps<HomeStackParamList, "ChatSettings">) {
   const { chat, currentChannel, setCurrentChannel, currentChannelMembers } = useContext(ChatContext)
   const isDirect = currentChannel?.type === "direct"
-  const [mute, setMute] = useState(true)
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
   const [nameInput, setNameInput] = useState(currentChannel?.name)
   const members = currentChannelMembers
@@ -85,26 +84,6 @@ export function ChatSettings({ navigation }: StackScreenProps<HomeStackParamList
             {user.name || user.id}
           </Text>
         ))}
-
-        <Gap value={24} />
-        <Line />
-        <Gap value={24} />
-
-        <View style={styles.row}>
-          <Text variant="headline" fontFamily="Roboto_400Regular">
-            Mute channel
-          </Text>
-          <Switch
-            disabled
-            trackColor={{ true: colors.neutral900 }}
-            value={mute}
-            onValueChange={setMute}
-          />
-        </View>
-        <Gap value={12} />
-        <Text variant="body" color="neutral600">
-          Mute notifications about new messages and mentions from this chat
-        </Text>
 
         <Gap value={24} />
         <Line />

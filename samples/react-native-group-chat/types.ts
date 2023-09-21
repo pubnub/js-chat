@@ -22,7 +22,6 @@ export type HomeStackNavigation = NavigationProp<HomeStackParamList>
 
 export type BottomTabsParamList = {
   HomeStack: NavigatorScreenParams<HomeStackParamList> & { name: string }
-  People: undefined
   Mentions: undefined
   Profile: undefined
 }
