@@ -44,7 +44,7 @@ export class MessageInputComponentChat {
   ngOnInit() {
     this.newMessageDraft = this.channel.createMessageDraft({
       userSuggestionSource: "global",
-      userLimit: 100,
+      userLimit: 10,
     })
   }
 

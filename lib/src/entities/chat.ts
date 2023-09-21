@@ -1,4 +1,4 @@
-import PubNub, { MessageEvent, SignalEvent } from "pubnub"
+import PubNub, { GetMembershipsParametersv2, MessageEvent, SignalEvent } from "pubnub"
 import { Channel, ChannelFields } from "./channel"
 import { User, UserFields } from "./user"
 import {
@@ -9,6 +9,7 @@ import {
   ChannelType,
   ErrorLoggerImplementation,
   UserMentionData,
+  SendTextOptionParams,
 } from "../types"
 import { Message } from "./message"
 import { Event } from "./event"
@@ -71,8 +72,8 @@ export class Chat {
     this.errorLogger = new ErrorLogger(errorLogger)
 
     try {
-      if (storeUserActivityInterval && storeUserActivityInterval < 600000) {
-        throw "storeUserActivityInterval must be at least 600000ms"
+      if (storeUserActivityInterval && storeUserActivityInterval < 60000) {
+        throw "storeUserActivityInterval must be at least 60000ms"
       }
 
       if (pushNotifications?.deviceGateway === "apns2" && !pushNotifications?.apnsTopic) {
@@ -361,7 +362,7 @@ export class Chat {
   }
 
   /** @internal */
-  async createThreadChannel(message: Message) {
+  async createThreadChannel(message: Message): Promise<ThreadChannel> {
     try {
       if (message.channelId.startsWith(MESSAGE_THREAD_ID_PREFIX)) {
         throw "Only one level of thread nesting is allowed"
@@ -370,30 +371,58 @@ export class Chat {
       const threadChannelId = this.getThreadId(message.channelId, message.timetoken)
 
       const existingThread = await this.getChannel(threadChannelId)
+
       if (existingThread) throw "Thread for this message already exists"
 
-      const response = await this.sdk.objects.setChannelMetadata({
-        channel: threadChannelId,
-        data: {
-          description: `Thread on channel ${message.channelId} with message timetoken ${message.timetoken}`,
+      const newThreadChannelDraft = new ThreadChannel(this, {
+        description: `Thread on channel ${message.channelId} with message timetoken ${message.timetoken}`,
+        id: threadChannelId,
+        parentChannelId: message.channelId,
+      })
+
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
+      const self = this
+
+      let isThreadCreated = false
+
+      return new Proxy(newThreadChannelDraft, {
+        get(target: ThreadChannel, prop: keyof ThreadChannel) {
+          if (prop !== "sendText" || isThreadCreated) {
+            return target[prop]
+          }
+
+          const originalSendText = target.sendText
+
+          return async function proxifiedSendText(
+            text: string,
+            options: SendTextOptionParams = {}
+          ) {
+            try {
+              await Promise.all([
+                self.sdk.objects.setChannelMetadata({
+                  channel: threadChannelId,
+                  data: {
+                    description: `Thread on channel ${message.channelId} with message timetoken ${message.timetoken}`,
+                  },
+                }),
+                self.sdk.addMessageAction({
+                  channel: message.channelId,
+                  messageTimetoken: message.timetoken,
+                  action: {
+                    type: "threadRootId",
+                    value: threadChannelId,
+                  },
+                }),
+              ])
+              isThreadCreated = true
+
+              return originalSendText.bind(this)(text, options)
+            } catch (e) {
+              throw e
+            }
+          }
         },
       })
-      const data = await Promise.all([
-        ThreadChannel.fromDTO(this, {
-          ...response.data,
-          parentChannelId: message.channelId,
-        }),
-        this.sdk.addMessageAction({
-          channel: message.channelId,
-          messageTimetoken: message.timetoken,
-          action: {
-            type: "threadRootId",
-            value: threadChannelId,
-          },
-        }),
-      ])
-
-      return data[0]
     } catch (e) {
       console.error(e)
       throw e
@@ -505,7 +534,7 @@ export class Chat {
     channelId: string
     channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
   }) {
-    return this.createChannel(channelId, { ...channelData, type: "public" })
+    return this.createChannel(channelId, { name: channelId, ...channelData, type: "public" })
   }
 
   /**
@@ -661,11 +690,11 @@ export class Chat {
 
       const sortedUsers = [this.user.id, user.id].sort()
 
-      const channelName = `direct.${sortedUsers[0]}&${sortedUsers[1]}`
+      const channelId = `direct.${sortedUsers[0]}&${sortedUsers[1]}`
 
       const channel =
-        (await this.getChannel(channelName)) ||
-        (await this.createChannel(channelName, { ...channelData, type: "direct" }))
+        (await this.getChannel(channelId)) ||
+        (await this.createChannel(channelId, { name: channelId, ...channelData, type: "direct" }))
 
       const { custom, ...rest } = membershipData
       const hostMembershipPromise = this.sdk.objects.setMemberships({
@@ -718,7 +747,7 @@ export class Chat {
     try {
       const channel =
         (await this.getChannel(channelId)) ||
-        (await this.createChannel(channelId, { ...channelData, type: "group" }))
+        (await this.createChannel(channelId, { name: channelId, ...channelData, type: "group" }))
       const { custom, ...rest } = membershipData
       const hostMembershipPromise = this.sdk.objects.setMemberships({
         ...rest,
@@ -854,40 +883,28 @@ export class Chat {
       mentionsHistoryObject.events
         .filter((event) => event.type === "mention")
         .map(async (event) => {
-          let maybeParentChannelPromise = null
+          const previousTimetoken = String(BigInt(event.payload.messageTimetoken) + BigInt(1))
+          const sdkMessages = await this.sdk.fetchMessages({
+            channels: [event.payload.channel],
+            start: previousTimetoken,
+            end: event.payload.messageTimetoken,
+          })
 
-          if (event.payload.parentChannel) {
-            maybeParentChannelPromise = this.getChannel(event.payload.parentChannel)
-          }
-
-          const [channel, parentChannel] = await Promise.all([
-            this.getChannel(event.payload.channel),
-            maybeParentChannelPromise,
-          ])
-
-          const [message, user] = await Promise.all([
-            (channel as Channel).getMessage(event.payload.messageTimetoken),
-            this.getUser(event.userId),
-          ])
-
-          if (!parentChannel) {
+          if (!event.payload.parentChannel) {
             return {
               event: event as Event<"mention">,
-              channel: channel as Channel,
-              message: message as Message,
-              user: user as User,
+              channelId: event.payload.channel,
+              message: Message.fromDTO(this, sdkMessages.channels[event.payload.channel][0]),
+              userId: event.userId,
             }
           }
 
           return {
             event: event as Event<"mention">,
-            parentChannel: parentChannel as Channel,
-            threadChannel: ThreadChannel.fromDTO(this, {
-              id: (channel as Channel).id,
-              parentChannelId: parentChannel.id,
-            }),
-            message: message as Message,
-            user: user as User,
+            message: Message.fromDTO(this, sdkMessages.channels[event.payload.channel][0]),
+            userId: event.userId,
+            parentChannelId: event.payload.parentChannel,
+            threadChannelId: event.payload.channel,
           }
         })
     )
@@ -895,6 +912,120 @@ export class Chat {
     return {
       enhancedMentionsData,
       isMore: mentionsHistoryObject.isMore,
+    }
+  }
+
+  async getUnreadMessagesCounts(params: Omit<GetMembershipsParametersv2, "include"> = {}) {
+    const userMemberships = await this.currentUser.getMemberships(params)
+
+    const membershipsWithTimetokens = userMemberships.memberships.filter(
+      (membership) => membership.lastReadMessageTimetoken
+    )
+    const relevantTimetokens = membershipsWithTimetokens.map((m) => m.lastReadMessageTimetoken)
+    const relevantChannelIds = membershipsWithTimetokens.map((m) => m.channel.id)
+
+    if (!relevantChannelIds.length) {
+      return []
+    }
+
+    const response = await this.sdk.messageCounts({
+      channels: relevantChannelIds,
+      channelTimetokens: relevantTimetokens as string[],
+    })
+
+    return Object.keys(response.channels)
+      .map((key) => {
+        const relevantMembership = membershipsWithTimetokens.find((m) => m.channel.id === key)
+
+        if (!relevantMembership) {
+          throw `Cannot find channel with id ${key}`
+        }
+
+        return {
+          channel: relevantMembership.channel,
+          membership: relevantMembership,
+          count: response.channels[key],
+        }
+      })
+      .filter((r) => r.count > 0)
+  }
+
+  async markAllMessagesAsRead(params: Omit<GetMembershipsParametersv2, "include"> = {}) {
+    const userMemberships = await this.currentUser.getMemberships(params)
+
+    const membershipsWithTimetokens = userMemberships.memberships.filter(
+      (membership) => membership.lastReadMessageTimetoken
+    )
+
+    const relevantChannelIds = membershipsWithTimetokens.map((m) => m.channel.id)
+
+    if (!relevantChannelIds.length) {
+      return
+    }
+
+    const lastMessagesFromMembershipChannels = await this.sdk.fetchMessages({
+      channels: relevantChannelIds,
+      count: 1,
+    })
+
+    const channelsSetCustom = relevantChannelIds.map((relevantChannelId, i) => {
+      const relevantLastMessage =
+        lastMessagesFromMembershipChannels.channels[encodeURIComponent(relevantChannelId)]
+
+      const relevantLastMessageTimetoken =
+        relevantLastMessage && relevantLastMessage[0] ? relevantLastMessage[0].timetoken : ""
+
+      return {
+        id: relevantChannelId,
+        custom: {
+          ...membershipsWithTimetokens[i].custom,
+          lastReadMessageTimetoken: relevantLastMessageTimetoken,
+        },
+      }
+    })
+    const filterExpression = `${relevantChannelIds.map((r) => `channel.id == '${r}'`).join(" || ")}`
+
+    const membershipsResponse = await this.sdk.objects.setMemberships({
+      uuid: this.user.id,
+      channels: channelsSetCustom,
+      include: {
+        totalCount: true,
+        customFields: true,
+        channelFields: true,
+        customChannelFields: true,
+      },
+      filter: filterExpression,
+    })
+
+    relevantChannelIds.forEach((relevantChannelId) => {
+      const relevantLastMessage =
+        lastMessagesFromMembershipChannels.channels[encodeURIComponent(relevantChannelId)]
+
+      const relevantLastMessageTimetoken =
+        relevantLastMessage && relevantLastMessage[0]
+          ? String(relevantLastMessage[0].timetoken)
+          : ""
+
+      this.emitEvent({
+        channel: relevantChannelId,
+        type: "receipt",
+        method: "signal",
+        payload: {
+          messageTimetoken: relevantLastMessageTimetoken,
+        },
+      })
+    })
+
+    return {
+      page: {
+        next: membershipsResponse.next,
+        prev: membershipsResponse.prev,
+      },
+      total: membershipsResponse.totalCount,
+      status: membershipsResponse.status,
+      memberships: membershipsResponse.data.map((m) =>
+        Membership.fromMembershipDTO(this, m, this.user)
+      ),
     }
   }
 }

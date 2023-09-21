@@ -29,6 +29,7 @@ export class User {
     this.id = params.id
     Object.assign(this, params)
   }
+
   /** @internal */
   static fromDTO(
     chat: Chat,
@@ -50,6 +51,13 @@ export class User {
       lastActiveTimestamp: params.custom?.lastActiveTimestamp || undefined,
     }
     return getErrorProxiedEntity(new User(chat, data), chat.errorLogger)
+  }
+
+  get active() {
+    return !!(
+      this.lastActiveTimestamp &&
+      new Date().getTime() - this.lastActiveTimestamp <= this.chat.config.storeUserActivityInterval
+    )
   }
 
   /*
