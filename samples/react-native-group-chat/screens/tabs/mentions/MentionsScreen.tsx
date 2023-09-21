@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react"
+import React, { useContext, useCallback, useState } from "react"
 import { View, StyleSheet, ScrollView, TouchableHighlight, ActivityIndicator } from "react-native"
 import { useFocusEffect } from "@react-navigation/native"
 import { UserMentionData, TimetokenUtils } from "@pubnub/chat"
@@ -12,7 +12,7 @@ import { BottomTabsParamList } from "../../../types"
 export function MentionsScreen({
   navigation,
 }: BottomTabScreenProps<BottomTabsParamList, "Mentions">) {
-  const { chat, setCurrentChannel } = useContext(ChatContext)
+  const { chat, setCurrentChannel, users } = useContext(ChatContext)
   const [mentions, setMentions] = useState<UserMentionData[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -27,15 +27,17 @@ export function MentionsScreen({
     navigation.navigate("Chat")
   }
 
-  useFocusEffect(() => {
-    const init = async () => {
-      if (!chat) return
-      const { enhancedMentionsData } = await chat.getCurrentUserMentions()
-      setMentions(enhancedMentionsData.reverse())
-      setLoading(false)
-    }
-    if (chat) init()
-  })
+  useFocusEffect(
+    useCallback(() => {
+      const init = async () => {
+        if (!chat) return
+        const { enhancedMentionsData } = await chat.getCurrentUserMentions()
+        setMentions(enhancedMentionsData.reverse())
+        setLoading(false)
+      }
+      if (chat) init()
+    }, [chat])
+  )
 
   if (loading || !mentions.length) {
     return (
@@ -51,33 +53,38 @@ export function MentionsScreen({
 
   return (
     <ScrollView style={styles.container}>
-      {mentions.map((mention, index) => (
-        <View key={mention.event.timetoken}>
-          <TouchableHighlight
-            onPress={() => openChannel(mention.message.channelId)}
-            underlayColor={colors.neutral50}
-          >
-            <View>
-              <Text variant="smallBody" color="neutral600">
-                {TimetokenUtils.timetokenToDate(mention.message.timetoken).toLocaleString([], {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "numeric",
-                })}
-              </Text>
-              <View style={styles.message}>
-                <Avatar source={mention.user} style={{ marginTop: 10 }} />
-                <View style={styles.bubble}>
-                  <Text>{mention.message.text}</Text>
+      {mentions.map((mention, index) => {
+        const user = users.find((u) => u.id === mention.userId)
+        console.log("mention", mention)
+
+        return (
+          <View key={mention.event.timetoken}>
+            <TouchableHighlight
+              onPress={() => openChannel(mention.message.channelId)}
+              underlayColor={colors.neutral50}
+            >
+              <View>
+                <Text variant="smallBody" color="neutral600">
+                  {TimetokenUtils.timetokenToDate(mention.message.timetoken).toLocaleString([], {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "numeric",
+                  })}
+                </Text>
+                <View style={styles.message}>
+                  {user && <Avatar source={user} style={{ marginTop: 10 }} />}
+                  <View style={styles.bubble}>
+                    <Text>{mention.message.text}</Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          </TouchableHighlight>
-          {index !== mentions.length - 1 && <Line style={{ marginVertical: 16 }} />}
-        </View>
-      ))}
+            </TouchableHighlight>
+            {index !== mentions.length - 1 && <Line style={{ marginVertical: 16 }} />}
+          </View>
+        )
+      })}
     </ScrollView>
   )
 }

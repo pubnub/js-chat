@@ -883,40 +883,28 @@ export class Chat {
       mentionsHistoryObject.events
         .filter((event) => event.type === "mention")
         .map(async (event) => {
-          let maybeParentChannelPromise = null
+          const previousTimetoken = String(BigInt(event.payload.messageTimetoken) + BigInt(1))
+          const sdkMessages = await this.sdk.fetchMessages({
+            channels: [event.payload.channel],
+            start: previousTimetoken,
+            end: event.payload.messageTimetoken,
+          })
 
-          if (event.payload.parentChannel) {
-            maybeParentChannelPromise = this.getChannel(event.payload.parentChannel)
-          }
-
-          const [channel, parentChannel] = await Promise.all([
-            this.getChannel(event.payload.channel),
-            maybeParentChannelPromise,
-          ])
-
-          const [message, user] = await Promise.all([
-            (channel as Channel).getMessage(event.payload.messageTimetoken),
-            this.getUser(event.userId),
-          ])
-
-          if (!parentChannel) {
+          if (!event.payload.parentChannel) {
             return {
               event: event as Event<"mention">,
-              channel: channel as Channel,
-              message: message as Message,
-              user: user as User,
+              channelId: event.payload.channel,
+              message: Message.fromDTO(this, sdkMessages.channels[event.payload.channel][0]),
+              userId: event.userId,
             }
           }
 
           return {
             event: event as Event<"mention">,
-            parentChannel: parentChannel as Channel,
-            threadChannel: ThreadChannel.fromDTO(this, {
-              id: (channel as Channel).id,
-              parentChannelId: parentChannel.id,
-            }),
-            message: message as Message,
-            user: user as User,
+            message: Message.fromDTO(this, sdkMessages.channels[event.payload.channel][0]),
+            userId: event.userId,
+            parentChannelId: event.payload.parentChannel,
+            threadChannelId: event.payload.channel,
           }
         })
     )
