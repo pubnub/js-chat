@@ -47,6 +47,7 @@ function TabNavigator({ route }: StackScreenProps<RootStackParamList, "tabs">) {
         userId: name || "test-user",
         typingTimeout: 2000,
         storeUserActivityTimestamps: true,
+        storeUserActivityInterval: 60000,
       })
 
       setChat(chat)
