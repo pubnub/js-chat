@@ -74,6 +74,7 @@ export class MessageListComponentChat {
   async loadMoreHistoricalMessages() {
     const historicalMessagesObject = await this.channel.getHistory({
       startTimetoken: this.messages?.[0]?.timetoken,
+      count: 5,
     })
     await this.getPinnedMessage(this.channel)
     const msg = historicalMessagesObject.messages[1]

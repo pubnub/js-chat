@@ -5,8 +5,8 @@ import { StateService } from "./state.service"
 
 const userId = (new URLSearchParams(window.location.search).get("userid") as string) || "test-user"
 
-const publishKey = "demo"
-const subscribeKey = "demo"
+const publishKey = "pub-c-0457cb83-0786-43df-bc70-723b16a6e816"
+const subscribeKey = "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de"
 
 @Component({
   selector: "app-root",
