@@ -6,7 +6,7 @@ import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons"
 import { Channel, Membership } from "@pubnub/chat"
 
 import { Gap, Line, TextInput, colorPalette as colors, Accordion } from "../../../ui-components"
-import { DirectChannels, ListItem, Avatar } from "../../../components"
+import { ListItem, Avatar } from "../../../components"
 import { HomeStackParamList } from "../../../types"
 import { ChatContext } from "../../../context"
 
@@ -19,6 +19,7 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
   >([])
 
   const channels = memberships.map((m) => m.channel)
+  const currentUserDirectChannels = channels.filter((c) => c.type === "direct")
   const currentUserGroupChannels = channels.filter((c) => c.type === "group")
   const currentUserPublicChannels = channels.filter((c) => c.type === "public")
 
@@ -153,7 +154,18 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
         <Gap value={20} />
 
         <Accordion title="DIRECT MESSAGES">
-          <DirectChannels searchText={searchText} sortByActive={false} />
+          {getFilteredChannels(currentUserDirectChannels).map((channel) => {
+            const source = getInterlocutor(channel) || channel
+
+            return (
+              <ListItem
+                key={source.id}
+                title={source.name || source.id}
+                avatar={<Avatar source={source} showIndicator />}
+                onPress={() => navigateToChat(channel)}
+              />
+            )
+          })}
         </Accordion>
 
         <Gap value={32} />

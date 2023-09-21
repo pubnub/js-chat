@@ -250,7 +250,6 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
       }
 
       messageDraft.onChange(text).then((suggestionObject) => {
-        console.log("suggestionObject", suggestionObject)
         setSuggestedUsers(suggestionObject.users.suggestedUsers)
         setLastAffectedNameOccurrenceIndex(suggestionObject.users.nameOccurrenceIndex)
       })
