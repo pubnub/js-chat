@@ -55,7 +55,6 @@ export function MentionsScreen({
     <ScrollView style={styles.container}>
       {mentions.map((mention, index) => {
         const user = users.find((u) => u.id === mention.userId)
-        console.log("mention", mention)
 
         return (
           <View key={mention.event.timetoken}>

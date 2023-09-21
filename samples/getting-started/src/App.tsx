@@ -2,17 +2,10 @@ import React, { useCallback, useEffect, useRef, useState } from "react"
 import { Channel, Chat, Message, MixedTextTypedElement, TimetokenUtils, User } from "@pubnub/chat"
 import "./App.css"
 
-const userData = [
-  {
-    id: "support-agent",
-    data: { name: "John (Support Agent)", custom: { initials: "SA", avatar: "#9fa7df" } },
-  },
-  {
-    id: "supported-user",
-    data: { name: "Mary Watson", custom: { initials: "MW", avatar: "#ffab91" } },
-  },
-]
-const randomizedUsers = Math.random() < 0.5 ? userData : userData.reverse()
+const userData = {
+  "support-agent": { name: "John (Support Agent)", custom: { initials: "SA", avatar: "#9fa7df" } },
+  "supported-user": { name: "Mary Watson", custom: { initials: "MW", avatar: "#ffab91" } },
+}
 
 export default function App() {
   const [chat, setChat] = useState<Chat>()
@@ -29,6 +22,14 @@ export default function App() {
     setText("")
   }
 
+  async function handleMessage(message: Message) {
+    if (chat && !users.find((user) => user.id === message.userId)) {
+      const user = await chat.getUser(message.userId)
+      if (user) setUsers((users) => [...users, user])
+    }
+    setMessages((messages) => [...messages, message])
+  }
+
   useEffect(() => {
     if (!messageListRef.current) return
     messageListRef.current.scrollTop = messageListRef.current.scrollHeight
@@ -36,26 +37,24 @@ export default function App() {
 
   useEffect(() => {
     if (!channel) return
-    return channel.connect((message) => setMessages((messages) => [...messages, message]))
+    return channel.connect(handleMessage)
   }, [channel])
 
   useEffect(() => {
     async function initalizeChat() {
+      const userId = Math.random() < 0.5 ? "support-agent" : "supported-user"
+      const channelId = "support-channel"
       const chat = await Chat.init({
-        subscribeKey: import.meta.env.VITE_PUBNUB_SUB_KEY,
-        publishKey: import.meta.env.VITE_PUBNUB_PUB_KEY,
-        userId: randomizedUsers[0].id,
+        subscribeKey: "sub-c-2e5fa5c4-fd65-4ef8-9246-286dde521c20",
+        publishKey: "pub-c-58c29876-cff9-4f15-bb16-6bd785739fe4",
+        userId,
       })
-      const currentUser = await chat.currentUser.update(randomizedUsers[0].data)
-      const interlocutor =
-        (await chat.getUser(randomizedUsers[1].id)) ||
-        (await chat.createUser(randomizedUsers[1].id, randomizedUsers[1].data))
-      const { channel } = await chat.createDirectConversation({
-        user: interlocutor,
-        channelData: { name: "Support Channel" },
-      })
+      const user = await chat.currentUser.update(userData[userId])
+      const channel =
+        (await chat.getChannel(channelId)) ||
+        (await chat.createChannel(channelId, { name: "Support Channel" }))
       setChat(chat)
-      setUsers([currentUser, interlocutor])
+      setUsers([user])
       setChannel(channel)
     }
 
