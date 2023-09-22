@@ -28,7 +28,6 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
       alert("This channel no longer exists.")
       return
     }
-    // setCurrentChannel(null)
     navigation.pop()
     setCurrentChannel(channel)
     navigation.navigate("Chat")
