@@ -158,10 +158,18 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
             .reverse()
         )
       )
+      setGiftedChatMappedMessages((msgs) =>
+        GiftedChat.prepend(
+          [],
+          historicalMessagesObject.messages
+            .map((msg) => mapPNMessageToGChatMessage(msg, getUser(msg.userId)))
+            .reverse()
+        )
+      )
     }
 
     switchChannelImplementation()
-  }, [currentChannel, currentChannelMembership])
+  }, [currentChannel, currentChannelMembership, getUser])
 
   useEffect(() => {
     if (!currentChannel) {
@@ -182,7 +190,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     return () => {
       disconnect()
     }
-  }, [currentChannel, currentChannelMembership])
+  }, [currentChannel, currentChannelMembership, getUser])
 
   const resetInput = () => {
     if (!messageDraft) {

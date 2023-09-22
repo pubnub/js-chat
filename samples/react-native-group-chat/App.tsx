@@ -119,11 +119,17 @@ function App() {
   const [chat, setChat] = useState<Chat | null>(null)
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
-  const [currentChannel, setCurrentChannel] = useState<Channel>()
+  const [currentChannel, setCurrentChannel] = useState<Channel | null>()
   const [currentChannelMembers, setCurrentChannelMembers] = useState<Membership[]>([])
   const [userMemberships, setUserMemberships] = useState<Membership[]>([])
 
-  async function setCurrentChannelWithMembers(channel: Channel) {
+  async function setCurrentChannelWithMembers(channel: Channel | null) {
+    if (!channel) {
+      setCurrentChannelMembers([])
+      setCurrentChannel(null)
+      return
+    }
+
     const { members } = await channel.getMembers()
     setCurrentChannelMembers(members)
     setCurrentChannel(channel)

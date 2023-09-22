@@ -6,6 +6,7 @@ import { Quote } from "../quote"
 import { Text } from "../../ui-components"
 import { Message, MixedTextTypedElement } from "@pubnub/chat"
 import { ChatContext } from "../../context"
+import { useNavigation } from "@react-navigation/native"
 
 type MessageTextProps = {
   onGoToMessage: (message: Message) => void
@@ -13,10 +14,24 @@ type MessageTextProps = {
 }
 
 export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
-  const { chat } = useContext(ChatContext)
+  const { chat, setCurrentChannel } = useContext(ChatContext)
+  const navigation = useNavigation()
 
   const openLink = (link: string) => {
     Linking.openURL(link)
+  }
+
+  async function openChannel(channelId: string) {
+    if (!chat) return
+    const channel = await chat.getChannel(channelId)
+    if (!channel) {
+      alert("This channel no longer exists.")
+      return
+    }
+    // setCurrentChannel(null)
+    navigation.pop()
+    setCurrentChannel(channel)
+    navigation.navigate("Chat")
   }
 
   const renderMessagePart = useCallback(
@@ -70,7 +85,7 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
           <Text
             key={index}
             variant="body"
-            onPress={() => openLink(`https://pubnub.com/${messagePart.content.id}`)}
+            onPress={() => openChannel(messagePart.content.id)}
             color="sky150"
           >
             #{messagePart.content.name}

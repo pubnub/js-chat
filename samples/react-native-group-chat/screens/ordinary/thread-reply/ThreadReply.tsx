@@ -91,7 +91,7 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
     }
 
     init()
-  }, [])
+  }, [chat, navigation, parentMessage.originalPnMessage])
 
   useEffect(() => {
     async function init() {
@@ -129,7 +129,7 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
     }
 
     init()
-  }, [currentThreadChannel])
+  }, [chat, currentThreadChannel, parentMessage.originalPnMessage.channelId])
 
   useEffect(() => {
     if (!currentThreadChannel) {
