@@ -1,48 +1,53 @@
 import { FlatList, View, StyleSheet } from "react-native"
-import React, { useCallback } from "react"
-import { Message, MessageDraft, User } from "@pubnub/chat"
+import React, { useCallback, useContext } from "react"
+import { Channel, Message, MessageDraft, User } from "@pubnub/chat"
 import { Text } from "../ui-components"
 import { Bubble } from "react-native-gifted-chat"
 import { EnhancedIMessage } from "../utils"
-import { Quote, UserSuggestionBox } from "../components"
+import { Quote, DataSuggestionBox } from "../components"
 import { MessageText } from "../components/message-text"
+import { ChatContext } from "../context"
 
 type UseCommonChatRenderersProps = {
   typingData: string[]
-  users: Map<string, User>
   messageDraft: MessageDraft | null
   lastAffectedNameOccurrenceIndex: number
   setText: (text: string) => void
-  setShowSuggestedUsers: (value: boolean) => void
-  showSuggestedUsers: boolean
+  setShowSuggestedData: (value: boolean) => void
+  showSuggestedData: boolean
   giftedChatRef: React.RefObject<FlatList<EnhancedIMessage>>
   giftedChatMappedMessages: EnhancedIMessage[]
-  suggestedUsers: User[]
+  suggestedData: User[] | Channel[]
 }
 
 export function useCommonChatRenderers({
   typingData,
-  users,
   messageDraft,
   lastAffectedNameOccurrenceIndex,
   setText,
-  setShowSuggestedUsers,
+  setShowSuggestedData,
   giftedChatRef,
   giftedChatMappedMessages,
-  suggestedUsers,
-  showSuggestedUsers,
+  suggestedData,
+  showSuggestedData,
 }: UseCommonChatRenderersProps) {
-  const handleUserToMention = useCallback(
-    (user: User) => {
+  const { getUser } = useContext(ChatContext)
+
+  const handleSuggestionSelect = useCallback(
+    (suggestion: User | Channel) => {
       if (!messageDraft) {
         return
       }
+      if (suggestion instanceof User) {
+        messageDraft.addMentionedUser(suggestion, lastAffectedNameOccurrenceIndex)
+      } else {
+        messageDraft.addReferencedChannel(suggestion, lastAffectedNameOccurrenceIndex)
+      }
 
-      messageDraft.addMentionedUser(user, lastAffectedNameOccurrenceIndex)
       setText(messageDraft.value)
-      setShowSuggestedUsers(false)
+      setShowSuggestedData(false)
     },
-    [messageDraft, lastAffectedNameOccurrenceIndex]
+    [messageDraft, lastAffectedNameOccurrenceIndex, setText, setShowSuggestedData]
   )
 
   const scrollToMessage = useCallback(
@@ -62,7 +67,7 @@ export function useCommonChatRenderers({
 
       giftedChatRef.current.scrollToIndex({ animated: true, index: messageIndex })
     },
-    [giftedChatMappedMessages]
+    [giftedChatMappedMessages, giftedChatRef]
   )
 
   const renderChatFooter = useCallback(() => {
@@ -72,7 +77,7 @@ export function useCommonChatRenderers({
 
     const quotedMessage = messageDraft.quotedMessage
     let quotedMessageComponent = null
-    let userSuggestionComponent = null
+    let dataSuggestionComponent = null
 
     if (quotedMessage) {
       quotedMessageComponent = (
@@ -85,19 +90,19 @@ export function useCommonChatRenderers({
         </View>
       )
     }
-    if (showSuggestedUsers) {
-      userSuggestionComponent = (
-        <UserSuggestionBox users={suggestedUsers} onUserSelect={handleUserToMention} />
+    if (showSuggestedData) {
+      dataSuggestionComponent = (
+        <DataSuggestionBox data={suggestedData} onSelect={handleSuggestionSelect} />
       )
     }
 
     return (
       <>
         {quotedMessageComponent}
-        {userSuggestionComponent}
+        {dataSuggestionComponent}
       </>
     )
-  }, [messageDraft, showSuggestedUsers, scrollToMessage, suggestedUsers])
+  }, [messageDraft, showSuggestedData, scrollToMessage, suggestedData, handleSuggestionSelect])
 
   const renderFooter = useCallback(() => {
     if (!typingData.length) {
@@ -107,7 +112,7 @@ export function useCommonChatRenderers({
     if (typingData.length === 1) {
       return (
         <View>
-          <Text variant="body">{users.get(typingData[0])?.name || typingData[0]} is typing...</Text>
+          <Text variant="body">{getUser(typingData[0])?.name || typingData[0]} is typing...</Text>
         </View>
       )
     }
@@ -115,12 +120,12 @@ export function useCommonChatRenderers({
     return (
       <View>
         <Text variant="body">
-          {typingData.map((typingPoint) => users.get(typingPoint)?.name || typingPoint).join(", ")}{" "}
+          {typingData.map((typingPoint) => getUser(typingPoint)?.name || typingPoint).join(", ")}{" "}
           are typing...
         </Text>
       </View>
     )
-  }, [typingData, users])
+  }, [getUser, typingData])
 
   return {
     renderFooter,

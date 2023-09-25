@@ -18,6 +18,7 @@
     "@react-navigation/native": "^6.1.7",
     "@react-navigation/stack": "^6.3.17",
     "expo": "~49.0.8",
+    "expo-clipboard": "~4.3.1",
     "expo-font": "~11.4.0",
     "expo-status-bar": "~1.6.0",
     "nanoid": "4.0.2",

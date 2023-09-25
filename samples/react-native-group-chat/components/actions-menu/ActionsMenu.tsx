@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from "react"
-import { StyleSheet, View } from "react-native"
+import { StyleSheet, TouchableOpacity, View } from "react-native"
 import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
 import { Gap, Text, colorPalette as colors, Button } from "../../ui-components"
 import Emoji1 from "../../assets/emojis/emoji1.svg"
@@ -8,22 +8,24 @@ import Emoji3 from "../../assets/emojis/emoji3.svg"
 import Emoji4 from "../../assets/emojis/emoji4.svg"
 import Emoji5 from "../../assets/emojis/emoji5.svg"
 import Emoji6 from "../../assets/emojis/emoji6.svg"
-import Emoji7 from "../../assets/emojis/emoji7.svg"
 import { useNavigation } from "@react-navigation/native"
 import { EnhancedIMessage } from "../../utils"
 import { HomeStackNavigation } from "../../types"
 import { Message, ThreadMessage } from "@pubnub/chat"
+import * as Clipboard from "expo-clipboard"
 
 type UseActionsMenuParams = {
   onQuote: (message: Message) => void
   removeThreadReply?: boolean
   onPinMessage: (message: Message | ThreadMessage) => void
+  onToggleEmoji: (message: Message) => void
 }
 
 export function useActionsMenu({
   onQuote,
   removeThreadReply = false,
   onPinMessage,
+  onToggleEmoji,
 }: UseActionsMenuParams) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
   const navigation = useNavigation<HomeStackNavigation>()
@@ -43,6 +45,17 @@ export function useActionsMenu({
     console.log("handleSheetChanges", index)
   }, [])
 
+  const handleEmoji = useCallback(
+    async (emoji: string) => {
+      if (!currentlyFocusedMessage) {
+        return null
+      }
+
+      onToggleEmoji(await currentlyFocusedMessage.originalPnMessage.toggleReaction(emoji))
+    },
+    [currentlyFocusedMessage, onToggleEmoji]
+  )
+
   const ActionsMenuComponent = () => (
     <BottomSheetModal
       ref={bottomSheetModalRef}
@@ -54,13 +67,24 @@ export function useActionsMenu({
       handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: colors.neutral500 }]}
     >
       <View style={styles.emojisRow}>
-        <Emoji1 width={48} height={48} />
-        <Emoji2 width={48} height={48} />
-        <Emoji3 width={48} height={48} />
-        <Emoji4 width={48} height={48} />
-        <Emoji5 width={48} height={48} />
-        <Emoji6 width={48} height={48} />
-        <Emoji7 width={48} height={48} />
+        <TouchableOpacity onPress={() => handleEmoji("🙂")}>
+          <Emoji1 width={48} height={48} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => handleEmoji("☺️")}>
+          <Emoji2 width={48} height={48} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => handleEmoji("👍")}>
+          <Emoji3 width={48} height={48} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => handleEmoji("🎉")}>
+          <Emoji4 width={48} height={48} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => handleEmoji("👋")}>
+          <Emoji5 width={48} height={48} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => handleEmoji("😞")}>
+          <Emoji6 width={48} height={48} />
+        </TouchableOpacity>
       </View>
       <Gap value={12} />
       <Text variant="headline" textAlign="center">
@@ -72,7 +96,11 @@ export function useActionsMenu({
         align="left"
         icon="content-copy"
         variant="outlined"
-        onPress={() => console.log("Pressed")}
+        onPress={() => {
+          Clipboard.setStringAsync(currentlyFocusedMessage?.originalPnMessage.text || "")
+          setCurrentlyFocusedMessage(null)
+          bottomSheetModalRef.current?.dismiss()
+        }}
       >
         Copy message
       </Button>

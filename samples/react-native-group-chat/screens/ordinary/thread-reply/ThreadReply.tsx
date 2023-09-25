@@ -3,7 +3,7 @@ import { StackScreenProps } from "@react-navigation/stack"
 import { HomeStackParamList } from "../../../types"
 import { ChatContext } from "../../../context"
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
-import { Message, MessageDraft, ThreadChannel, ThreadMessage, User } from "@pubnub/chat"
+import { Channel, Message, MessageDraft, ThreadChannel, ThreadMessage, User } from "@pubnub/chat"
 import { Bubble, GiftedChat } from "react-native-gifted-chat"
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native"
 import { Gap, Line, Text, defaultTheme } from "../../../ui-components"
@@ -27,18 +27,17 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
   const giftedChatRef = useRef<FlatList<EnhancedIMessage>>(null)
   const [typingData, setTypingData] = useState<string[]>([])
   const [isParentMessageCollapsed, setIsParentMessageCollapsed] = useState(false)
-  const [suggestedUsers, setSuggestedUsers] = useState<User[]>([])
-  const [showSuggestedUsers, setShowSuggestedUsers] = useState(false)
+  const [suggestedData, setSuggestedData] = useState<User[] | Channel[]>([])
+  const [showSuggestedData, setShowSuggestedData] = useState(false)
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
 
   const { renderFooter, renderMessageText, renderChatFooter } = useCommonChatRenderers({
     typingData,
-    users: new Map(),
     setText,
     messageDraft,
-    suggestedUsers,
-    showSuggestedUsers,
-    setShowSuggestedUsers,
+    suggestedData,
+    showSuggestedData,
+    setShowSuggestedData,
     giftedChatMappedMessages,
     giftedChatRef,
     lastAffectedNameOccurrenceIndex,
@@ -92,7 +91,7 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
     }
 
     init()
-  }, [])
+  }, [chat, navigation, parentMessage.originalPnMessage])
 
   useEffect(() => {
     async function init() {
@@ -130,7 +129,7 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
     }
 
     init()
-  }, [currentThreadChannel])
+  }, [chat, currentThreadChannel, parentMessage.originalPnMessage.channelId])
 
   useEffect(() => {
     if (!currentThreadChannel) {
@@ -173,12 +172,20 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
       }
 
       messageDraft.onChange(text).then((suggestionObject) => {
-        setSuggestedUsers(suggestionObject.users.suggestedUsers)
-        setLastAffectedNameOccurrenceIndex(suggestionObject.users.nameOccurrenceIndex)
+        setSuggestedData(
+          suggestionObject.users.suggestedUsers.length
+            ? suggestionObject.users.suggestedUsers
+            : suggestionObject.channels.suggestedChannels
+        )
+        setLastAffectedNameOccurrenceIndex(
+          suggestionObject.users.suggestedUsers.length
+            ? suggestionObject.users.nameOccurrenceIndex
+            : suggestionObject.channels.channelOccurrenceIndex
+        )
       })
 
       setText(messageDraft.value)
-      setShowSuggestedUsers(true)
+      setShowSuggestedData(true)
     },
     [messageDraft]
   )

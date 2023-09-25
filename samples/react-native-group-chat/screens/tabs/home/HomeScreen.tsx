@@ -53,6 +53,7 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
   useFocusEffect(
     React.useCallback(() => {
       fetchUnreadMessagesCount()
+      setCurrentChannel(null)
     }, [])
   )
 

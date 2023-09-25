@@ -6,6 +6,7 @@ import { Quote } from "../quote"
 import { Text } from "../../ui-components"
 import { Message, MixedTextTypedElement } from "@pubnub/chat"
 import { ChatContext } from "../../context"
+import { useNavigation } from "@react-navigation/native"
 
 type MessageTextProps = {
   onGoToMessage: (message: Message) => void
@@ -13,11 +14,38 @@ type MessageTextProps = {
 }
 
 export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
-  const { chat } = useContext(ChatContext)
+  const { chat, setCurrentChannel } = useContext(ChatContext)
+  const navigation = useNavigation()
 
   const openLink = (link: string) => {
     Linking.openURL(link)
   }
+
+  async function openChannel(channelId: string) {
+    if (!chat) return
+    const channel = await chat.getChannel(channelId)
+    if (!channel) {
+      alert("This channel no longer exists.")
+      return
+    }
+    navigation.pop()
+    setCurrentChannel(channel)
+    navigation.navigate("Chat")
+  }
+
+  const renderEmojis = useCallback(() => {
+    if (!messageProps.currentMessage?.originalPnMessage.reactions) {
+      return null
+    }
+
+    return (
+      <View style={{ flexDirection: "row", position: "absolute", right: 0, bottom: -20 }}>
+        {Object.keys(messageProps.currentMessage?.originalPnMessage.reactions).map((key, index) => (
+          <Text key={String(index)}>{key}</Text>
+        ))}
+      </View>
+    )
+  }, [messageProps.currentMessage?.originalPnMessage.reactions])
 
   const renderMessagePart = useCallback(
     (messagePart: MixedTextTypedElement, index: number, userId: string | number) => {
@@ -31,14 +59,24 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
       }
       if (messagePart.type === "plainLink") {
         return (
-          <Text key={index} variant="body" onPress={() => openLink(messagePart.content.link)}>
+          <Text
+            key={index}
+            variant="body"
+            onPress={() => openLink(messagePart.content.link)}
+            color="sky150"
+          >
             {messagePart.content.link}
           </Text>
         )
       }
       if (messagePart.type === "textLink") {
         return (
-          <Text key={index} variant="body" onPress={() => openLink(messagePart.content.link)}>
+          <Text
+            key={index}
+            variant="body"
+            onPress={() => openLink(messagePart.content.link)}
+            color="sky150"
+          >
             {messagePart.content.text}
           </Text>
         )
@@ -49,6 +87,7 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
             key={index}
             variant="body"
             onPress={() => openLink(`https://pubnub.com/${messagePart.content.id}`)}
+            color="sky150"
           >
             @{messagePart.content.name}
           </Text>
@@ -59,7 +98,8 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
           <Text
             key={index}
             variant="body"
-            onPress={() => openLink(`https://pubnub.com/${messagePart.content.id}`)}
+            onPress={() => openChannel(messagePart.content.id)}
+            color="sky150"
           >
             #{messagePart.content.name}
           </Text>
@@ -77,9 +117,6 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
         {messageProps.currentMessage?.originalPnMessage.quotedMessage ? (
           <Quote
             message={messageProps.currentMessage?.originalPnMessage.quotedMessage}
-            // onGoToMessage={() => {
-            //   scrollToMessage(props.currentMessage?.originalPnMessage.quotedMessage)
-            // }}
             onGoToMessage={() =>
               onGoToMessage(messageProps.currentMessage?.originalPnMessage.quotedMessage)
             }
@@ -97,6 +134,7 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
               )
             )}
         </Text>
+        {renderEmojis()}
       </View>
     )
   }
