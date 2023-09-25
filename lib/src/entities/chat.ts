@@ -84,7 +84,11 @@ export class Chat {
       throw error
     }
 
-    this.sdk = new PubNub(pubnubConfig)
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    const pubnub = new PubNub(pubnubConfig) as any
+    pubnub._config._addPnsdkSuffix("chat-sdk", `CA-TS/0.1.0`)
+    this.sdk = pubnub
+
     this.user = new User(this, {
       id: "userId" in pubnubConfig ? pubnubConfig.userId : pubnubConfig.uuid,
     })

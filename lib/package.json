@@ -1,6 +1,6 @@
 {
   "name": "@pubnub/chat",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "PubNub JavaScript Chat SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
