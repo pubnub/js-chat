@@ -69,9 +69,30 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     [chat, currentChannel, setCurrentChannel]
   )
 
+  const handleEmoji = useCallback(
+    (message: Message) => {
+      console.log("message", message)
+      const copiedMessages = [...giftedChatMappedMessages]
+
+      const index = copiedMessages.findIndex(
+        (msg) => msg.originalPnMessage.timetoken === message.timetoken
+      )
+
+      if (index === -1) {
+        return
+      }
+
+      copiedMessages[index].originalPnMessage = message
+
+      setGiftedChatMappedMessages(copiedMessages)
+    },
+    [giftedChatMappedMessages]
+  )
+
   const { ActionsMenuComponent, handlePresentModalPress } = useActionsMenu({
     onQuote: handleQuote,
     onPinMessage: handlePin,
+    onToggleEmoji: handleEmoji,
   })
 
   useEffect(() => {

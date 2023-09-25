@@ -33,6 +33,20 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
     navigation.navigate("Chat")
   }
 
+  const renderEmojis = useCallback(() => {
+    if (!messageProps.currentMessage?.originalPnMessage.reactions) {
+      return null
+    }
+
+    return (
+      <View style={{ flexDirection: "row", position: "absolute", right: 0, bottom: -20 }}>
+        {Object.keys(messageProps.currentMessage?.originalPnMessage.reactions).map((key, index) => (
+          <Text key={String(index)}>{key}</Text>
+        ))}
+      </View>
+    )
+  }, [messageProps.currentMessage?.originalPnMessage.reactions])
+
   const renderMessagePart = useCallback(
     (messagePart: MixedTextTypedElement, index: number, userId: string | number) => {
       // TODO make it look nice
@@ -103,9 +117,6 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
         {messageProps.currentMessage?.originalPnMessage.quotedMessage ? (
           <Quote
             message={messageProps.currentMessage?.originalPnMessage.quotedMessage}
-            // onGoToMessage={() => {
-            //   scrollToMessage(props.currentMessage?.originalPnMessage.quotedMessage)
-            // }}
             onGoToMessage={() =>
               onGoToMessage(messageProps.currentMessage?.originalPnMessage.quotedMessage)
             }
@@ -123,6 +134,7 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
               )
             )}
         </Text>
+        {renderEmojis()}
       </View>
     )
   }

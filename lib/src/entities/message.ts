@@ -102,8 +102,8 @@ export class Message {
 
   /** @internal */
   private clone(params: Partial<MessageFields>) {
-    const { timetoken, content, channelId, userId, actions } = this
-    const data = Object.assign({}, { timetoken, content, channelId, userId, actions }, params)
+    const { timetoken, content, channelId, userId, actions, meta } = this
+    const data = Object.assign({}, { timetoken, content, channelId, userId, actions, meta }, params)
     return new Message(this.chat, data)
   }
 
