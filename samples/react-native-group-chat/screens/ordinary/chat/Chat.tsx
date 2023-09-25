@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useContext, useRef } from "rea
 import { StyleSheet, View, ActivityIndicator, TouchableOpacity, FlatList } from "react-native"
 import { GiftedChat, Bubble } from "react-native-gifted-chat"
 import { StackScreenProps } from "@react-navigation/stack"
-import { User, MessageDraft, Message } from "@pubnub/chat"
+import { User, MessageDraft, Message, Channel } from "@pubnub/chat"
 
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { ChatContext } from "../../../context"
@@ -20,11 +20,10 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
   const [isMoreMessages, setIsMoreMessages] = useState(true)
   const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false)
   const [giftedChatMappedMessages, setGiftedChatMappedMessages] = useState<EnhancedIMessage[]>([])
-  const [users, setUsers] = useState(new Map())
   const [typingData, setTypingData] = useState<string[]>([])
   const [messageDraft, setMessageDraft] = useState<MessageDraft | null>(null)
-  const [suggestedUsers, setSuggestedUsers] = useState<User[]>([])
-  const [showSuggestedUsers, setShowSuggestedUsers] = useState(false)
+  const [suggestedData, setSuggestedData] = useState<User[] | Channel[]>([])
+  const [showSuggestedData, setShowSuggestedData] = useState(false)
   const giftedChatRef = useRef<FlatList<EnhancedIMessage>>(null)
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const [text, setText] = useState("")
@@ -33,15 +32,14 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
   )
   const { renderFooter, renderMessageText, renderChatFooter } = useCommonChatRenderers({
     typingData,
-    users,
     messageDraft,
     lastAffectedNameOccurrenceIndex,
     setText,
     giftedChatRef,
     giftedChatMappedMessages,
-    setShowSuggestedUsers,
-    showSuggestedUsers,
-    suggestedUsers,
+    setShowSuggestedData,
+    showSuggestedData,
+    suggestedData,
   })
 
   const handleQuote = useCallback(
@@ -76,39 +74,6 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     onPinMessage: handlePin,
   })
 
-  const updateUsersMap = useCallback((k: string, v: User | User[]) => {
-    if (Array.isArray(v)) {
-      const newUsers = new Map()
-
-      v.forEach((user) => {
-        newUsers.set(user.id, {
-          ...user,
-        })
-      })
-
-      setUsers(newUsers)
-      return
-    }
-
-    setUsers(new Map(users.set(k, { ...v })))
-  }, [])
-
-  useEffect(() => {
-    async function init() {
-      if (!chat) {
-        return
-      }
-
-      chat.getUsers({}).then((usersObject) => {
-        updateUsersMap("1", usersObject.users)
-      })
-
-      updateUsersMap(chat.currentUser.id, chat.currentUser)
-    }
-
-    init()
-  }, [currentChannel])
-
   useEffect(() => {
     if (!giftedChatMappedMessages.length) {
       return
@@ -118,13 +83,15 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
       giftedChatMappedMessages.map((giftedMessage) => giftedMessage.originalPnMessage),
       (newMessages) => {
         setGiftedChatMappedMessages(
-          newMessages.map((newMessage) => mapPNMessageToGChatMessage(newMessage, users))
+          newMessages.map((newMessage) =>
+            mapPNMessageToGChatMessage(newMessage, getUser(newMessage.userId))
+          )
         )
       }
     )
 
     return unstream
-  }, [giftedChatMappedMessages, users])
+  }, [getUser, giftedChatMappedMessages])
 
   const loadEarlierMessages = async () => {
     if (!currentChannel) {
@@ -147,7 +114,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
       GiftedChat.prepend(
         giftedChatMappedMessages,
         historicalMessagesObject.messages
-          .map((msg) => mapPNMessageToGChatMessage(msg, users.get(msg.userId)))
+          .map((msg) => mapPNMessageToGChatMessage(msg, getUser(msg.userId)))
           .reverse()
       )
     )
@@ -187,14 +154,22 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
         GiftedChat.prepend(
           [],
           historicalMessagesObject.messages
-            .map((msg) => mapPNMessageToGChatMessage(msg, users.get(msg.userId)))
+            .map((msg) => mapPNMessageToGChatMessage(msg, getUser(msg.userId)))
+            .reverse()
+        )
+      )
+      setGiftedChatMappedMessages((msgs) =>
+        GiftedChat.prepend(
+          [],
+          historicalMessagesObject.messages
+            .map((msg) => mapPNMessageToGChatMessage(msg, getUser(msg.userId)))
             .reverse()
         )
       )
     }
 
     switchChannelImplementation()
-  }, [currentChannel, currentChannelMembership, users])
+  }, [currentChannel, currentChannelMembership, getUser])
 
   useEffect(() => {
     if (!currentChannel) {
@@ -202,20 +177,12 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     }
 
     const disconnect = currentChannel.connect((message) => {
-      if (!users.get(message.userId)) {
-        chat?.getUser(message.userId).then((newUser) => {
-          if (newUser) {
-            updateUsersMap(message.userId, newUser)
-          }
-        })
-      }
-
       if (currentChannelMembership) {
         currentChannelMembership.setLastReadMessage(message)
       }
       setGiftedChatMappedMessages((currentMessages) =>
         GiftedChat.append(currentMessages, [
-          mapPNMessageToGChatMessage(message, users.get(message.userId)),
+          mapPNMessageToGChatMessage(message, getUser(message.userId)),
         ])
       )
     })
@@ -223,7 +190,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     return () => {
       disconnect()
     }
-  }, [currentChannel, users, currentChannelMembership])
+  }, [currentChannel, currentChannelMembership, getUser])
 
   const resetInput = () => {
     if (!messageDraft) {
@@ -250,12 +217,20 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
       }
 
       messageDraft.onChange(text).then((suggestionObject) => {
-        setSuggestedUsers(suggestionObject.users.suggestedUsers)
-        setLastAffectedNameOccurrenceIndex(suggestionObject.users.nameOccurrenceIndex)
+        setSuggestedData(
+          suggestionObject.users.suggestedUsers.length
+            ? suggestionObject.users.suggestedUsers
+            : suggestionObject.channels.suggestedChannels
+        )
+        setLastAffectedNameOccurrenceIndex(
+          suggestionObject.users.suggestedUsers.length
+            ? suggestionObject.users.nameOccurrenceIndex
+            : suggestionObject.channels.channelOccurrenceIndex
+        )
       })
 
       setText(messageDraft.value)
-      setShowSuggestedUsers(true)
+      setShowSuggestedData(true)
     },
     [messageDraft, currentChannel]
   )

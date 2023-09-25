@@ -1,19 +1,23 @@
 import React from "react"
 import { View, StyleSheet } from "react-native"
 import { ListItem } from "../list-item"
-import { User } from "@pubnub/chat"
 import { colorPalette } from "../../ui-components"
+import { Channel, User } from "@pubnub/chat"
 
-type UserSuggestionBoxProps = {
-  users: User[]
-  onUserSelect: (user: User) => void
+type DataSuggestionBoxProps = {
+  data: Channel[] | User[]
+  onSelect: (element: Channel | User) => void
 }
 
-export function UserSuggestionBox({ users, onUserSelect }: UserSuggestionBoxProps) {
+export function DataSuggestionBox({ data, onSelect }: DataSuggestionBoxProps) {
   return (
     <View style={styles.container}>
-      {users.map((user) => (
-        <ListItem title={user.name || user.id} key={user.id} onPress={() => onUserSelect(user)} />
+      {data.map((element) => (
+        <ListItem
+          title={element.name || element.id}
+          key={element.id}
+          onPress={() => onSelect(element)}
+        />
       ))}
     </View>
   )

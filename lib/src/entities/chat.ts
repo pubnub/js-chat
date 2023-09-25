@@ -18,6 +18,7 @@ import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { ThreadChannel } from "./thread-channel"
 import { MentionsUtils } from "../mentions-utils"
 import { getErrorProxiedEntity, ErrorLogger } from "../error-logging"
+import { cyrb53a } from "../hash"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -690,7 +691,7 @@ export class Chat {
 
       const sortedUsers = [this.user.id, user.id].sort()
 
-      const channelId = `direct.${sortedUsers[0]}&${sortedUsers[1]}`
+      const channelId = `direct.${cyrb53a(`${sortedUsers[0]}&${sortedUsers[1]}`)}`
 
       const channel =
         (await this.getChannel(channelId)) ||
