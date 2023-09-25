@@ -87,7 +87,7 @@ export class Chat {
 
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     const pubnub = new PubNub(pubnubConfig) as any
-    pubnub._config._addPnsdkSuffix("chat-sdk", `CA-TS/0.1.0`)
+    pubnub._config._addPnsdkSuffix("chat-sdk", `__PLATFORM__/__VERSION__`)
     this.sdk = pubnub
 
     this.user = new User(this, {
