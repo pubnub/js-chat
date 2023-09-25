@@ -28,9 +28,9 @@ To run the app locally, follow the steps in the [Getting Started guide](https://
 
 The app shows these PubNub features:
 
-* Direct (1:1) [channel creation](https://www.pubnub.com/docs/chat/chat-sdk/build/features/channels/create)
+* Direct (1:1) [channel creation](https://www.pubnub.com/docs/chat/chat-sdk/build/features/channels/create).
 * [User creation](https://www.pubnub.com/docs/chat/chat-sdk/build/features/users/create).
 * [Sending and receiving](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/send-receive) messages.
-* Showing [time indicator](https://www.pubnub.com/docs/chat/chat-sdk/build/features/utility-methods) for published messages based on PubNub timetoken.
+* Showing [time indicator](https://www.pubnub.com/docs/chat/chat-sdk/build/features/utility-methods) for published messages based on the PubNub timetoken.
 
 Still, these are only some of the features available in Chat SDK. For the complete overview, check [Chat SDK docs](https://www.pubnub.com/docs/chat/chat-sdk/overview).

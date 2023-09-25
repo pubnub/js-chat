@@ -92,7 +92,7 @@ Channels:
 
 Users:
 
-* [User profile editing](https://www.pubnub.com/docs/chat/chat-sdk/build/features/users/updates).
+* [User profile editing](https://www.pubnub.com/docs/chat/chat-sdk/build/features/users/updates)
 * [User mentions](https://www.pubnub.com/docs/chat/chat-sdk/build/features/users/mentions)
 * [Global (app) presence](https://www.pubnub.com/docs/chat/chat-sdk/build/features/users/presence#global-presence)
 
