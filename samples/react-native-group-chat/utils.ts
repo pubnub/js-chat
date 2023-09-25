@@ -7,7 +7,7 @@ export type EnhancedIMessage = IMessage & {
 
 export function mapPNMessageToGChatMessage(
   pnMessage: Message,
-  user?: User & { thumbnail: string }
+  user?: User | null
 ): EnhancedIMessage {
   return {
     _id: pnMessage.timetoken,
@@ -17,7 +17,6 @@ export function mapPNMessageToGChatMessage(
     user: {
       _id: user?.id || pnMessage.userId,
       name: user?.name || "Missing user name",
-      avatar: user?.thumbnail,
     },
   }
 }
