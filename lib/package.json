@@ -8,8 +8,7 @@
   "react-native": "dist/index.es.js",
   "scripts": {
     "test": "jest",
-    "build": "tsc",
-    "build-rollup": "rollup -c",
+    "build": "rollup -c",
     "dev": "tsc -w"
   },
   "repository": {
