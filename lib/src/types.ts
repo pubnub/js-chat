@@ -176,17 +176,19 @@ export declare class ErrorLoggerImplementation {
   getStorageObject(): Record<string, unknown>
 }
 
-export type UserMentionData =
-  | {
-      event: Event<"mention">
-      channel: Channel
-      message: Message
-      user: User
-    }
-  | {
-      event: Event<"mention">
-      threadChannel: ThreadChannel
-      parentChannel: Channel
-      message: Message
-      user: User
-    }
+export type ChannelMentionData = {
+  event: Event<"mention">
+  channelId: string
+  message: Message
+  userId: string
+}
+
+export type ThreadMentionData = {
+  event: Event<"mention">
+  parentChannelId: string
+  threadChannelId: string
+  message: Message
+  userId: string
+}
+
+export type UserMentionData = ChannelMentionData | ThreadMentionData

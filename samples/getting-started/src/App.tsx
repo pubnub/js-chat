@@ -42,8 +42,8 @@ export default function App() {
   useEffect(() => {
     async function initalizeChat() {
       const chat = await Chat.init({
-        subscribeKey: import.meta.env.VITE_PUBNUB_SUB_KEY,
         publishKey: import.meta.env.VITE_PUBNUB_PUB_KEY,
+        subscribeKey: import.meta.env.VITE_PUBNUB_SUB_KEY,
         userId: randomizedUsers[0].id,
       })
       const currentUser = await chat.currentUser.update(randomizedUsers[0].data)

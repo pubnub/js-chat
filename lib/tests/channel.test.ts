@@ -126,7 +126,7 @@ describe("Channel test", () => {
   })
 
   test("should edit membership metadata", async () => {
-    const membership = await channel.join(() => null)
+    const { membership } = await channel.join(() => null)
     const updatedMembership = await membership.update({
       custom: { role: "admin" },
     })
@@ -255,7 +255,7 @@ describe("Channel test", () => {
   })
 
   test("should stream membership updates and invoke the callback", async () => {
-    const membership = await channel.join(() => null)
+    const { membership } = await channel.join(() => null)
     expect(membership).toBeDefined()
 
     let updatedMembership
@@ -282,7 +282,7 @@ describe("Channel test", () => {
     await channel.sendText(messageText2)
     await sleep(150) // history calls have around 130ms of cache time
 
-    let membership = await channel.join(() => null)
+    let { membership } = await channel.join(() => null)
     let unreadCount = await membership.getUnreadMessagesCount()
     expect(unreadCount).toBe(false)
 
@@ -638,7 +638,7 @@ describe("Channel test", () => {
 
   test("should correctly stream read receipts", async () => {
     const randomTimetoken = "123456789123456789"
-    const membership = await channel.join(undefined, {
+    const { membership } = await channel.join(undefined, {
       custom: { lastReadMessageTimetoken: randomTimetoken },
     })
     channel.disconnect()
@@ -796,7 +796,7 @@ describe("Channel test", () => {
 
     await user1.delete()
   })
-
+  //failed
   test("should create reply to, and delete a thread", async () => {
     const messageText = "Test message"
     await channel.sendText(messageText)
@@ -827,7 +827,7 @@ describe("Channel test", () => {
     const threadDeleted = await channel.getMessage(sentMessage.timetoken)
     expect(threadDeleted.hasThread).toBe(false)
   })
-
+  //failed
   test("should fail to get unread messages count for a deleted channel", async () => {
     const messageText1 = "Test message 1"
     const messageText2 = "Test message 2"

@@ -896,7 +896,7 @@ describe("Send message test", () => {
     expect(messageDraft.textLinks).toHaveLength(1)
     expect(messageDraft.textLinks).toEqual(expect.arrayContaining(expectedLinks))
   })
-
+  //failed
   test("should send quote message in a Thread", async () => {
     const originalMessageText = "Original message for forwarding"
     await channel.sendText(originalMessageText)
@@ -935,7 +935,7 @@ describe("Send message test", () => {
     expect(forwardedMessageQuote.text).toBe("Whatever")
     expect(forwardedMessageQuote.userId).toBe("test-user")
   })
-
+  //failed
   test("should pin the message inside the Thread", async () => {
     const messageText = "Test message"
     await channel.sendText(messageText)
