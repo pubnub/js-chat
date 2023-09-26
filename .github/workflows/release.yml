@@ -49,4 +49,5 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           npm-token: ${{ secrets.NPM_TOKEN }}
           check-ownership: false
+          package-path: lib/package.json
           actions: publish
