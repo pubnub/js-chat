@@ -609,7 +609,6 @@ describe("Send message test", () => {
 
     disconnect()
   }, 30000)
-
   //Skiped across SDK issue with sending files over 5mb. Was reported to SDK team. Waiting for fix
   test.skip("shouldn't allow to send image file over 5 mb along with a text message", async () => {
     const messages: string[] = []
@@ -775,7 +774,7 @@ describe("Send message test", () => {
 
     disconnect()
   }, 30000)
-  //needs to be clarified. Task created CSK-284
+  //Task created CSK-284
   test("should fail to edit a deleted message", async () => {
     await channel.sendText("Test message")
     await sleep(150) // history calls have around 130ms of cache time
@@ -896,7 +895,7 @@ describe("Send message test", () => {
     expect(messageDraft.textLinks).toHaveLength(1)
     expect(messageDraft.textLinks).toEqual(expect.arrayContaining(expectedLinks))
   })
-  //failed
+
   test("should send quote message in a Thread", async () => {
     const originalMessageText = "Original message for forwarding"
     await channel.sendText(originalMessageText)
@@ -905,20 +904,17 @@ describe("Send message test", () => {
     let history = await channel.getHistory()
     const originalMessage = history.messages[0]
 
-    await originalMessage.createThread()
+    const newThread = await originalMessage.createThread()
+    await newThread.sendText("First message")
     history = await channel.getHistory()
     const threadedMessage = history.messages[0]
     expect(threadedMessage.hasThread).toBe(true)
 
     const thread = await threadedMessage.getThread()
 
-    let messageDraft = thread.createMessageDraft()
-
-    await messageDraft.onChange("Whatever")
-    await messageDraft.send()
     const firstThreadMessage = (await thread.getHistory()).messages[0]
 
-    messageDraft = thread.createMessageDraft()
+    const messageDraft = thread.createMessageDraft()
 
     messageDraft.addQuote(firstThreadMessage)
 
@@ -928,14 +924,15 @@ describe("Send message test", () => {
     await sleep(150)
 
     const threadMessages = await thread.getHistory()
+
     const forwardedMessageText = threadMessages.messages[1].content.text
     const forwardedMessageQuote = threadMessages.messages[1].quotedMessage
 
     expect(forwardedMessageText).toBe("This is a forwarded message.")
-    expect(forwardedMessageQuote.text).toBe("Whatever")
+    expect(forwardedMessageQuote.text).toBe("First message")
     expect(forwardedMessageQuote.userId).toBe("test-user")
   })
-  //failed
+
   test("should pin the message inside the Thread", async () => {
     const messageText = "Test message"
     await channel.sendText(messageText)
@@ -945,7 +942,8 @@ describe("Send message test", () => {
     let sentMessage = history.messages[0]
     expect(sentMessage.hasThread).toBe(false)
 
-    await sentMessage.createThread()
+    const newThread = await sentMessage.createThread()
+    await newThread.sendText("Hello!")
 
     history = await channel.getHistory()
     sentMessage = history.messages[0]
