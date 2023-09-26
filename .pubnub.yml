@@ -11,8 +11,3 @@ changelog:
     changes:
       - type: feature
         text: "Initial release."
-  - date: 2023-09-25
-    version: v0.1.0
-    changes:
-      - type: feature
-        text: "Initial release."
