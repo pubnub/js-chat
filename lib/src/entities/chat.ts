@@ -433,7 +433,7 @@ export class Chat {
   }
 
   /** @internal */
-  async removeThreadChannel(message: Message) {
+  async removeThreadChannel(message: Message, options: DeleteParameters = {}) {
     if (!message.hasThread) {
       throw "There is no thread to be deleted"
     }
@@ -460,7 +460,7 @@ export class Chat {
         messageTimetoken: message.timetoken,
         actionTimetoken: String(actionTimetoken),
       }),
-      threadChannel.delete(),
+      threadChannel.delete(options),
     ])
   }
 
