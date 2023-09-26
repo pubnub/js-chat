@@ -33,6 +33,17 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
     navigation.navigate("Chat")
   }
 
+  async function removeThread() {
+    if (messageProps.currentMessage?.originalPnMessage.hasThread) {
+      const thread = await messageProps.currentMessage?.originalPnMessage.getThread()
+      const messagesObject = await thread.getHistory()
+      for (let i = 0; i < messagesObject.messages.length; i++) {
+        await messagesObject.messages[i].delete({ soft: false })
+      }
+      await thread.delete()
+    }
+  }
+
   const renderEmojis = useCallback(() => {
     if (!messageProps.currentMessage?.originalPnMessage.reactions) {
       return null
