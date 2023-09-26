@@ -25,7 +25,7 @@ Also, add [typing indicators](https://www.pubnub.com/docs/chat/chat-sdk/build/fe
 
 ## Samples
 
-Test our sample chat apps created in various TypeScript frameworks:
+Test our TypeScript sample chat apps created in various JavaScript frameworks:
 
 | Source code | Framework | Description |
 | :--- | :---| :---|
