@@ -145,6 +145,7 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
               )
             )}
         </Text>
+        <Text onPress={removeThread}>Remove this thread</Text>
         {renderEmojis()}
       </View>
     )
