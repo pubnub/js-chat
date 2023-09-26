@@ -6,7 +6,7 @@ schema: 1
 files:
   - lib/dist/index.js
 changelog:
-  - date: 2023-09-25
+  - date: 2023-09-26
     version: v0.1.0
     changes:
       - type: feature
