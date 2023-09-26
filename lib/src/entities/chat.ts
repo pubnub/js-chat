@@ -441,15 +441,27 @@ export class Chat {
     const actionTimetoken =
       message.actions?.threadRootId[this.getThreadId(message.channelId, message.timetoken)][0]
         .actionTimetoken
+
     if (!actionTimetoken) {
       throw "There is no action timetoken corresponding to the thread"
     }
 
-    return this.sdk.removeMessageAction({
-      channel: message.channelId,
-      messageTimetoken: message.timetoken,
-      actionTimetoken: String(actionTimetoken),
-    })
+    const threadId = this.getThreadId(message.channelId, message.timetoken)
+
+    const threadChannel = await this.getChannel(threadId)
+
+    if (!threadChannel) {
+      throw `There is no thread with id: ${threadId}`
+    }
+
+    return Promise.all([
+      this.sdk.removeMessageAction({
+        channel: message.channelId,
+        messageTimetoken: message.timetoken,
+        actionTimetoken: String(actionTimetoken),
+      }),
+      threadChannel.delete(),
+    ])
   }
 
   /**

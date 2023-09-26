@@ -31,8 +31,10 @@ export class Message {
     if (!this.actions?.["threadRootId"]) {
       return false
     }
+    console.log('this.actions["threadRootId"].length', this.actions["threadRootId"])
+    const key = Object.keys(this.actions["threadRootId"])[0]
 
-    return !!Object.keys(this.actions["threadRootId"])[0]
+    return !!key && !!this.actions["threadRootId"][key].length
   }
 
   get mentionedUsers() {
@@ -142,6 +144,7 @@ export class Message {
         let actions
         if (event.event === "added") actions = message.assignAction(event.data)
         if (event.event === "removed") actions = message.filterAction(event.data)
+        console.log("actions", actions)
         const newMessage = message.clone({ actions })
         const newMessages = messages.map((msg) =>
           msg.timetoken === newMessage.timetoken ? newMessage : msg
