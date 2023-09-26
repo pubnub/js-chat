@@ -80,7 +80,7 @@ describe("User test", () => {
     expect(reportMessage?.content.reason).toBe(reportReason)
   })
 
-  test.skip("Should be able to create, fetch, and validate multiple users", async () => {
+  test("Should be able to create, fetch, and validate multiple users", async () => {
     const usersToCreate = []
     const numUsers = 5
 
