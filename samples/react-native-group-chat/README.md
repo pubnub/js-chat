@@ -64,7 +64,7 @@ To run the app on an iOS simulator, follow these steps:
 
 1. Add your publish and subscribe keys.
 
-   Open the app in the code editor. Under the `samples/react-native-group-chat` folder, create a `.env` file and use it to specify values for [your publish and subscribe keys](/docs/chat/chat-sdk/build/sample-chat#get-pubsub-keys) from your app's keyset on the Admin Portal.
+   Open the app in the code editor. Under the `samples/react-native-group-chat` folder, create a `.env` file and use it to specify values for your publish and subscribe keys from your app's keyset on the Admin Portal.
 
    ```ts showLineNumbers
    EXPO_PUBLIC_PUBNUB_PUB_KEY=
@@ -103,7 +103,7 @@ Messages:
 * [Unread messages](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/unread)
 * [Reactions](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/reactions)
 * [Quotes](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/quotes)
-* [Plain links](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/files)
+* [Plain links](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/links)
 
 Other:
 
