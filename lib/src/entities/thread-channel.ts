@@ -101,10 +101,7 @@ export class ThreadChannel extends Channel {
   }
 
   override async delete(options: DeleteParameters = {}) {
-    const data = await Promise.all([
-      this.chat.removeThreadChannel(this.parentMessage),
-      super.delete(options),
-    ])
+    const data = await this.chat.removeThreadChannel(this.parentMessage, options)
 
     return data[1]
   }
