@@ -825,6 +825,46 @@ describe("Channel test", () => {
     expect(sentMessage.hasThread).toBe(false)
   })
 
+  test("should create, reply to, delete a thread, and recreate the deleted thread", async () => {
+    const messageText = "Test message for thread recreation"
+    await channel.sendText(messageText)
+    await sleep(150) // history calls have around 130ms of cache time
+
+    let history = await channel.getHistory()
+    let sentMessage = history.messages[0]
+    expect(sentMessage.hasThread).toBe(false)
+
+    let threadDraft = await sentMessage.createThread()
+    await threadDraft.sendText("Initial message in the thread")
+    history = await channel.getHistory()
+    sentMessage = history.messages[0]
+    expect(sentMessage.hasThread).toBe(true)
+
+    const thread = await sentMessage.getThread()
+    const replyText = "Replying to the thread"
+    await thread.sendText(replyText)
+    await sleep(150) // history calls have around 130ms of cache time
+    let threadMessages = await thread.getHistory()
+    expect(threadMessages.messages.some((message) => message.text === replyText)).toBe(true)
+
+    await sentMessage.removeThread()
+    history = await channel.getHistory()
+    sentMessage = history.messages[0]
+    expect(sentMessage.hasThread).toBe(false)
+
+    threadDraft = await sentMessage.createThread()
+    await threadDraft.sendText("Recreated thread after deletion")
+    history = await channel.getHistory()
+    sentMessage = history.messages[0]
+    expect(sentMessage.hasThread).toBe(true)
+
+    const newReplyText = "Replying to the recreated thread"
+    await thread.sendText(newReplyText)
+    await sleep(150)
+    threadMessages = await thread.getHistory()
+    expect(threadMessages.messages.some((message) => message.text === newReplyText)).toBe(true)
+  })
+
   test("Should mention users with special characters in their names and validate mentioned users", async () => {
     const specialChar1 = ":-)"
     const specialChar2 = "V$$ap_}><{"
