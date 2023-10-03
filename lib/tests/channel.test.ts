@@ -894,8 +894,6 @@ describe("Channel test", () => {
       (message: any) => message.content.text === messageText
     )
 
-    const extractedNamesFromText = extractMentionedUserIds(messageText)
-
     expect(messageInHistory).toBeDefined()
 
     expect(Object.keys(messageInHistory.mentionedUsers).length).toBe(2)
