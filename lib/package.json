@@ -1,7 +1,9 @@
 {
   "name": "@pubnub/chat",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "PubNub JavaScript Chat SDK",
+  "author": "PubNub <support@pubnub.com>",
+  "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
@@ -11,6 +13,9 @@
     "build": "rollup -c",
     "dev": "tsc -w"
   },
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pubnub/js-chat.git"
