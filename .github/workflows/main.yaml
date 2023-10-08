@@ -7,7 +7,7 @@ jobs:
     name: Run contract tests
     runs-on:
         group: Default Larger Runners
-        labels: macos-13
+        labels: macos-latest
 
     steps:
       - uses: actions/checkout@v3
