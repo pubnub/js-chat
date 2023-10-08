@@ -131,22 +131,16 @@ describe("Send message test", () => {
     const messagesBeforeReaction: Message[] = historyBeforeReaction.messages
     const sentMessage = messagesBeforeReaction[messagesBeforeReaction.length - 1]
 
-    const mockMessage: Partial<Message> = {
-      ...sentMessage,
-      toggleReaction: jest.fn().mockImplementation((reaction: string) => {
-        if (sentMessage.reactions[reaction]) {
-          delete sentMessage.reactions[reaction]
-        } else {
-          sentMessage.reactions[reaction] = [{ uuid: chat.sdk.getUUID(), actionTimetoken: "123" }]
-        }
-        return sentMessage
-      }),
+    expect(sentMessage.actions?.reactions?.like).toBeUndefined()
+
+    const toggledMessage = await sentMessage.toggleReaction("like")
+
+    expect(toggledMessage.actions?.reactions?.like).toBeDefined()
+
+    const likeReaction = toggledMessage.actions?.reactions?.like
+    if (likeReaction) {
+      expect(likeReaction[0].uuid).toBe("test-user")
     }
-
-    const toggledMessage = await (mockMessage as Message).toggleReaction("like")
-
-    expect(mockMessage.toggleReaction).toHaveBeenCalledWith("like")
-    expect(toggledMessage).toBe(sentMessage)
   }, 30000)
 
   test("should pin the message", async () => {
@@ -770,34 +764,24 @@ describe("Send message test", () => {
     disconnect()
   }, 30000)
 
-  test("should delete the message reaction", async () => {
-    await channel.sendText("Test message with reaction")
+  test("should toggle the message reaction and then delete the message reaction", async () => {
+    await channel.sendText("Test message")
     await sleep(150) // history calls have around 130ms of cache time
 
     const historyBeforeReaction = await channel.getHistory()
     const messagesBeforeReaction: Message[] = historyBeforeReaction.messages
     const sentMessage = messagesBeforeReaction[messagesBeforeReaction.length - 1]
 
-    sentMessage.reactions["like"] = [{ uuid: chat.sdk.getUUID(), actionTimetoken: "123" }]
+    expect(sentMessage.actions?.reactions?.like).toBeUndefined()
 
-    const mockMessage: Partial<Message> = {
-      ...sentMessage,
-      toggleReaction: jest.fn().mockImplementation((reaction: string) => {
-        if (sentMessage.reactions[reaction]) {
-          delete sentMessage.reactions[reaction]
-        } else {
-          sentMessage.reactions[reaction] = [{ uuid: chat.sdk.getUUID(), actionTimetoken: "123" }]
-        }
-        return sentMessage
-      }),
-    }
+    const toggledMessage = await sentMessage.toggleReaction("like")
 
-    const toggledMessage = await (mockMessage as Message).toggleReaction("like")
+    expect(toggledMessage.actions?.reactions?.like).toBeDefined()
 
-    expect(mockMessage.toggleReaction).toHaveBeenCalledWith("like")
-    expect(toggledMessage).toBe(sentMessage)
+    const messageAfterRemovingReaction = await toggledMessage.toggleReaction("like")
 
-    expect(toggledMessage.reactions["like"]).toBeUndefined()
+    const likeReactions = messageAfterRemovingReaction.actions?.reactions?.like
+    expect(likeReactions === undefined || likeReactions.length === 0).toBeTruthy()
   }, 30000)
 
   test("should be unable to pin multiple messages", async () => {
