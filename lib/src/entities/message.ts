@@ -31,8 +31,9 @@ export class Message {
     if (!this.actions?.["threadRootId"]) {
       return false
     }
+    const key = Object.keys(this.actions["threadRootId"])[0]
 
-    return !!Object.keys(this.actions["threadRootId"])[0]
+    return !!key && !!this.actions["threadRootId"][key].length
   }
 
   get mentionedUsers() {
@@ -322,6 +323,10 @@ export class Message {
 
   createThread() {
     return this.chat.createThreadChannel(this)
+  }
+
+  removeThread() {
+    return this.chat.removeThreadChannel(this)
   }
 
   /** @internal */

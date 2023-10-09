@@ -24,7 +24,7 @@ export function sleep(ms) {
 }
 
 export async function createChatInstance(
-  options: { userId?: string; shouldCreateNewInstance?: boolean } = {}
+  options: { userId?: string; shouldCreateNewInstance?: boolean; config?: Partial<ChatConfig> } = {}
 ) {
   const keysetError = `
     #######################################################
@@ -40,6 +40,7 @@ export async function createChatInstance(
       publishKey: process.env.PUBLISH_KEY,
       subscribeKey: process.env.SUBSCRIBE_KEY,
       userId: options.userId || process.env.USER_ID,
+      ...options.config,
     })
   }
 
@@ -48,6 +49,7 @@ export async function createChatInstance(
       publishKey: process.env.PUBLISH_KEY,
       subscribeKey: process.env.SUBSCRIBE_KEY,
       userId: options.userId || process.env.USER_ID,
+      ...options.config,
     })
   }
 
