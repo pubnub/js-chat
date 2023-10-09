@@ -7,7 +7,7 @@ jobs:
     name: Run contract tests
     runs-on:
         group: Default Larger Runners
-        labels: ubuntu-latest
+        labels: ubuntu-latest-m
 
     steps:
       - uses: actions/checkout@v3
