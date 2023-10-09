@@ -79,4 +79,46 @@ describe("User test", () => {
     expect(reportMessage?.content.reportedUserId).toBe(user.id)
     expect(reportMessage?.content.reason).toBe(reportReason)
   })
+
+  test("Should be able to create, fetch, and validate multiple users", async () => {
+    const usersToCreate = []
+    const numUsers = 5
+
+    for (let i = 0; i < numUsers; i++) {
+      const newUser = await createRandomUser()
+      usersToCreate.push(newUser)
+    }
+
+    for (const createdUser of usersToCreate) {
+      const fetchedUser = await chat.getUser(createdUser.id)
+
+      expect(fetchedUser).toBeDefined()
+      expect(fetchedUser.id).toBe(createdUser.id)
+      expect(fetchedUser.name).toEqual(createdUser.name)
+    }
+  })
+
+  test("Should fail to update a non-existent user", async () => {
+    const nonExistentUserId = "nonexistentuserid"
+
+    try {
+      const nonExistentUser = await chat.getUser(nonExistentUserId)
+      await nonExistentUser.update({})
+      fail("Updating a non-existent user should fail")
+    } catch (error) {
+      expect(error.message).toContain("Cannot read properties of null (reading 'update')")
+    }
+  })
+
+  test("Should fail to delete a non-existent user", async () => {
+    const nonExistentUserId = "nonexistentuserid"
+
+    try {
+      const nonExistentUser = await chat.getUser(nonExistentUserId)
+      await nonExistentUser.delete()
+      fail("Deleting a non-existent user should fail")
+    } catch (error) {
+      expect(error.message).toContain("Cannot read properties of null (reading 'delete')")
+    }
+  })
 })
