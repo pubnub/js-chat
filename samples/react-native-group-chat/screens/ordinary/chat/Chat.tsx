@@ -1,5 +1,12 @@
 import React, { useState, useCallback, useEffect, useContext, useRef } from "react"
-import { StyleSheet, View, ActivityIndicator, TouchableOpacity, FlatList } from "react-native"
+import {
+  StyleSheet,
+  View,
+  ActivityIndicator,
+  TouchableOpacity,
+  FlatList,
+  SafeAreaView,
+} from "react-native"
 import { GiftedChat, Bubble } from "react-native-gifted-chat"
 import { StackScreenProps } from "@react-navigation/stack"
 import { User, MessageDraft, Message, Channel } from "@pubnub/chat"
@@ -232,12 +239,13 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
   }
 
   const handleInputChange = useCallback(
-    (text: string) => {
-      if (!messageDraft || text === "") {
+    (giftedChatText: string) => {
+      if (!messageDraft || giftedChatText === "") {
+        setText("")
         return
       }
 
-      messageDraft.onChange(text).then((suggestionObject) => {
+      messageDraft.onChange(giftedChatText).then((suggestionObject) => {
         setSuggestedData(
           suggestionObject.users.suggestedUsers.length
             ? suggestionObject.users.suggestedUsers
@@ -253,7 +261,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
       setText(messageDraft.value)
       setShowSuggestedData(true)
     },
-    [messageDraft, currentChannel]
+    [messageDraft]
   )
 
   const renderBubble = (props: Bubble<EnhancedIMessage>["props"]) => {
@@ -294,7 +302,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
   }
 
   return (
-    <View style={styles.content}>
+    <SafeAreaView style={styles.content}>
       <GiftedChat
         messages={giftedChatMappedMessages}
         onSend={(messages) => onSend(messages)}
@@ -321,7 +329,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
         messageContainerRef={giftedChatRef}
       />
       <ActionsMenuComponent />
-    </View>
+    </SafeAreaView>
   )
 }
 

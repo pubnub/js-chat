@@ -19,6 +19,7 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
   >([])
 
   const channels = memberships.map((m) => m.channel)
+
   const currentUserDirectChannels = channels.filter((c) => c.type === "direct")
   const currentUserGroupChannels = channels.filter((c) => c.type === "group")
   const currentUserPublicChannels = channels.filter((c) => c.type === "public")
@@ -35,6 +36,36 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
   }, [chat])
 
   useEffect(() => {
+    if (!chat) {
+      return
+    }
+
+    chat.listenForEvents({
+      channel: chat.currentUser.id,
+      type: "custom",
+      method: "publish",
+      callback: async (evt) => {
+        if (evt.payload.action === "DIRECT_CONVERSATION_STARTED") {
+          const { memberships } = await chat.currentUser.getMemberships()
+          setMemberships(memberships)
+        }
+      },
+    })
+  }, [chat])
+
+  useEffect(() => {
+    const disconnectFuncs = channels.map((ch) =>
+      ch.connect((message) => {
+        fetchUnreadMessagesCount()
+      })
+    )
+
+    return () => {
+      disconnectFuncs.forEach((func) => func())
+    }
+  }, [channels, memberships])
+
+  useEffect(() => {
     async function init() {
       if (!chat) return
       const [, { memberships }, { users }] = await Promise.all([
@@ -49,6 +80,26 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
 
     init()
   }, [chat, fetchUnreadMessagesCount, setMemberships, setUsers])
+
+  useFocusEffect(
+    React.useCallback(() => {
+      async function handleScreenFocus() {
+        if (!chat) {
+          return
+        }
+
+        const [{ memberships }, { users }] = await Promise.all([
+          chat.currentUser.getMemberships(),
+          chat.getUsers({}),
+        ])
+
+        setUsers(users)
+        setMemberships(memberships)
+      }
+
+      handleScreenFocus()
+    }, [chat, setMemberships, setUsers])
+  )
 
   useFocusEffect(
     React.useCallback(() => {

@@ -5,8 +5,9 @@ import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
 
 import { BottomTabsParamList } from "../../../types"
 import { ChatContext } from "../../../context"
-import { Button, Text, Gap, TextInput, colorPalette as colors } from "../../../ui-components"
+import { Button, Text, Gap, colorPalette as colors } from "../../../ui-components"
 import { Avatar } from "../../../components"
+import { BottomSheetTextInput } from "../../../components/bottom-sheet"
 
 export function ProfileScreen({
   navigation,
@@ -76,7 +77,7 @@ export function ProfileScreen({
             Change your name
           </Text>
           <Gap value={36} />
-          <TextInput label="Name" value={nameInput} onChangeText={setNameInput} />
+          <BottomSheetTextInput label="Name" value={nameInput} onChangeText={setNameInput} />
           <Gap value={36} />
           <Button onPress={saveName}>Save</Button>
           <Gap value={16} />
@@ -106,5 +107,15 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 6,
     width: 120,
+  },
+  textInput: {
+    alignSelf: "stretch",
+    marginHorizontal: 12,
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: "white",
+    color: "black",
+    textAlign: "center",
   },
 })

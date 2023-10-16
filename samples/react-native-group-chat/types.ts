@@ -5,23 +5,24 @@ import { EnhancedIMessage } from "./utils"
 
 export type RootStackParamList = {
   login: undefined
-  tabs: { name: string }
-}
-
-export type HomeStackParamList = {
-  Home: { name: string }
+  mainRoutes: { name: string }
   Chat: undefined
   NewChat: undefined
   NewGroup: undefined
   ThreadReply: { parentMessage: EnhancedIMessage }
   ChatSettings: undefined
   PinnedMessage: undefined
+  HomeStack: NavigatorScreenParams<HomeStackParamList> & { name: string }
+}
+
+export type HomeStackParamList = {
+  Home: { name: string }
 }
 
 export type HomeStackNavigation = NavigationProp<HomeStackParamList>
 
 export type BottomTabsParamList = {
-  HomeStack: NavigatorScreenParams<HomeStackParamList> & { name: string }
+  Home: { name: string }
   Mentions: undefined
   Profile: undefined
 }
