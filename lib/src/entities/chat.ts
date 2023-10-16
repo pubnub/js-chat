@@ -14,7 +14,7 @@ import {
 import { Message } from "./message"
 import { Event } from "./event"
 import { Membership } from "./membership"
-import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
+import { MESSAGE_THREAD_ID_PREFIX, INTERNAL_MODERATION_PREFIX } from "../constants"
 import { ThreadChannel } from "./thread-channel"
 import { MentionsUtils } from "../mentions-utils"
 import { getErrorProxiedEntity, ErrorLogger } from "../error-logging"
@@ -1066,5 +1066,20 @@ export class Chat {
         Membership.fromMembershipDTO(this, m, this.user)
       ),
     }
+  }
+
+  /**
+   * Moderation restrictions
+   */
+
+  async setResctrictions(
+    userId: string,
+    channelId: string,
+    params: { ban?: boolean; mute?: boolean }
+  ) {
+    await this.sdk.objects.setChannelMembers({
+      channel: `${INTERNAL_MODERATION_PREFIX}${channelId}`,
+      uuids: [{ id: userId, custom: params }],
+    })
   }
 }

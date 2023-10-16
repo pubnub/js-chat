@@ -1,8 +1,9 @@
 import PubNub, { UUIDMetadataObject, ObjectCustom, GetMembershipsParametersv2 } from "pubnub"
 import { Chat } from "./chat"
 import { DeleteParameters, OptionalAllBut } from "../types"
+import { Channel } from "./channel"
 import { Membership } from "./membership"
-import { INTERNAL_ADMIN_CHANNEL } from "../constants"
+import { INTERNAL_ADMIN_CHANNEL, INTERNAL_MODERATION_PREFIX } from "../constants"
 import { getErrorProxiedEntity } from "../error-logging"
 
 export type UserFields = Pick<
@@ -122,6 +123,7 @@ export class User {
         channelFields: true,
         customChannelFields: true,
       },
+      filter: `!(channel.id LIKE '${INTERNAL_MODERATION_PREFIX}*')`,
     })
 
     return {
@@ -134,6 +136,63 @@ export class User {
       memberships: membershipsResponse.data.map((m) =>
         Membership.fromMembershipDTO(this.chat, m, this)
       ),
+    }
+  }
+
+  /**
+   * Moderation restrictions
+   */
+
+  async setResctrictions(channel: Channel, params: { ban?: boolean; mute?: boolean }) {
+    if (!(this.chat.sdk as any)._config.secretKey)
+      throw "Moderation restrictions can only be set by clients initialized with a Secret Key."
+    return this.chat.setResctrictions(this.id, channel.id, params)
+  }
+
+  /* @internal */
+  private async getRestrictions(
+    channel?: Channel,
+    params?: Pick<PubNub.GetMembershipsParametersv2, "limit" | "page" | "sort">
+  ) {
+    const filter = channel
+      ? `channel.id == '${INTERNAL_MODERATION_PREFIX}${channel.id}'`
+      : `channel.id LIKE '${INTERNAL_MODERATION_PREFIX}*'`
+    return await this.chat.sdk.objects.getMemberships({
+      uuid: this.id,
+      include: {
+        totalCount: true,
+        customFields: true,
+      },
+      filter,
+      ...params,
+    })
+  }
+
+  async getChannelRestrictions(channel: Channel) {
+    const response = await this.getRestrictions(channel)
+    const restrictions = response && response.data[0]?.custom
+    return {
+      ban: !!restrictions?.ban,
+      mute: !!restrictions?.mute,
+    }
+  }
+
+  async getChannelsRestrictions(
+    params?: Pick<PubNub.GetChannelMembersParameters, "limit" | "page" | "sort">
+  ) {
+    const response = await this.getRestrictions(undefined, params)
+    return {
+      page: {
+        next: response.next,
+        prev: response.prev,
+      },
+      total: response.totalCount,
+      status: response.status,
+      restrictions: response.data.map(({ custom, channel }) => ({
+        ban: !!custom?.ban,
+        mute: !!custom?.mute,
+        channelId: channel.id.replace(INTERNAL_MODERATION_PREFIX, ""),
+      })),
     }
   }
 

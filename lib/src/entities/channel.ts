@@ -22,6 +22,7 @@ import { User } from "./user"
 import { MentionsUtils } from "../mentions-utils"
 import { MessageDraft } from "./message-draft"
 import { getErrorProxiedEntity } from "../error-logging"
+import { INTERNAL_MODERATION_PREFIX } from "../constants"
 
 export type ChannelFields = Pick<
   Channel,
@@ -643,5 +644,59 @@ export class Channel {
 
   async deleteFile(params: { id: string; name: string }) {
     return this.chat.sdk.deleteFile({ channel: this.id, ...params })
+  }
+
+  /**
+   * Moderation restrictions
+   */
+
+  async setResctrictions(user: User, params: { ban?: boolean; mute?: boolean }) {
+    if (!(this.chat.sdk as any)._config.secretKey)
+      throw "Moderation restrictions can only be set by clients initialized with a Secret Key."
+    return this.chat.setResctrictions(user.id, this.id, params)
+  }
+
+  /* @internal */
+  private async getRestrictions(
+    user?: User,
+    params?: Pick<PubNub.GetChannelMembersParameters, "limit" | "page" | "sort">
+  ) {
+    return await this.chat.sdk.objects.getChannelMembers({
+      channel: `${INTERNAL_MODERATION_PREFIX}${this.id}`,
+      include: {
+        totalCount: true,
+        customFields: true,
+      },
+      ...(user && { filter: `uuid.id == '${user.id}'` }),
+      ...params,
+    })
+  }
+
+  async getUserRestrictions(user: User) {
+    const response = await this.getRestrictions(user)
+    const restrictions = response && response.data[0]?.custom
+    return {
+      ban: !!restrictions?.ban,
+      mute: !!restrictions?.mute,
+    }
+  }
+
+  async getUsersRestrictions(
+    params?: Pick<PubNub.GetChannelMembersParameters, "limit" | "page" | "sort">
+  ) {
+    const response = await this.getRestrictions(undefined, params)
+    return {
+      page: {
+        next: response.next,
+        prev: response.prev,
+      },
+      total: response.totalCount,
+      status: response.status,
+      restrictions: response.data.map(({ custom, uuid }) => ({
+        ban: !!custom?.ban,
+        mute: !!custom?.mute,
+        userId: uuid.id,
+      })),
+    }
   }
 }
