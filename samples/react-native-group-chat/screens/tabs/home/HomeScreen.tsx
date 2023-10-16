@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from "react"
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { StyleSheet, ScrollView, TouchableHighlight, TouchableOpacity } from "react-native"
 import { useFocusEffect } from "@react-navigation/native"
 import { StackScreenProps } from "@react-navigation/stack"
@@ -18,7 +18,7 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
     { channel: Channel; count: number; membership: Membership }[]
   >([])
 
-  const channels = memberships.map((m) => m.channel)
+  const channels = useMemo(() => memberships.map((m) => m.channel), [memberships])
 
   const currentUserDirectChannels = channels.filter((c) => c.type === "direct")
   const currentUserGroupChannels = channels.filter((c) => c.type === "group")
@@ -65,47 +65,26 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
     }
   }, [channels, memberships])
 
-  useEffect(() => {
-    async function init() {
-      if (!chat) return
-      const [, { memberships }, { users }] = await Promise.all([
-        fetchUnreadMessagesCount(),
-        chat.currentUser.getMemberships(),
-        chat.getUsers({}),
-      ])
-
-      setUsers(users)
-      setMemberships(memberships)
-    }
-
-    init()
-  }, [chat, fetchUnreadMessagesCount, setMemberships, setUsers])
-
   useFocusEffect(
     React.useCallback(() => {
       async function handleScreenFocus() {
         if (!chat) {
           return
         }
+        setCurrentChannel(null)
 
-        const [{ memberships }, { users }] = await Promise.all([
+        const [, { memberships: refreshedMemberships }, { users }] = await Promise.all([
+          fetchUnreadMessagesCount(),
           chat.currentUser.getMemberships(),
           chat.getUsers({}),
         ])
 
         setUsers(users)
-        setMemberships(memberships)
+        setMemberships(refreshedMemberships)
       }
 
       handleScreenFocus()
-    }, [chat, setMemberships, setUsers])
-  )
-
-  useFocusEffect(
-    React.useCallback(() => {
-      fetchUnreadMessagesCount()
-      setCurrentChannel(null)
-    }, [])
+    }, [chat, fetchUnreadMessagesCount, setCurrentChannel, setMemberships, setUsers])
   )
 
   const getFilteredChannels = useCallback(
@@ -117,14 +96,11 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
     [searchText]
   )
 
-  const getFilteredUnreadChannels = useCallback(
-    (unreadChannelCounts: { channel: Channel; count: number; membership: Membership }[]) => {
-      return unreadChannelCounts.filter(
-        (c) => c.channel.name && c.channel.name.toLowerCase().includes(searchText.toLowerCase())
-      )
-    },
-    [searchText]
-  )
+  const getFilteredUnreadChannels = useCallback(() => {
+    return unreadChannels.filter(
+      (c) => c.channel.name && c.channel.name.toLowerCase().includes(searchText.toLowerCase())
+    )
+  }, [searchText, unreadChannels])
 
   const markAllMessagesAsRead = useCallback(async () => {
     if (!chat) return
@@ -155,7 +131,7 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
             </TouchableOpacity>
           }
         >
-          {getFilteredUnreadChannels(unreadChannels).map(({ channel, count }) => {
+          {getFilteredUnreadChannels().map(({ channel, count }) => {
             const interlocutor = channel.type === "direct" && getInterlocutor(channel)
             const source = interlocutor || channel
 

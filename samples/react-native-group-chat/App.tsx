@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react"
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import {
   View,
   StyleSheet,
@@ -156,12 +156,13 @@ function MainRoutesNavigator({ route }: StackScreenProps<RootStackParamList, "ma
 function App() {
   const [chat, setChat] = useState<Chat | null>(null)
   const [users, setUsers] = useState<User[]>([])
+  const [interlocutors, setInterlocutors] = useState<{ [channelId: string]: User }>({})
   const [loading, setLoading] = useState(false)
   const [currentChannel, setCurrentChannel] = useState<Channel | null>()
   const [currentChannelMembers, setCurrentChannelMembers] = useState<Membership[]>([])
   const [userMemberships, setUserMemberships] = useState<Membership[]>([])
 
-  async function setCurrentChannelWithMembers(channel: Channel | null) {
+  const setCurrentChannelWithMembers = useCallback(async (channel: Channel | null) => {
     if (!channel) {
       setCurrentChannelMembers([])
       setCurrentChannel(null)
@@ -171,27 +172,48 @@ function App() {
     const { members } = await channel.getMembers()
     setCurrentChannelMembers(members)
     setCurrentChannel(channel)
-  }
+  }, [])
 
-  function getUser(userId: string) {
-    const existingUser = users.find((u) => u.id === userId)
-    if (!existingUser) {
-      chat?.getUser(userId).then((fetchedUser) => {
-        if (fetchedUser) setUsers((users) => [...users, fetchedUser])
+  const getUser = useCallback(
+    (userId: string) => {
+      const existingUser = users.find((u) => u.id === userId)
+      if (!existingUser) {
+        chat?.getUser(userId).then((fetchedUser) => {
+          if (fetchedUser) setUsers((users) => [...users, fetchedUser])
+        })
+        return null
+      }
+      return existingUser
+    },
+    [chat, users]
+  )
+
+  const getInterlocutor = useCallback(
+    (channel: Channel) => {
+      if (!chat) return null
+
+      if (interlocutors[channel.id]) {
+        return getUser(interlocutors[channel.id].id)
+      }
+
+      channel.getMembers().then(({ members }) => {
+        const filteredMembers = members.filter((m) => m.user.id !== chat.currentUser.id)
+        const user = filteredMembers.length ? filteredMembers[0].user : null
+
+        if (!user) {
+          return
+        }
+
+        setInterlocutors((currentInterlocutors) => ({
+          ...currentInterlocutors,
+          [channel.id]: user,
+        }))
       })
-      return null
-    }
-    return existingUser
-  }
 
-  function getInterlocutor(channel: Channel) {
-    if (!chat) return null
-    const userId = channel.id
-      .replace("direct.", "")
-      .replace(chat?.currentUser.id, "")
-      .replace("&", "")
-    return getUser(userId)
-  }
+      return null
+    },
+    [chat, getUser, interlocutors]
+  )
 
   const [fontsLoaded] = useFonts({
     Roboto_400Regular,
@@ -199,28 +221,40 @@ function App() {
     Roboto_700Bold,
   })
 
+  const contextValue = useMemo(
+    () => ({
+      loading,
+      setLoading,
+      chat,
+      setChat,
+      currentChannel,
+      setCurrentChannel: setCurrentChannelWithMembers,
+      currentChannelMembers,
+      users,
+      setUsers,
+      getUser,
+      getInterlocutor,
+      memberships: userMemberships,
+      setMemberships: setUserMemberships,
+    }),
+    [
+      chat,
+      currentChannel,
+      currentChannelMembers,
+      getInterlocutor,
+      getUser,
+      loading,
+      userMemberships,
+      users,
+    ]
+  )
+
   if (!fontsLoaded) {
     return null
   }
 
   return (
-    <ChatContext.Provider
-      value={{
-        loading,
-        setLoading,
-        chat,
-        setChat,
-        currentChannel,
-        setCurrentChannel: setCurrentChannelWithMembers,
-        currentChannelMembers,
-        users,
-        setUsers,
-        getUser,
-        getInterlocutor,
-        memberships: userMemberships,
-        setMemberships: setUserMemberships,
-      }}
-    >
+    <ChatContext.Provider value={contextValue}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <BottomSheetModalProvider>
           <StatusBar style="inverted" backgroundColor={defaultTheme.colors.navy800} />

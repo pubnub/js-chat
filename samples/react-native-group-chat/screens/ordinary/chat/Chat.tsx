@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useContext, useRef } from "react"
+import React, { useState, useCallback, useEffect, useContext, useRef, useMemo } from "react"
 import {
   StyleSheet,
   View,
@@ -25,7 +25,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     useContext(ChatContext)
   const navigation = useNavigation()
   const [isMoreMessages, setIsMoreMessages] = useState(true)
-  const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(true)
+  const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false)
   const [giftedChatMappedMessages, setGiftedChatMappedMessages] = useState<EnhancedIMessage[]>([])
   const [typingData, setTypingData] = useState<string[]>([])
   const [messageDraft, setMessageDraft] = useState<MessageDraft | null>(null)
@@ -34,8 +34,9 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
   const giftedChatRef = useRef<FlatList<EnhancedIMessage>>(null)
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const [text, setText] = useState("")
-  const currentChannelMembership = currentChannelMembers.find(
-    (m) => m.user.id === chat?.currentUser.id
+  const currentChannelMembership = useMemo(
+    () => currentChannelMembers.find((m) => m.user.id === chat?.currentUser.id),
+    [chat?.currentUser.id, currentChannelMembers]
   )
   const { renderFooter, renderMessageText, renderChatFooter } = useCommonChatRenderers({
     typingData,
@@ -78,7 +79,6 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
 
   const handleEmoji = useCallback(
     (message: Message) => {
-      console.log("message", message)
       const copiedMessages = [...giftedChatMappedMessages]
 
       const index = copiedMessages.findIndex(
@@ -155,7 +155,6 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
       if (!currentChannel) {
         return
       }
-      setIsLoadingMoreMessages(true)
       setGiftedChatMappedMessages([])
 
       const historicalMessagesObject = await currentChannel.getHistory({ count: 5 })
@@ -195,12 +194,10 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
             .reverse()
         )
       )
-
-      setIsLoadingMoreMessages(false)
     }
 
     switchChannelImplementation()
-  }, [currentChannel, currentChannelMembership, getUser])
+  }, [currentChannel, currentChannelMembership])
 
   useEffect(() => {
     if (!currentChannel) {
@@ -221,7 +218,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     return () => {
       disconnect()
     }
-  }, [currentChannel, currentChannelMembership, getUser])
+  }, [currentChannel, currentChannelMembership])
 
   const resetInput = () => {
     if (!messageDraft) {
