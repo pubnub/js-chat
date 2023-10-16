@@ -25,7 +25,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     useContext(ChatContext)
   const navigation = useNavigation()
   const [isMoreMessages, setIsMoreMessages] = useState(true)
-  const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false)
+  const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(true)
   const [giftedChatMappedMessages, setGiftedChatMappedMessages] = useState<EnhancedIMessage[]>([])
   const [typingData, setTypingData] = useState<string[]>([])
   const [messageDraft, setMessageDraft] = useState<MessageDraft | null>(null)
@@ -155,6 +155,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
       if (!currentChannel) {
         return
       }
+      setIsLoadingMoreMessages(true)
       setGiftedChatMappedMessages([])
 
       const historicalMessagesObject = await currentChannel.getHistory({ count: 5 })
@@ -194,6 +195,8 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
             .reverse()
         )
       )
+
+      setIsLoadingMoreMessages(false)
     }
 
     switchChannelImplementation()
