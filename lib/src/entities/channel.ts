@@ -520,7 +520,7 @@ export class Channel {
       const freshtimetoken = await this.chat.sdk.time()
 
       return await Promise.all(
-        response.data.map(async (dataPoint) =>
+        response.data.map((dataPoint) =>
           Membership.fromChannelMemberDTO(this.chat, dataPoint, this).setLastReadMessageTimetoken(
             String(freshtimetoken.timetoken)
           )
