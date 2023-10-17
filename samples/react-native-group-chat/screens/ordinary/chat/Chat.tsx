@@ -69,11 +69,6 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
       }
 
       await message.pin()
-      await currentChannel.update({ name: "Grupa chatowa 23" + Math.random() })
-      // const refreshedChannel = await chat.getChannel(currentChannel.id)
-      // if (refreshedChannel) {
-      //   setCurrentChannel(refreshedChannel)
-      // }
     },
     [chat, currentChannel, setCurrentChannel]
   )
@@ -102,18 +97,6 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     onPinMessage: handlePin,
     onToggleEmoji: handleEmoji,
   })
-
-  useEffect(() => {
-    if (!currentChannel) {
-      return
-    }
-    console.log("hello", currentChannel)
-    const unstream = currentChannel.streamUpdates((ch) => {
-      console.log("ch", ch)
-    })
-
-    return unstream
-  }, [currentChannel])
 
   useEffect(() => {
     if (!giftedChatMappedMessages.length) {

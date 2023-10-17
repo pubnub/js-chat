@@ -121,9 +121,7 @@ function MainRoutesNavigator({ route }: StackScreenProps<RootStackParamList, "ma
           headerRight: () => {
             return (
               <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("PinnedMessage", { channelId: currentChannel?.id })
-                }
+                onPress={() => navigation.navigate("PinnedMessage")}
                 style={{ paddingRight: 24 }}
               >
                 <MaterialCommunityIcons name="pin-outline" color={colors.neutral0} size={26} />
