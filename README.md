@@ -2,14 +2,17 @@
 
 Chat SDK offers a set of handy methods to create your own feature-rich chat or add a chat to your existing application.
 
-## Supported frameworks
+## Supported platforms
 
-Chat SDK is written in TypeScript and relies on the existing [JavaScript SDK](https://www.pubnub.com/docs/sdks/javascript). It's framework-agnostic and lets you build a chat app using any JavaScript-based framework, like:
+Chat SDK is written in TypeScript and relies on the existing [JavaScript SDK](https://www.pubnub.com/docs/sdks/javascript).
+
+It's framework-agnostic and lets you build a client- or server-side chat app using any JavaScript-based framework, like:
 
 - React
 - React Native
 - Vue
 - Angular
+- Nest or Express
 
 ## Features
 
