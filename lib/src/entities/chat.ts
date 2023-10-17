@@ -14,7 +14,7 @@ import {
 import { Message } from "./message"
 import { Event } from "./event"
 import { Membership } from "./membership"
-import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
+import { MESSAGE_THREAD_ID_PREFIX, INTERNAL_MODERATION_PREFIX } from "../constants"
 import { ThreadChannel } from "./thread-channel"
 import { MentionsUtils } from "../mentions-utils"
 import { getErrorProxiedEntity, ErrorLogger } from "../error-logging"
@@ -1065,6 +1065,24 @@ export class Chat {
       memberships: membershipsResponse.data.map((m) =>
         Membership.fromMembershipDTO(this, m, this.user)
       ),
+    }
+  }
+
+  /**
+   * Moderation restrictions
+   */
+
+  async setResctrictions(
+    userId: string,
+    channelId: string,
+    params: { ban?: boolean; mute?: boolean }
+  ) {
+    const channel = `${INTERNAL_MODERATION_PREFIX}${channelId}`
+
+    if (!params.ban && !params.mute) {
+      await this.sdk.objects.removeChannelMembers({ channel, uuids: [userId] })
+    } else {
+      await this.sdk.objects.setChannelMembers({ channel, uuids: [{ id: userId, custom: params }] })
     }
   }
 }
