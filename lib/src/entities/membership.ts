@@ -135,22 +135,7 @@ export class Membership {
   }
 
   async setLastReadMessage(message: Message) {
-    try {
-      const response = await this.update({
-        custom: { ...this.custom, lastReadMessageTimetoken: message.timetoken },
-      })
-
-      await this.chat.emitEvent({
-        channel: this.channel.id,
-        type: "receipt",
-        method: "signal",
-        payload: { messageTimetoken: message.timetoken },
-      })
-
-      return response
-    } catch (error) {
-      throw error
-    }
+    return this.setLastReadMessageTimetoken(message.timetoken)
   }
 
   async setLastReadMessageTimetoken(timetoken: string) {
