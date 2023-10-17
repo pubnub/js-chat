@@ -40,7 +40,7 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
       return
     }
 
-    chat.listenForEvents({
+    const removeDirectChatListener = chat.listenForEvents({
       channel: chat.currentUser.id,
       type: "custom",
       method: "publish",
@@ -51,6 +51,23 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
         }
       },
     })
+
+    const removeGroupChatListener = chat.listenForEvents({
+      channel: chat.currentUser.id,
+      type: "custom",
+      method: "publish",
+      callback: async (evt) => {
+        if (evt.payload.action === "GROUP_CONVERSATION_STARTED") {
+          const { memberships } = await chat.currentUser.getMemberships()
+          setMemberships(memberships)
+        }
+      },
+    })
+
+    return () => {
+      removeDirectChatListener()
+      removeGroupChatListener()
+    }
   }, [chat])
 
   useEffect(() => {

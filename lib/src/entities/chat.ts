@@ -957,26 +957,15 @@ export class Chat {
   async getUnreadMessagesCounts(params: Omit<GetMembershipsParametersv2, "include"> = {}) {
     const userMemberships = await this.currentUser.getMemberships(params)
 
-    const membershipsWithTimetokens = userMemberships.memberships.filter(
-      (membership) => membership.lastReadMessageTimetoken
-    )
-    const membershipsWithoutTimetokens = userMemberships.memberships.filter(
-      (membership) => !membership.lastReadMessageTimetoken
-    )
-    const relevantTimetokens = membershipsWithTimetokens.map((m) => m.lastReadMessageTimetoken)
-    const channelIdsWithTimetokens = membershipsWithTimetokens.map((m) => m.channel.id)
-    const channelIdsWithoutTimetokens = membershipsWithoutTimetokens.map((m) => m.channel.id)
-
-    if (!channelIdsWithTimetokens.length && !channelIdsWithoutTimetokens.length) {
+    if (!userMemberships.memberships.length) {
       return []
     }
 
     const response = await this.sdk.messageCounts({
-      channels: [...channelIdsWithTimetokens, ...channelIdsWithoutTimetokens],
-      channelTimetokens: [
-        ...relevantTimetokens,
-        ...channelIdsWithoutTimetokens.map(() => "0"),
-      ] as string[],
+      channels: userMemberships.memberships.map((m) => m.channel.id),
+      channelTimetokens: userMemberships.memberships.map(
+        (m) => m.lastReadMessageTimetoken || "0"
+      ) as string[],
     })
 
     return Object.keys(response.channels)

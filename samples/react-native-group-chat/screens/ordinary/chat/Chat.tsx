@@ -69,10 +69,11 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
       }
 
       await message.pin()
-      const refreshedChannel = await chat.getChannel(currentChannel.id)
-      if (refreshedChannel) {
-        setCurrentChannel(refreshedChannel)
-      }
+      await currentChannel.update({ name: "Grupa chatowa 23" + Math.random() })
+      // const refreshedChannel = await chat.getChannel(currentChannel.id)
+      // if (refreshedChannel) {
+      //   setCurrentChannel(refreshedChannel)
+      // }
     },
     [chat, currentChannel, setCurrentChannel]
   )
@@ -101,6 +102,18 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     onPinMessage: handlePin,
     onToggleEmoji: handleEmoji,
   })
+
+  useEffect(() => {
+    if (!currentChannel) {
+      return
+    }
+    console.log("hello", currentChannel)
+    const unstream = currentChannel.streamUpdates((ch) => {
+      console.log("ch", ch)
+    })
+
+    return unstream
+  }, [currentChannel])
 
   useEffect(() => {
     if (!giftedChatMappedMessages.length) {
@@ -160,8 +173,8 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
       const historicalMessagesObject = await currentChannel.getHistory({ count: 5 })
 
       if (currentChannelMembership && historicalMessagesObject.messages.length) {
-        await currentChannelMembership.setLastReadMessage(
-          historicalMessagesObject.messages[historicalMessagesObject.messages.length - 1]
+        await currentChannelMembership.setLastReadMessageTimetoken(
+          historicalMessagesObject.messages[historicalMessagesObject.messages.length - 1].timetoken
         )
       }
 
@@ -206,7 +219,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
 
     const disconnect = currentChannel.connect((message) => {
       if (currentChannelMembership) {
-        currentChannelMembership.setLastReadMessage(message)
+        currentChannelMembership.setLastReadMessageTimetoken(message.timetoken)
       }
       setGiftedChatMappedMessages((currentMessages) =>
         GiftedChat.append(currentMessages, [
