@@ -6,7 +6,7 @@ Chat SDK offers a set of handy methods to create your own feature-rich chat or a
 
 Chat SDK is written in TypeScript and relies on the existing [JavaScript SDK](https://www.pubnub.com/docs/sdks/javascript).
 
-It's framework-agnostic and lets you build client- or server-side chat apps using any JavaScript-based framework, like:
+It's framework-agnostic and lets you build client-side or server-side chat apps using any JavaScript-based framework, like:
 
 - React
 - React Native
