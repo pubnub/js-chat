@@ -54,7 +54,6 @@ export class User {
   }
 
   get active() {
-    console.log("userid", this.id, new Date().getTime(), this.lastActiveTimestamp)
     return !!(
       this.lastActiveTimestamp &&
       new Date().getTime() - this.lastActiveTimestamp <= this.chat.config.storeUserActivityInterval
