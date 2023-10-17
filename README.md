@@ -12,7 +12,8 @@ It's framework-agnostic and lets you build a client- or server-side chat app usi
 - React Native
 - Vue
 - Angular
-- Nest or Express
+- Nest
+- Express
 
 ## Features
 
