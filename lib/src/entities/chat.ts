@@ -1077,9 +1077,12 @@ export class Chat {
     channelId: string,
     params: { ban?: boolean; mute?: boolean }
   ) {
-    await this.sdk.objects.setChannelMembers({
-      channel: `${INTERNAL_MODERATION_PREFIX}${channelId}`,
-      uuids: [{ id: userId, custom: params }],
-    })
+    const channel = `${INTERNAL_MODERATION_PREFIX}${channelId}`
+
+    if (!params.ban && !params.mute) {
+      await this.sdk.objects.removeChannelMembers({ channel, uuids: [userId] })
+    } else {
+      await this.sdk.objects.setChannelMembers({ channel, uuids: [{ id: userId, custom: params }] })
+    }
   }
 }
