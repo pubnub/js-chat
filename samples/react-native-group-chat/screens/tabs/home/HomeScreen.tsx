@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from "react"
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { StyleSheet, ScrollView, TouchableHighlight, TouchableOpacity } from "react-native"
 import { useFocusEffect } from "@react-navigation/native"
 import { StackScreenProps } from "@react-navigation/stack"
@@ -18,7 +18,8 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
     { channel: Channel; count: number; membership: Membership }[]
   >([])
 
-  const channels = memberships.map((m) => m.channel)
+  const channels = useMemo(() => memberships.map((m) => m.channel), [memberships])
+
   const currentUserDirectChannels = channels.filter((c) => c.type === "direct")
   const currentUserGroupChannels = channels.filter((c) => c.type === "group")
   const currentUserPublicChannels = channels.filter((c) => c.type === "public")
@@ -35,26 +36,72 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
   }, [chat])
 
   useEffect(() => {
-    async function init() {
-      if (!chat) return
-      const [, { memberships }, { users }] = await Promise.all([
-        fetchUnreadMessagesCount(),
-        chat.currentUser.getMemberships(),
-        chat.getUsers({}),
-      ])
-
-      setUsers(users)
-      setMemberships(memberships)
+    if (!chat) {
+      return
     }
 
-    init()
-  }, [chat, fetchUnreadMessagesCount, setMemberships, setUsers])
+    const removeDirectChatListener = chat.listenForEvents({
+      channel: chat.currentUser.id,
+      type: "custom",
+      method: "publish",
+      callback: async (evt) => {
+        if (evt.payload.action === "DIRECT_CONVERSATION_STARTED") {
+          const { memberships } = await chat.currentUser.getMemberships()
+          setMemberships(memberships)
+        }
+      },
+    })
+
+    const removeGroupChatListener = chat.listenForEvents({
+      channel: chat.currentUser.id,
+      type: "custom",
+      method: "publish",
+      callback: async (evt) => {
+        if (evt.payload.action === "GROUP_CONVERSATION_STARTED") {
+          const { memberships } = await chat.currentUser.getMemberships()
+          setMemberships(memberships)
+        }
+      },
+    })
+
+    return () => {
+      removeDirectChatListener()
+      removeGroupChatListener()
+    }
+  }, [chat])
+
+  useEffect(() => {
+    const disconnectFuncs = channels.map((ch) =>
+      ch.connect((message) => {
+        fetchUnreadMessagesCount()
+      })
+    )
+
+    return () => {
+      disconnectFuncs.forEach((func) => func())
+    }
+  }, [channels, memberships])
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchUnreadMessagesCount()
-      setCurrentChannel(null)
-    }, [])
+      async function handleScreenFocus() {
+        if (!chat) {
+          return
+        }
+        setCurrentChannel(null)
+
+        const [, { memberships: refreshedMemberships }, { users }] = await Promise.all([
+          fetchUnreadMessagesCount(),
+          chat.currentUser.getMemberships(),
+          chat.getUsers({}),
+        ])
+
+        setUsers(users)
+        setMemberships(refreshedMemberships)
+      }
+
+      handleScreenFocus()
+    }, [chat, fetchUnreadMessagesCount, setCurrentChannel, setMemberships, setUsers])
   )
 
   const getFilteredChannels = useCallback(
@@ -66,14 +113,11 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
     [searchText]
   )
 
-  const getFilteredUnreadChannels = useCallback(
-    (unreadChannelCounts: { channel: Channel; count: number; membership: Membership }[]) => {
-      return unreadChannelCounts.filter(
-        (c) => c.channel.name && c.channel.name.toLowerCase().includes(searchText.toLowerCase())
-      )
-    },
-    [searchText]
-  )
+  const getFilteredUnreadChannels = useCallback(() => {
+    return unreadChannels.filter(
+      (c) => c.channel.name && c.channel.name.toLowerCase().includes(searchText.toLowerCase())
+    )
+  }, [searchText, unreadChannels])
 
   const markAllMessagesAsRead = useCallback(async () => {
     if (!chat) return
@@ -104,7 +148,7 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
             </TouchableOpacity>
           }
         >
-          {getFilteredUnreadChannels(unreadChannels).map(({ channel, count }) => {
+          {getFilteredUnreadChannels().map(({ channel, count }) => {
             const interlocutor = channel.type === "direct" && getInterlocutor(channel)
             const source = interlocutor || channel
 

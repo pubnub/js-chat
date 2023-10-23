@@ -16,11 +16,22 @@ export function PinnedMessage({}: StackScreenProps<HomeStackParamList, "PinnedMe
   useEffect(() => {
     async function init() {
       if (!chat || !currentChannel) return
-      setMessage(await currentChannel.getPinnedMessage())
+      const refreshedChannel = await chat.getChannel(currentChannel.id)
+      if (refreshedChannel) {
+        setMessage(await refreshedChannel.getPinnedMessage())
+      }
     }
 
     init()
   }, [chat, currentChannel])
+
+  useEffect(() => {
+    const unstream = currentChannel?.streamUpdates(async (channel) => {
+      setMessage(await channel.getPinnedMessage())
+    })
+
+    return unstream
+  }, [currentChannel])
 
   const renderMessageBubble = useCallback(
     (props: Bubble<EnhancedIMessage>["props"]) => {

@@ -33,6 +33,18 @@ export function NewGroupScreen({ navigation }: StackScreenProps<HomeStackParamLi
       channelId: nanoid(),
       channelData: { name: groupName },
     })
+    await Promise.all(
+      selectedUsers.map(async (u) => {
+        await chat.emitEvent({
+          channel: u.id,
+          method: "publish",
+          payload: {
+            action: "GROUP_CONVERSATION_STARTED",
+            channelId: channel.id,
+          },
+        })
+      })
+    )
     setCurrentChannel(channel)
     setLoading(false)
   }

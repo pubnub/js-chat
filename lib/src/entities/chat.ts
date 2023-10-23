@@ -957,24 +957,20 @@ export class Chat {
   async getUnreadMessagesCounts(params: Omit<GetMembershipsParametersv2, "include"> = {}) {
     const userMemberships = await this.currentUser.getMemberships(params)
 
-    const membershipsWithTimetokens = userMemberships.memberships.filter(
-      (membership) => membership.lastReadMessageTimetoken
-    )
-    const relevantTimetokens = membershipsWithTimetokens.map((m) => m.lastReadMessageTimetoken)
-    const relevantChannelIds = membershipsWithTimetokens.map((m) => m.channel.id)
-
-    if (!relevantChannelIds.length) {
+    if (!userMemberships.memberships.length) {
       return []
     }
 
     const response = await this.sdk.messageCounts({
-      channels: relevantChannelIds,
-      channelTimetokens: relevantTimetokens as string[],
+      channels: userMemberships.memberships.map((m) => m.channel.id),
+      channelTimetokens: userMemberships.memberships.map(
+        (m) => m.lastReadMessageTimetoken || "0"
+      ) as string[],
     })
 
     return Object.keys(response.channels)
       .map((key) => {
-        const relevantMembership = membershipsWithTimetokens.find((m) => m.channel.id === key)
+        const relevantMembership = userMemberships.memberships.find((m) => m.channel.id === key)
 
         if (!relevantMembership) {
           throw `Cannot find channel with id ${key}`
@@ -992,11 +988,7 @@ export class Chat {
   async markAllMessagesAsRead(params: Omit<GetMembershipsParametersv2, "include"> = {}) {
     const userMemberships = await this.currentUser.getMemberships(params)
 
-    const membershipsWithTimetokens = userMemberships.memberships.filter(
-      (membership) => membership.lastReadMessageTimetoken
-    )
-
-    const relevantChannelIds = membershipsWithTimetokens.map((m) => m.channel.id)
+    const relevantChannelIds = userMemberships.memberships.map((m) => m.channel.id)
 
     if (!relevantChannelIds.length) {
       return
@@ -1012,12 +1004,12 @@ export class Chat {
         lastMessagesFromMembershipChannels.channels[encodeURIComponent(relevantChannelId)]
 
       const relevantLastMessageTimetoken =
-        relevantLastMessage && relevantLastMessage[0] ? relevantLastMessage[0].timetoken : ""
+        relevantLastMessage && relevantLastMessage[0] ? relevantLastMessage[0].timetoken : "0"
 
       return {
         id: relevantChannelId,
         custom: {
-          ...membershipsWithTimetokens[i].custom,
+          ...userMemberships.memberships[i].custom,
           lastReadMessageTimetoken: relevantLastMessageTimetoken,
         },
       }

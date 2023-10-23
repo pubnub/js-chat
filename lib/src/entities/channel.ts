@@ -421,11 +421,11 @@ export class Channel {
       this.disconnect = this.connect(callback)
 
       return {
-        membership: Membership.fromMembershipDTO(
+        membership: await Membership.fromMembershipDTO(
           this.chat,
           membershipsResponse.data[0],
           this.chat.currentUser as User
-        ),
+        ).setLastReadMessageTimetoken(String((await this.chat.sdk.time()).timetoken)),
         disconnect: this.disconnect,
       }
     } catch (error) {
@@ -491,7 +491,11 @@ export class Channel {
         filter: `channel.id == '${this.id}'`,
       })
 
-      return Membership.fromMembershipDTO(this.chat, response.data[0], user)
+      return await Membership.fromMembershipDTO(
+        this.chat,
+        response.data[0],
+        user
+      ).setLastReadMessageTimetoken(String((await this.chat.sdk.time()).timetoken))
     } catch (error) {
       throw error
     }
@@ -514,9 +518,14 @@ export class Channel {
         },
         filter,
       })
+      const { timetoken } = await this.chat.sdk.time()
 
-      return response.data.map((dataPoint) =>
-        Membership.fromChannelMemberDTO(this.chat, dataPoint, this)
+      return await Promise.all(
+        response.data.map((dataPoint) =>
+          Membership.fromChannelMemberDTO(this.chat, dataPoint, this).setLastReadMessageTimetoken(
+            String(timetoken)
+          )
+        )
       )
     } catch (error) {
       throw error

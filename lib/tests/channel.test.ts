@@ -285,7 +285,7 @@ describe("Channel test", () => {
     expect(unreadCount).toBe(false)
 
     const { messages } = await channel.getHistory()
-    membership = await membership.setLastReadMessage(messages[0])
+    membership = await membership.setLastReadMessageTimetoken(messages[0].timetoken)
     unreadCount = await membership.getUnreadMessagesCount()
     expect(unreadCount).toBe(1)
 
@@ -651,7 +651,7 @@ describe("Channel test", () => {
     const { timetoken } = await channel.sendText("New message")
     await sleep(150) // history calls have around 130ms of cache time
     const message = await channel.getMessage(timetoken)
-    await membership.setLastReadMessage(message)
+    await membership.setLastReadMessageTimetoken(message.timetoken)
     await sleep(150) // history calls have around 130ms of cache time
 
     expect(mockCallback).toHaveBeenCalledTimes(2)
