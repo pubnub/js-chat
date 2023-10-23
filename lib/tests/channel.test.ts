@@ -282,7 +282,7 @@ describe("Channel test", () => {
 
     let { membership } = await channel.join(() => null)
     let unreadCount = await membership.getUnreadMessagesCount()
-    expect(unreadCount).toBe(false)
+    expect(unreadCount).toBe(0)
 
     const { messages } = await channel.getHistory()
     membership = await membership.setLastReadMessageTimetoken(messages[0].timetoken)
@@ -637,16 +637,15 @@ describe("Channel test", () => {
   })
 
   test("should correctly stream read receipts", async () => {
-    const randomTimetoken = "123456789123456789"
-    const { membership } = await channel.join(undefined, {
-      custom: { lastReadMessageTimetoken: randomTimetoken },
-    })
-    channel.disconnect()
+    const { membership, disconnect } = await channel.join(() => null)
+    disconnect()
 
     const mockCallback = jest.fn()
     const stopReceipts = await channel.streamReadReceipts(mockCallback)
     expect(mockCallback).toHaveBeenCalledTimes(1)
-    expect(mockCallback).toHaveBeenCalledWith({ [randomTimetoken]: ["test-user"] })
+    expect(mockCallback).toHaveBeenCalledWith({
+      [membership.lastReadMessageTimetoken]: ["test-user"],
+    })
 
     const { timetoken } = await channel.sendText("New message")
     await sleep(150) // history calls have around 130ms of cache time
