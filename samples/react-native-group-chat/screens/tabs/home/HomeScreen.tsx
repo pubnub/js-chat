@@ -72,7 +72,7 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
 
   useEffect(() => {
     const disconnectFuncs = channels.map((ch) =>
-      ch.connect((message) => {
+      ch.connect(() => {
         fetchUnreadMessagesCount()
       })
     )
