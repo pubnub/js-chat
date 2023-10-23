@@ -282,7 +282,7 @@ describe("Channel test", () => {
 
     let { membership } = await channel.join(() => null)
     let unreadCount = await membership.getUnreadMessagesCount()
-    expect(unreadCount).toBe(false)
+    expect(unreadCount).toBe(0)
 
     const { messages } = await channel.getHistory()
     membership = await membership.setLastReadMessageTimetoken(messages[0].timetoken)
