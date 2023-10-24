@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "react-native-group-chat",
+    "name": "Chat SDK",
     "slug": "react-native-group-chat",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,14 +14,14 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.pubnub.chat-sdk"
+      "bundleIdentifier": "com.pubnub.chatsdk"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.piotr.suwala.reactnativegroupchat"
+      "package": "com.pubnub.chatsdk"
     },
     "web": {
       "favicon": "./assets/favicon.png"

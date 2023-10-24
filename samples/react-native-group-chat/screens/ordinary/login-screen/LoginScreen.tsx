@@ -7,7 +7,7 @@ import { RootStackParamList } from "../../../types"
 import ChatIcon from "../../../assets/chat.svg"
 
 export function LoginScreen({ navigation }: StackScreenProps<RootStackParamList, "login">) {
-  const [name, setName] = useState("test-user")
+  const [name, setName] = useState("test-user-" + Math.floor(Math.random() * 999))
 
   return (
     <KeyboardAvoidingView
@@ -28,7 +28,7 @@ export function LoginScreen({ navigation }: StackScreenProps<RootStackParamList,
         </Text>
         <Gap value={96} />
 
-        <TextInput label="User ID" value={name} onChangeText={setName} />
+        <TextInput label="Choose a User ID / Name" value={name} onChangeText={setName} />
         <Gap value={96} />
 
         <Button size="md" onPress={() => navigation.replace("mainRoutes", { name })}>
