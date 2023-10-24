@@ -59,7 +59,9 @@ export function NewChatScreen({ navigation }: StackScreenProps<HomeStackParamLis
       <Gap value={20} />
 
       <FlatList
-        data={users.filter((user) => user.name?.toLowerCase().includes(searchText.toLowerCase()))}
+        data={users
+          .sort((a, b) => b.lastActiveTimestamp - a.lastActiveTimestamp)
+          .filter((user) => user.name?.toLowerCase().includes(searchText.toLowerCase()))}
         renderItem={({ item: user }) => (
           <ListItem
             avatar={<Avatar source={user} showIndicator />}
