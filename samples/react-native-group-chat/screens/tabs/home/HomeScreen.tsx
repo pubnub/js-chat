@@ -40,33 +40,18 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
       return
     }
 
-    const removeDirectChatListener = chat.listenForEvents({
+    const removeInvitationListener = chat.listenForEvents({
       channel: chat.currentUser.id,
-      type: "custom",
+      type: "invite",
       method: "publish",
-      callback: async (evt) => {
-        if (evt.payload.action === "DIRECT_CONVERSATION_STARTED") {
-          const { memberships } = await chat.currentUser.getMemberships()
-          setMemberships(memberships)
-        }
-      },
-    })
-
-    const removeGroupChatListener = chat.listenForEvents({
-      channel: chat.currentUser.id,
-      type: "custom",
-      method: "publish",
-      callback: async (evt) => {
-        if (evt.payload.action === "GROUP_CONVERSATION_STARTED") {
-          const { memberships } = await chat.currentUser.getMemberships()
-          setMemberships(memberships)
-        }
+      callback: async () => {
+        const { memberships } = await chat.currentUser.getMemberships()
+        setMemberships(memberships)
       },
     })
 
     return () => {
-      removeDirectChatListener()
-      removeGroupChatListener()
+      removeInvitationListener()
     }
   }, [chat])
 

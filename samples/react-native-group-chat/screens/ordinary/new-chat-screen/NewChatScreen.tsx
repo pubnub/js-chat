@@ -21,14 +21,6 @@ export function NewChatScreen({ navigation }: StackScreenProps<HomeStackParamLis
       user,
       channelData: { name: `1:1 with ${user.name}` },
     })
-    await chat.emitEvent({
-      channel: user.id,
-      method: "publish",
-      payload: {
-        action: "DIRECT_CONVERSATION_STARTED",
-        channelId: channel.id,
-      },
-    })
     setCurrentChannel(channel)
     setLoading(false)
   }

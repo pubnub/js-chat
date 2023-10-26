@@ -133,9 +133,86 @@ describe("Channel test", () => {
     await channel.leave()
   })
 
+  test("should create a direct, group and public chats with a predefined ID", async () => {
+    const someFakeDirectId = "someFakeDirectId"
+    const someFakeGroupId = "someFakeGroupId"
+    const someFakePublicId = "someFakePublicId"
+
+    const existingChannels = await Promise.all(
+      [someFakeDirectId, someFakeGroupId, someFakePublicId].map((id) => chat.getChannel(id))
+    )
+
+    for (const existingChannel of existingChannels) {
+      if (existingChannel) {
+        await existingChannel.delete({ soft: false })
+      }
+    }
+
+    const user = await createRandomUser()
+
+    const newChannels = await Promise.all([
+      chat.createDirectConversation({
+        user,
+        channelId: someFakeDirectId,
+        channelData: {},
+      }),
+      chat.createGroupConversation({
+        users: [user],
+        channelId: someFakeGroupId,
+        channelData: {},
+      }),
+      chat.createPublicConversation({
+        channelId: someFakePublicId,
+        channelData: {},
+      }),
+    ])
+
+    expect(newChannels[0].channel.id).toBe(someFakeDirectId)
+    expect(newChannels[1].channel.id).toBe(someFakeGroupId)
+    expect(newChannels[2].id).toBe(someFakePublicId)
+
+    await newChannels[0].channel.delete({ soft: false })
+    await newChannels[1].channel.delete({ soft: false })
+    await newChannels[2].delete({ soft: false })
+  })
+
+  test("should create a direct, group and public chats with default IDs", async () => {
+    const user = await createRandomUser()
+
+    const newChannels = await Promise.all([
+      chat.createDirectConversation({
+        user,
+        channelData: {},
+      }),
+      chat.createGroupConversation({
+        users: [user],
+        channelData: {},
+      }),
+      chat.createPublicConversation({
+        channelData: {},
+      }),
+    ])
+
+    expect(newChannels[0].channel.id.startsWith("direct.")).toBeTruthy()
+    expect(newChannels[1].channel.id).toBeDefined()
+    expect(newChannels[2].id).toBeDefined()
+
+    await newChannels[0].channel.delete({ soft: false })
+    await newChannels[1].channel.delete({ soft: false })
+    await newChannels[2].delete({ soft: false })
+  })
+
   test("should create direct conversation and send message", async () => {
     const user = await createRandomUser()
     expect(user).toBeDefined()
+    const inviteCallback = jest.fn()
+
+    const removeInvitationListener = chat.listenForEvents({
+      channel: user.id,
+      type: "invite",
+      method: "publish",
+      callback: inviteCallback,
+    })
 
     const directConversation = await chat.createDirectConversation({
       user,
@@ -151,13 +228,31 @@ describe("Channel test", () => {
       (message: Message) => message.content.text === messageText
     )
     expect(messageInHistory).toBeTruthy()
+    expect(inviteCallback).toHaveBeenCalledTimes(1)
+    expect(inviteCallback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: {
+          channelType: "direct",
+          channelId: directConversation.channel.id,
+        },
+      })
+    )
     await user.delete()
+    removeInvitationListener()
   })
 
   test("should create group conversation", async () => {
     const user1 = await createRandomUser()
     const user2 = await createRandomUser()
     const user3 = await createRandomUser()
+    const inviteCallback = jest.fn()
+
+    const removeInvitationListener = chat.listenForEvents({
+      channel: user1.id,
+      type: "invite",
+      method: "publish",
+      callback: inviteCallback,
+    })
 
     const channelId = "group_channel_1234"
     const channelData = {
@@ -190,11 +285,21 @@ describe("Channel test", () => {
     expect(channel.description).toEqual("This is a test group channel.")
     expect(channel.custom.groupInfo).toEqual("Additional group information")
     expect(inviteesMemberships.length).toEqual(3)
+    expect(inviteCallback).toHaveBeenCalledTimes(1)
+    expect(inviteCallback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: {
+          channelType: "group",
+          channelId: result.channel.id,
+        },
+      })
+    )
 
     await user1.delete()
     await user2.delete()
     await user3.delete()
     await channel.delete()
+    removeInvitationListener()
   })
 
   test("should create a thread", async () => {
