@@ -766,16 +766,6 @@ export class Chat {
         channel.invite(user),
       ])
 
-      await this.emitEvent({
-        channel: user.id,
-        type: "invite",
-        method: "publish",
-        payload: {
-          channelType: "direct",
-          channelId: channel.id,
-        },
-      })
-
       return {
         channel,
         hostMembership: Membership.fromMembershipDTO(
@@ -833,20 +823,6 @@ export class Chat {
         hostMembershipPromise,
         channel.inviteMultiple(users),
       ])
-
-      await Promise.all(
-        users.map(async (u) => {
-          await this.emitEvent({
-            channel: u.id,
-            method: "publish",
-            type: "invite",
-            payload: {
-              channelType: "group",
-              channelId: channel.id,
-            },
-          })
-        })
-      )
 
       return {
         channel,

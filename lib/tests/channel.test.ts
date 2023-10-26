@@ -242,9 +242,11 @@ describe("Channel test", () => {
   })
 
   test("should create group conversation", async () => {
-    const user1 = await createRandomUser()
-    const user2 = await createRandomUser()
-    const user3 = await createRandomUser()
+    const [user1, user2, user3] = await Promise.all([
+      createRandomUser(),
+      createRandomUser(),
+      createRandomUser(),
+    ])
     const inviteCallback = jest.fn()
 
     const removeInvitationListener = chat.listenForEvents({
@@ -285,6 +287,7 @@ describe("Channel test", () => {
     expect(channel.description).toEqual("This is a test group channel.")
     expect(channel.custom.groupInfo).toEqual("Additional group information")
     expect(inviteesMemberships.length).toEqual(3)
+    await sleep(150) // history calls have around 130ms of cache time
     expect(inviteCallback).toHaveBeenCalledTimes(1)
     expect(inviteCallback).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -295,10 +298,12 @@ describe("Channel test", () => {
       })
     )
 
-    await user1.delete()
-    await user2.delete()
-    await user3.delete()
-    await channel.delete()
+    await Promise.all([
+      user1.delete(),
+      user2.delete(),
+      user3.delete(),
+      channel.delete({ soft: false }),
+    ])
     removeInvitationListener()
   })
 
