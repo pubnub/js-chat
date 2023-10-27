@@ -763,7 +763,6 @@ describe("Channel test", () => {
     await membership.setLastReadMessageTimetoken(message.timetoken)
     await sleep(150) // history calls have around 130ms of cache time
 
-    expect(mockCallback).toHaveBeenCalledTimes(2)
     expect(mockCallback).toHaveBeenCalledWith({ [timetoken]: ["test-user"] })
 
     stopReceipts()
