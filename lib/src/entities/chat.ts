@@ -313,7 +313,7 @@ export class Chat {
     }
   }
 
-  async getUsers(params: Omit<PubNub.GetAllMetadataParameters, "include">) {
+  async getUsers(params: Omit<PubNub.GetAllMetadataParameters, "include"> = {}) {
     const mandatoryOptions = {
       include: {
         totalCount: true,
@@ -522,7 +522,7 @@ export class Chat {
     }
   }
 
-  async getChannels(params: Omit<PubNub.GetAllMetadataParameters, "include">) {
+  async getChannels(params: Omit<PubNub.GetAllMetadataParameters, "include"> = {}) {
     const mandatoryOptions = {
       include: {
         totalCount: true,
@@ -569,11 +569,11 @@ export class Chat {
    */
   async createPublicConversation({
     channelId,
-    channelData,
+    channelData = {},
   }: {
     channelId?: string
-    channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
-  }) {
+    channelData?: PubNub.ChannelMetadata<PubNub.ObjectCustom>
+  } = {}) {
     const finalChannelId = channelId || uuidv4()
 
     return this.createChannel(finalChannelId, {
@@ -718,12 +718,12 @@ export class Chat {
   async createDirectConversation({
     user,
     channelId,
-    channelData,
+    channelData = {},
     membershipData = {},
   }: {
     user: User
     channelId?: string
-    channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
+    channelData?: PubNub.ChannelMetadata<PubNub.ObjectCustom>
     membershipData?: Omit<
       PubNub.SetMembershipsParameters<PubNub.ObjectCustom>,
       "channels" | "include" | "filter"
@@ -783,12 +783,12 @@ export class Chat {
   async createGroupConversation({
     users,
     channelId,
-    channelData,
+    channelData = {},
     membershipData = {},
   }: {
     users: User[]
     channelId?: string
-    channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
+    channelData?: PubNub.ChannelMetadata<PubNub.ObjectCustom>
     membershipData?: Omit<
       PubNub.SetMembershipsParameters<PubNub.ObjectCustom>,
       "channels" | "include" | "filter"
