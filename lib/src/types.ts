@@ -47,7 +47,7 @@ export type EventContent = {
     channel: string
   }
   invite: {
-    channelType: "direct" | "group"
+    channelType: ChannelType | "unknown"
     channelId: string
   }
   custom: any

@@ -502,7 +502,7 @@ export class Channel {
         type: "invite",
         method: "publish",
         payload: {
-          channelType: "direct",
+          channelType: this.type || "unknown",
           channelId: this.id,
         },
       })
@@ -547,7 +547,7 @@ export class Channel {
             method: "publish",
             type: "invite",
             payload: {
-              channelType: "group",
+              channelType: this.type || "unknown",
               channelId: this.id,
             },
           })
