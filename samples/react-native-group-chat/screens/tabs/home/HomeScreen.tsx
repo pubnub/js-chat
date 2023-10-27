@@ -45,7 +45,6 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
       type: "invite",
       method: "publish",
       callback: async (event) => {
-        console.log("event", event)
         const { memberships } = await chat.currentUser.getMemberships()
         setMemberships(memberships)
       },
