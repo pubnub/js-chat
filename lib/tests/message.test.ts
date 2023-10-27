@@ -870,6 +870,7 @@ describe("Send message test", () => {
     history = await channel.getHistory()
     const threadedMessage = history.messages[0]
     expect(threadedMessage.hasThread).toBe(true)
+    await sleep(150)
 
     const thread = await threadedMessage.getThread()
 
