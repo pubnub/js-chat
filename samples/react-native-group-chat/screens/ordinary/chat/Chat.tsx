@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   SafeAreaView,
+  Image,
 } from "react-native"
 import { GiftedChat, Bubble } from "react-native-gifted-chat"
 import { StackScreenProps } from "@react-navigation/stack"
@@ -19,6 +20,7 @@ import { colorPalette as colors, Text } from "../../../ui-components"
 import { useNavigation } from "@react-navigation/native"
 import { useCommonChatRenderers } from "../../../hooks"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
+import * as ImagePicker from 'expo-image-picker';
 
 export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
   const { chat, setCurrentChannel, currentChannel, getUser, currentChannelMembers } =
@@ -260,6 +262,24 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     [messageDraft]
   )
 
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    const asset = result.assets[0]
+
+    if (!result.canceled) {
+      const fileName =
+        asset.fileName || asset.uri.substring(asset.uri.lastIndexOf("/") + 1, asset.uri.length)
+      messageDraft.files = [{ mimeType: "image/*", name: fileName, uri: asset.uri }]
+    }
+  };
+
   const renderBubble = (props: Bubble<EnhancedIMessage>["props"]) => {
     return (
       <View>
@@ -270,6 +290,14 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
             right: { marginLeft: 0, padding: 12, backgroundColor: colors.teal100 },
           }}
         />
+        {props.currentMessage?.originalPnMessage.content.files?.length ? (
+          <View>
+            <Image
+              source={{ uri: props.currentMessage.originalPnMessage.content.files[0].url }}
+              style={{ width: 300, height: 300 }}
+            />
+          </View>
+        ) : null}
         {props.currentMessage?.originalPnMessage.hasThread ? (
           <TouchableOpacity
             onPress={() =>
@@ -285,6 +313,14 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
             </Text>
           </TouchableOpacity>
         ) : null}
+      </View>
+    )
+  }
+
+  const renderAccessory = () => {
+    return (
+      <View>
+        <Text onPress={pickImage}>Upload file</Text>
       </View>
     )
   }
@@ -323,6 +359,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
           handlePresentModalPress({ message: giftedMessage })
         }}
         messageContainerRef={giftedChatRef}
+        renderAccessory={renderAccessory}
       />
       <ActionsMenuComponent />
     </SafeAreaView>
