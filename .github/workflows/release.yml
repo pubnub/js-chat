@@ -53,3 +53,4 @@ jobs:
           actions: "build,publish"
           build-command: npm run build
           build-path: lib/dist
+          last-service: true
