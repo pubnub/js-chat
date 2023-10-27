@@ -46,6 +46,10 @@ export type EventContent = {
     messageTimetoken: string
     channel: string
   }
+  invite: {
+    channelType: ChannelType | "unknown"
+    channelId: string
+  }
   custom: any
 }
 

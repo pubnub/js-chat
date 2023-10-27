@@ -491,11 +491,23 @@ export class Channel {
         filter: `channel.id == '${this.id}'`,
       })
 
-      return await Membership.fromMembershipDTO(
+      const membershipData = await Membership.fromMembershipDTO(
         this.chat,
         response.data[0],
         user
       ).setLastReadMessageTimetoken(String((await this.chat.sdk.time()).timetoken))
+
+      await this.chat.emitEvent({
+        channel: user.id,
+        type: "invite",
+        method: "publish",
+        payload: {
+          channelType: this.type || "unknown",
+          channelId: this.id,
+        },
+      })
+
+      return membershipData
     } catch (error) {
       throw error
     }
@@ -520,13 +532,29 @@ export class Channel {
       })
       const { timetoken } = await this.chat.sdk.time()
 
-      return await Promise.all(
+      const inviteesMemberships = await Promise.all(
         response.data.map((dataPoint) =>
           Membership.fromChannelMemberDTO(this.chat, dataPoint, this).setLastReadMessageTimetoken(
             String(timetoken)
           )
         )
       )
+
+      await Promise.all(
+        users.map(async (u) => {
+          await this.chat.emitEvent({
+            channel: u.id,
+            method: "publish",
+            type: "invite",
+            payload: {
+              channelType: this.type || "unknown",
+              channelId: this.id,
+            },
+          })
+        })
+      )
+
+      return inviteesMemberships
     } catch (error) {
       throw error
     }

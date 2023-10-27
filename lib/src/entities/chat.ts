@@ -19,6 +19,7 @@ import { ThreadChannel } from "./thread-channel"
 import { MentionsUtils } from "../mentions-utils"
 import { getErrorProxiedEntity, ErrorLogger } from "../error-logging"
 import { cyrb53a } from "../hash"
+import { uuidv4 } from "../uuidv4"
 
 type ChatConfig = {
   saveDebugLog: boolean
@@ -570,10 +571,16 @@ export class Chat {
     channelId,
     channelData,
   }: {
-    channelId: string
+    channelId?: string
     channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
   }) {
-    return this.createChannel(channelId, { name: channelId, ...channelData, type: "public" })
+    const finalChannelId = channelId || uuidv4()
+
+    return this.createChannel(finalChannelId, {
+      name: finalChannelId,
+      ...channelData,
+      type: "public",
+    })
   }
 
   /**
@@ -617,11 +624,11 @@ export class Chat {
   async forwardMessage(message: Message, channel: string) {
     if (!channel) throw "Channel ID is required"
     if (!message) throw "Message is required"
-    if (message.channelId === channel) throw "You cannot forward the message to the same channel"
 
     const meta = {
       ...(message.meta || {}),
       originalPublisher: message.userId,
+      originalChannelId: message.channelId,
     }
     this.publish({ message: message.content, channel, meta })
   }
@@ -710,10 +717,12 @@ export class Chat {
 
   async createDirectConversation({
     user,
+    channelId,
     channelData,
     membershipData = {},
   }: {
     user: User
+    channelId?: string
     channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
     membershipData?: Omit<
       PubNub.SetMembershipsParameters<PubNub.ObjectCustom>,
@@ -729,11 +738,15 @@ export class Chat {
 
       const sortedUsers = [this.user.id, user.id].sort()
 
-      const channelId = `direct.${cyrb53a(`${sortedUsers[0]}&${sortedUsers[1]}`)}`
+      const finalChannelId = channelId || `direct.${cyrb53a(`${sortedUsers[0]}&${sortedUsers[1]}`)}`
 
       const channel =
-        (await this.getChannel(channelId)) ||
-        (await this.createChannel(channelId, { name: channelId, ...channelData, type: "direct" }))
+        (await this.getChannel(finalChannelId)) ||
+        (await this.createChannel(finalChannelId, {
+          name: finalChannelId,
+          ...channelData,
+          type: "direct",
+        }))
 
       const { custom, ...rest } = membershipData
       const hostMembershipPromise = this.sdk.objects.setMemberships({
@@ -774,7 +787,7 @@ export class Chat {
     membershipData = {},
   }: {
     users: User[]
-    channelId: string
+    channelId?: string
     channelData: PubNub.ChannelMetadata<PubNub.ObjectCustom>
     membershipData?: Omit<
       PubNub.SetMembershipsParameters<PubNub.ObjectCustom>,
@@ -783,10 +796,16 @@ export class Chat {
       custom?: PubNub.ObjectCustom
     }
   }) {
+    const finalChannelId = channelId || uuidv4()
+
     try {
       const channel =
-        (await this.getChannel(channelId)) ||
-        (await this.createChannel(channelId, { name: channelId, ...channelData, type: "group" }))
+        (await this.getChannel(finalChannelId)) ||
+        (await this.createChannel(finalChannelId, {
+          name: finalChannelId,
+          ...channelData,
+          type: "group",
+        }))
       const { custom, ...rest } = membershipData
       const hostMembershipPromise = this.sdk.objects.setMemberships({
         ...rest,

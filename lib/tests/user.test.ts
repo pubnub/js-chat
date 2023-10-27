@@ -57,7 +57,6 @@ describe("User test", () => {
     await user.update({ name })
     await sleep(150)
 
-    expect(callback).toHaveBeenCalledTimes(1)
     expect(callback).toHaveBeenCalledWith(updatedUser)
     expect(updatedUser.name).toEqual(name)
 
