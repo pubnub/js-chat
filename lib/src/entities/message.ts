@@ -8,8 +8,8 @@ import {
   TextMessageContent,
 } from "../types"
 import { INTERNAL_ADMIN_CHANNEL } from "../constants"
-import { MentionsUtils } from "../mentions-utils"
 import { getErrorProxiedEntity } from "../error-logging"
+import { MessagePartsUtils } from "../MessagePartsUtils"
 
 export type MessageFields = Pick<
   Message,
@@ -179,10 +179,10 @@ export class Message {
     return lastEdit.value
   }
 
-  getLinkedText() {
+  getMessageElements() {
     const text = this.text
 
-    return MentionsUtils.getLinkedText({
+    return MessagePartsUtils.getMessageElements({
       text,
       textLinks: this.textLinks,
       mentionedUsers: this.mentionedUsers,

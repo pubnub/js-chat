@@ -17,7 +17,7 @@ type GetLinkedTextParams = {
 const range = (start: number, stop: number, step = 1) =>
   Array.from({ length: (stop - start) / step + 1 }, (_, i) => start + i * step)
 
-export class MentionsUtils {
+export class MessagePartsUtils {
   static getPhraseToLookFor(text: string) {
     const lastAtIndex = text.lastIndexOf("@")
     const charactersAfterAt = text.split("@").slice(-1)[0]
@@ -52,14 +52,19 @@ export class MentionsUtils {
     return splitWords[0] + (splitWords[1] ? ` ${splitWords[1]}` : "")
   }
 
-  static getLinkedText({
+  static getMessageElements({
     text,
     mentionedUsers,
     textLinks,
     referencedChannels,
   }: GetLinkedTextParams) {
     let resultWithTextLinks = ""
-    const indicesOfWordsWithTextLinks: { start: number; end: number; link: string }[] = []
+    const indicesOfWordsWithTextLinks: {
+      start: number
+      end: number
+      substring: string
+      link: string
+    }[] = []
 
     const textLinkRanges = textLinks.map((textLink) =>
       range(textLink.startIndex, textLink.endIndex)
@@ -77,14 +82,15 @@ export class MentionsUtils {
         const relevantIndex = startIndices.indexOf(i)
         const substring = text.substring(i, endIndices[relevantIndex])
 
-        resultWithTextLinks += ` ${substring} `
+        resultWithTextLinks += `${substring}`
 
         indicesOfWordsWithTextLinks.push({
-          start: spacesSoFar + 1,
-          end: spacesSoFar + substring.split(" ").length + 1,
+          start: spacesSoFar,
+          end: spacesSoFar + substring.split(" ").length,
           link: textLinks[relevantIndex].link,
+          substring,
         })
-        spacesSoFar += 2
+        spacesSoFar += 0
         return
       }
       if (allIndices.filter((index) => !endIndices.includes(index)).includes(i)) {
@@ -116,12 +122,30 @@ export class MentionsUtils {
 
         if (foundTextLink) {
           const substring = splitText.slice(foundTextLink.start, foundTextLink.end).join(" ")
+          const additionalPunctuation = substring.replace(foundTextLink.substring, "")
 
           arrayOfTextElements.push({
             type: "textLink",
             content: {
               link: foundTextLink.link,
-              text: substring,
+              text: foundTextLink.substring,
+            },
+          })
+          if (additionalPunctuation) {
+            arrayOfTextElements.push({
+              type: "text",
+              content: {
+                text: additionalPunctuation,
+              },
+            })
+          }
+          // console.log("resultWithTextLinks", resultWithTextLinks)
+          // console.log("word?", word)
+          // console.log("next word", splitText[index + 1])
+          arrayOfTextElements.push({
+            type: "text",
+            content: {
+              text: " ",
             },
           })
           indicesToSkip = substring.split(" ").map((_, i) => index + i)
@@ -143,6 +167,12 @@ export class MentionsUtils {
                 text: lastCharacter,
               },
             })
+            arrayOfTextElements.push({
+              type: "text",
+              content: {
+                text: " ",
+              },
+            })
           } else {
             arrayOfTextElements.push({
               type: "plainLink",
@@ -160,12 +190,20 @@ export class MentionsUtils {
           return
         }
 
-        arrayOfTextElements.push({
-          type: "text",
-          content: {
-            text: word,
-          },
-        })
+        if (word) {
+          arrayOfTextElements.push({
+            type: "text",
+            content: {
+              text: word,
+            },
+          })
+          arrayOfTextElements.push({
+            type: "text",
+            content: {
+              text: " ",
+            },
+          })
+        }
       } else if (word.startsWith("@")) {
         const mentionFound = Object.keys(mentionedUsers).indexOf(String(counter)) >= 0
 
@@ -175,6 +213,12 @@ export class MentionsUtils {
             type: "text",
             content: {
               text: word,
+            },
+          })
+          arrayOfTextElements.push({
+            type: "text",
+            content: {
+              text: " ",
             },
           })
         } else {
@@ -194,6 +238,9 @@ export class MentionsUtils {
           }
           if (additionalPunctuationCharacters) {
             additionalPunctuationCharacters = `${additionalPunctuationCharacters} `
+          }
+          if (additionalPunctuationCharacters === "") {
+            additionalPunctuationCharacters = " "
           }
 
           counter++
@@ -223,6 +270,12 @@ export class MentionsUtils {
               text: word,
             },
           })
+          arrayOfTextElements.push({
+            type: "text",
+            content: {
+              text: " ",
+            },
+          })
         } else {
           const userId = referencedChannels[channelCounter].id
           const channelName = referencedChannels[channelCounter].name
@@ -240,6 +293,9 @@ export class MentionsUtils {
           }
           if (additionalPunctuationCharacters) {
             additionalPunctuationCharacters = `${additionalPunctuationCharacters} `
+          }
+          if (additionalPunctuationCharacters === "") {
+            additionalPunctuationCharacters = " "
           }
 
           channelCounter++
@@ -259,29 +315,28 @@ export class MentionsUtils {
         }
       }
     })
+    if (arrayOfTextElements[arrayOfTextElements.length - 1].type === "text") {
+      ;(
+        arrayOfTextElements[arrayOfTextElements.length - 1] as TextTypeElement<"text">
+      ).content.text = (
+        arrayOfTextElements[arrayOfTextElements.length - 1] as TextTypeElement<"text">
+      ).content.text.trim()
+    }
+    if (
+      arrayOfTextElements[arrayOfTextElements.length - 1].type === "text" &&
+      [" ", ""].includes(
+        (arrayOfTextElements[arrayOfTextElements.length - 1] as TextTypeElement<"text">).content
+          .text
+      )
+    ) {
+      arrayOfTextElements.length = arrayOfTextElements.length - 1
+    }
 
-    return arrayOfTextElements.reduce((acc: MixedTextTypedElement[], curr, currentIndex) => {
+    return arrayOfTextElements.reduce((acc: MixedTextTypedElement[], curr) => {
       let previousObject = undefined
 
       if (acc && acc.length) {
         previousObject = acc[acc.length - 1]
-      }
-      const additionalPunctuation = ["mention", "plainLink", "channelReference"].includes(
-        arrayOfTextElements[currentIndex + 1]?.type
-      )
-        ? " "
-        : ""
-
-      if (curr.type === "text" && !previousObject && additionalPunctuation) {
-        return [
-          ...acc,
-          {
-            type: "text",
-            content: {
-              text: `${curr.content.text}${additionalPunctuation}`,
-            },
-          } as TextTypeElement<"text">,
-        ]
       }
       if (curr.type === "text" && previousObject?.type === "text") {
         acc = acc.slice(0, -1)
@@ -291,7 +346,7 @@ export class MentionsUtils {
           {
             type: "text",
             content: {
-              text: `${previousObject.content.text} ${curr.content.text}${additionalPunctuation}`,
+              text: `${previousObject.content.text}${curr.content.text}`,
             },
           } as TextTypeElement<"text">,
         ]

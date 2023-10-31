@@ -4,7 +4,7 @@ import { User } from "./user"
 import { Channel } from "./channel"
 import { MessageDraftConfig, MessageDraftOptions, TextLink } from "../types"
 import { Validator } from "../validator"
-import { MentionsUtils } from "../mentions-utils"
+import { MessagePartsUtils } from "../MessagePartsUtils"
 import { Message } from "./message"
 
 declare global {
@@ -425,7 +425,14 @@ export class MessageDraft {
         if (counter !== nameOccurrenceIndex) {
           result += `${word} `
         } else {
-          result += `@${user.name} `
+          const lastCharacter = word.slice(-1)
+          result += `@${user.name}`
+          if (["!", "?", ".", ","].includes(lastCharacter)) {
+            result += `${lastCharacter} `
+          } else {
+            result += " "
+          }
+
           this.mentionedUsers[nameOccurrenceIndex] = user
           isUserFound = true
         }
@@ -452,7 +459,13 @@ export class MessageDraft {
         if (counter !== channelNameOccurrenceIndex) {
           result += `${word} `
         } else {
-          result += `#${channel.name} `
+          const lastCharacter = word.slice(-1)
+          result += `#${channel.name}`
+          if (["!", "?", ".", ","].includes(lastCharacter)) {
+            result += `${lastCharacter} `
+          } else {
+            result += " "
+          }
           this.referencedChannels[channelNameOccurrenceIndex] = channel
           isChannelFound = true
         }
@@ -597,7 +610,7 @@ export class MessageDraft {
   }
 
   getMessagePreview() {
-    return MentionsUtils.getLinkedText({
+    return MessagePartsUtils.getMessageElements({
       text: this.value,
       textLinks: this.textLinks,
       mentionedUsers: this.transformMentionedUsersToSend(),
