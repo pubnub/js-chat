@@ -157,9 +157,8 @@ export class Channel {
       ...this.getPushPayload(text),
     }
     this.chat.emitEvent({
-      channel: userId,
       type: "mention",
-      method: "publish",
+      user: userId,
       payload,
     })
   }
@@ -242,7 +241,6 @@ export class Channel {
   private async sendTypingSignal(value: boolean) {
     return await this.chat.emitEvent({
       channel: this.id,
-      method: "signal",
       type: "typing",
       payload: { value },
     })
@@ -500,7 +498,6 @@ export class Channel {
       await this.chat.emitEvent({
         channel: user.id,
         type: "invite",
-        method: "publish",
         payload: {
           channelType: this.type || "unknown",
           channelId: this.id,
@@ -544,7 +541,6 @@ export class Channel {
         users.map(async (u) => {
           await this.chat.emitEvent({
             channel: u.id,
-            method: "publish",
             type: "invite",
             payload: {
               channelType: this.type || "unknown",
@@ -651,10 +647,9 @@ export class Channel {
     })
     callback(generateReceipts())
 
-    const unsubscribe = this.chat.listenForEvents({
+    const unsubscribe = this.chat.listenForEvents<"receipt">({
       channel: this.id,
       type: "receipt",
-      method: "signal",
       callback: (event) => {
         const { userId, payload } = event
         timetokensPerUser.set(userId, payload.messageTimetoken)

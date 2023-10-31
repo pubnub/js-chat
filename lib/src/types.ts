@@ -7,8 +7,6 @@ import PubNub, {
 import { User } from "./entities/user"
 import { Message } from "./entities/message"
 import { Event } from "./entities/event"
-import { Channel } from "./entities/channel"
-import { ThreadChannel } from "./entities/thread-channel"
 
 export type ChannelType = "direct" | "group" | "public"
 
@@ -28,32 +26,88 @@ export type TextMessageContent = {
   files?: { name: string; id: string; url: string; type?: string }[]
 }
 
-export type EventContent = {
-  typing: {
-    value: boolean
-  }
-  report: {
-    text?: string
-    reason: string
-    reportedMessageTimetoken?: string
-    reportedMessageChannelId?: string
-    reportedUserId?: string
-  }
-  receipt: {
-    messageTimetoken: string
-  }
-  mention: {
-    messageTimetoken: string
-    channel: string
-  }
-  invite: {
-    channelType: ChannelType | "unknown"
-    channelId: string
-  }
-  custom: any
+type TypingEventParams = {
+  type: "typing"
+  method?: "signal"
+  channel: string
+}
+type ReportEventParams = {
+  type: "report"
+  method?: "publish"
+  channel: string
+}
+type ReceiptEventParams = {
+  type: "receipt"
+  method?: "signal"
+  channel: string
+}
+type MentionEventParams = {
+  type: "mention"
+  method?: "publish"
+  user: string
+}
+type InviteEventParams = {
+  type: "invite"
+  method?: "publish"
+  channel: string
+}
+type CustomEventParams = {
+  type: "custom"
+  method: "signal" | "publish"
+  channel: string
 }
 
-export type EventType = keyof EventContent
+export type EventParams = {
+  typing: TypingEventParams
+  report: ReportEventParams
+  receipt: ReceiptEventParams
+  mention: MentionEventParams
+  invite: InviteEventParams
+  custom: CustomEventParams
+}
+
+type TypingEventPayload = {
+  value: boolean
+}
+type ReportEventPayload = {
+  text?: string
+  reason: string
+  reportedMessageTimetoken?: string
+  reportedMessageChannelId?: string
+  reportedUserId?: string
+}
+type ReceiptEventPayload = {
+  messageTimetoken: string
+}
+type MentionEventPayload = {
+  messageTimetoken: string
+  channel: string
+}
+type InviteEventPayload = {
+  channelType: ChannelType | "unknown"
+  channelId: string
+}
+type CustomEventPayload = any
+
+export type EventPayloads = {
+  typing: TypingEventPayload
+  report: ReportEventPayload
+  receipt: ReceiptEventPayload
+  mention: MentionEventPayload
+  invite: InviteEventPayload
+  custom: CustomEventPayload
+}
+
+export type EmitEventParams =
+  | (TypingEventParams & { payload: TypingEventPayload })
+  | (ReportEventParams & { payload: ReportEventPayload })
+  | (ReceiptEventParams & { payload: ReceiptEventPayload })
+  | (MentionEventParams & { payload: MentionEventPayload })
+  | (InviteEventParams & { payload: InviteEventPayload })
+  | (CustomEventParams & { payload: CustomEventPayload })
+
+export type EventType = "typing" | "report" | "receipt" | "mention" | "invite" | "custom"
+export type GenericEventParams<T extends keyof EventParams> = EventParams[T]
 
 export type MessageActions = {
   [type: string]: {

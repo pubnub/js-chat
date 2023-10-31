@@ -43,7 +43,6 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
     const removeInvitationListener = chat.listenForEvents({
       channel: chat.currentUser.id,
       type: "invite",
-      method: "publish",
       callback: async () => {
         const { memberships } = await chat.currentUser.getMemberships()
         setMemberships(memberships)

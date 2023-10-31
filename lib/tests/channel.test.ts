@@ -210,7 +210,6 @@ describe("Channel test", () => {
     const removeInvitationListener = chat.listenForEvents({
       channel: user.id,
       type: "invite",
-      method: "publish",
       callback: inviteCallback,
     })
 
@@ -252,7 +251,6 @@ describe("Channel test", () => {
     const removeInvitationListener = chat.listenForEvents({
       channel: user1.id,
       type: "invite",
-      method: "publish",
       callback: inviteCallback,
     })
 

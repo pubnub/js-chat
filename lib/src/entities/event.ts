@@ -1,6 +1,6 @@
 import { MessageEvent, FetchMessagesResponse } from "pubnub"
 import { Chat } from "./chat"
-import { EventContent, EventType } from "../types"
+import { EventPayloads, EventType } from "../types"
 import { getErrorProxiedEntity } from "../error-logging"
 
 export type EventFields<T extends EventType> = Pick<
@@ -12,7 +12,7 @@ export class Event<T extends EventType> {
   private chat: Chat
   readonly timetoken: string
   readonly type: T
-  readonly payload: EventContent[T]
+  readonly payload: EventPayloads[T]
   readonly channelId: string
   readonly userId: string
 
