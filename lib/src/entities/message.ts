@@ -311,7 +311,7 @@ export class Message {
       reportedMessageTimetoken: this.timetoken,
       reportedUserId: this.userId,
     }
-    return await this.chat.emitEvent({ channel, type: "report", method: "publish", payload })
+    return await this.chat.emitEvent({ channel, type: "report", payload })
   }
 
   /**

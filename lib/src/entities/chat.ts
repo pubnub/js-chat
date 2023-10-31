@@ -4,12 +4,13 @@ import { User, UserFields } from "./user"
 import {
   DeleteParameters,
   TextMessageContent,
-  EventContent,
-  EventType,
   ChannelType,
   ErrorLoggerImplementation,
   UserMentionData,
   SendTextOptionParams,
+  EventType,
+  EmitEventParams,
+  GenericEventParams,
 } from "../types"
 import { Message } from "./message"
 import { Event } from "./event"
@@ -169,49 +170,46 @@ export class Chat {
   /**
    * Events
    */
-  emitEvent<T extends EventType>({
-    channel,
-    type,
-    method,
-    payload,
-  }: {
-    channel: string
-    type?: T
-    method?: "signal" | "publish"
-    payload: EventContent[T]
-  }) {
-    const defType = type || "custom"
-    const defMethod = method || "signal"
-    const message = { ...payload, type: defType }
-    const params = { channel, message }
-    return defMethod === "signal" ? this.signal(params) : this.publish(params)
+  /** @internal */
+  private methodForEvent(event: { type: EventType; method?: "signal" | "publish" }) {
+    switch (event.type) {
+      case "custom":
+        return event.method
+      case "typing":
+      case "receipt":
+        return "signal"
+      default:
+        return "publish"
+    }
   }
 
-  listenForEvents<T extends EventType>({
-    channel,
-    type,
-    method,
-    callback,
-  }: {
-    channel: string
-    type?: T
-    method?: "signal" | "publish"
-    callback: (event: Event<T>) => unknown
-  }) {
-    const defType = type || "custom"
-    const defMethod = method || "signal"
+  emitEvent(event: EmitEventParams) {
+    const { payload, type } = event
+    const channel = "channel" in event ? event.channel : event.user
+    const method = this.methodForEvent(event)
+    const message = { ...payload, type }
+    const params = { channel, message }
+    return method === "signal" ? this.signal(params) : this.publish(params)
+  }
+
+  listenForEvents<T extends EventType>(
+    event: GenericEventParams<T> & { callback: (event: Event<T>) => unknown }
+  ) {
+    const { type, callback } = event
+    const channel = "channel" in event ? event.channel : event.user
+    const method = this.methodForEvent(event)
+
     const handler = (event: MessageEvent | SignalEvent) => {
       if (event.channel !== channel) return
-      if (event.message.type !== defType) return
+      if (event.message.type !== type) return
       const { channel: ch, timetoken, message, publisher } = event
       callback(Event.fromDTO(this, { channel: ch, timetoken, message, publisher }))
     }
     const listener = {
-      ...(defMethod === "signal" ? { signal: handler } : { message: handler }),
+      ...(method === "signal" ? { signal: handler } : { message: handler }),
     }
     const removeListener = this.addListener(listener)
     const unsubscribe = this.subscribe(channel)
-
     return () => {
       removeListener()
       unsubscribe()
@@ -1059,7 +1057,6 @@ export class Chat {
       this.emitEvent({
         channel: relevantChannelId,
         type: "receipt",
-        method: "signal",
         payload: {
           messageTimetoken: relevantLastMessageTimetoken,
         },

@@ -205,6 +205,6 @@ export class User {
       reason,
       reportedUserId: this.id,
     }
-    return await this.chat.emitEvent({ channel, type: "report", method: "publish", payload })
+    return await this.chat.emitEvent({ channel, type: "report", payload })
   }
 }

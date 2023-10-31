@@ -147,7 +147,6 @@ export class Membership {
       await this.chat.emitEvent({
         channel: this.channel.id,
         type: "receipt",
-        method: "signal",
         payload: { messageTimetoken: timetoken },
       })
 

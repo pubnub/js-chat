@@ -123,9 +123,8 @@ export class ThreadChannel extends Channel {
       ...this.getPushPayload(text),
     }
     this.chat.emitEvent({
-      channel: userId,
+      user: userId,
       type: "mention",
-      method: "publish",
       payload,
     })
   }
