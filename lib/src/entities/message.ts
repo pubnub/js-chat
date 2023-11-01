@@ -190,6 +190,13 @@ export class Message {
     })
   }
 
+  /**
+    @deprecated use getMessageElements instead
+   */
+  getLinkedText() {
+    return this.getMessageElements()
+  }
+
   async editText(newText: string) {
     const type = MessageActionType.EDITED
     try {

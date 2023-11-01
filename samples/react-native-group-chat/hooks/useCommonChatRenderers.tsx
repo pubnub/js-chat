@@ -7,6 +7,7 @@ import { EnhancedIMessage } from "../utils"
 import { Quote, DataSuggestionBox } from "../components"
 import { MessageText } from "../components/message-text"
 import { ChatContext } from "../context"
+import { AddTextLinkBox } from "../components/add-text-link-box"
 
 type UseCommonChatRenderersProps = {
   typingData: string[]
@@ -14,7 +15,9 @@ type UseCommonChatRenderersProps = {
   lastAffectedNameOccurrenceIndex: number
   setText: (text: string) => void
   setShowSuggestedData: (value: boolean) => void
+  setShowTextLinkBox: (value: boolean) => void
   showSuggestedData: boolean
+  showTextLinkBox: boolean
   giftedChatRef: React.RefObject<FlatList<EnhancedIMessage>>
   giftedChatMappedMessages: EnhancedIMessage[]
   suggestedData: User[] | Channel[]
@@ -30,6 +33,8 @@ export function useCommonChatRenderers({
   giftedChatMappedMessages,
   suggestedData,
   showSuggestedData,
+  showTextLinkBox,
+  setShowTextLinkBox,
 }: UseCommonChatRenderersProps) {
   const { getUser } = useContext(ChatContext)
 
@@ -78,6 +83,7 @@ export function useCommonChatRenderers({
     const quotedMessage = messageDraft.quotedMessage
     let quotedMessageComponent = null
     let dataSuggestionComponent = null
+    let addTextLinkComponent = null
 
     if (quotedMessage) {
       quotedMessageComponent = (
@@ -95,14 +101,38 @@ export function useCommonChatRenderers({
         <DataSuggestionBox data={suggestedData} onSelect={handleSuggestionSelect} />
       )
     }
+    if (showTextLinkBox) {
+      addTextLinkComponent = (
+        <AddTextLinkBox
+          onAdd={({ text, link }) => {
+            if (!messageDraft) {
+              return
+            }
+            messageDraft.addLinkedText({ text, link, positionInInput: messageDraft.value.length })
+            setText(messageDraft.value)
+            setShowTextLinkBox(false)
+          }}
+          onCancel={() => setShowTextLinkBox(false)}
+        />
+      )
+    }
 
     return (
       <>
+        {addTextLinkComponent}
         {quotedMessageComponent}
         {dataSuggestionComponent}
       </>
     )
-  }, [messageDraft, showSuggestedData, scrollToMessage, suggestedData, handleSuggestionSelect])
+  }, [
+    messageDraft,
+    showSuggestedData,
+    showTextLinkBox,
+    scrollToMessage,
+    suggestedData,
+    handleSuggestionSelect,
+    setShowTextLinkBox,
+  ])
 
   const renderFooter = useCallback(() => {
     if (!typingData.length) {

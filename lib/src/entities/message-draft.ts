@@ -265,16 +265,15 @@ export class MessageDraft {
       .filter((word) => word.startsWith(splitSymbol))
 
     let differentReferencePosition = -1
+    let differentReference = null
 
-    const differentReferences = currentWordsStartingWithSymbol.filter((m, i) => {
-      const isStringDifferent = previousWordsStartingWithSymbol.indexOf(m) === -1
-
-      if (isStringDifferent) {
+    for (let i = 0; i < currentWordsStartingWithSymbol.length; i++) {
+      if (currentWordsStartingWithSymbol[i] !== previousWordsStartingWithSymbol[i]) {
+        differentReference = currentWordsStartingWithSymbol[i]
         differentReferencePosition = i
+        break
       }
-
-      return isStringDifferent
-    })
+    }
 
     if (previousWordsStartingWithSymbol.length > currentWordsStartingWithSymbol.length) {
       // a mention was removed
@@ -328,14 +327,14 @@ export class MessageDraft {
 
     return {
       referencesObject: copiedObject,
-      differentReferences,
+      differentReference,
       differentReferencePosition,
     }
   }
 
   /** @internal */
   private async parseTextToGetSuggestedUser() {
-    const { differentReferences, differentReferencePosition, referencesObject } =
+    const { differentReference, differentReferencePosition, referencesObject } =
       this.getUserOrChannelReference({
         splitSymbol: "@",
         referencesObject: this.mentionedUsers,
@@ -343,7 +342,7 @@ export class MessageDraft {
 
     this.mentionedUsers = referencesObject as { [nameOccurance: number]: User }
 
-    if (!differentReferences.length) {
+    if (!differentReference) {
       return {
         nameOccurrenceIndex: -1,
         suggestedUsers: [],
@@ -354,12 +353,12 @@ export class MessageDraft {
 
     if (this.config.userSuggestionSource === "channel") {
       suggestedUsers = (
-        await this.channel.getUserSuggestions(differentReferences[0], {
+        await this.channel.getUserSuggestions(differentReference, {
           limit: this.config.userLimit,
         })
       ).map((membership) => membership.user)
     } else {
-      suggestedUsers = await this.chat.getUserSuggestions(differentReferences[0], {
+      suggestedUsers = await this.chat.getUserSuggestions(differentReference, {
         limit: this.config.userLimit,
       })
     }
@@ -372,7 +371,7 @@ export class MessageDraft {
 
   /** @internal */
   private async parseTextToGetSuggestedChannels() {
-    const { differentReferences, differentReferencePosition, referencesObject } =
+    const { differentReference, differentReferencePosition, referencesObject } =
       this.getUserOrChannelReference({
         splitSymbol: "#",
         referencesObject: this.referencedChannels,
@@ -380,14 +379,14 @@ export class MessageDraft {
 
     this.referencedChannels = referencesObject as { [nameOccurance: number]: Channel }
 
-    if (!differentReferences.length) {
+    if (!differentReference) {
       return {
         channelOccurrenceIndex: -1,
         suggestedChannels: [],
       }
     }
 
-    const suggestedChannels = await this.chat.getChannelSuggestions(differentReferences[0], {
+    const suggestedChannels = await this.chat.getChannelSuggestions(differentReference, {
       limit: this.config.channelLimit,
     })
 

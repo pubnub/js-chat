@@ -392,4 +392,43 @@ describe("MessageDraft", function () {
       user4.delete({ soft: false }),
     ])
   })
+
+  test("should reference 3 channels and 3 mentions with no order", async () => {
+    const [channel1, channel2, channel3] = await Promise.all([
+      createRandomChannel(),
+      createRandomChannel(),
+      createRandomChannel(),
+    ])
+    const [user1, user2, user3] = await Promise.all([
+      createRandomUser(),
+      createRandomUser(),
+      createRandomUser(),
+    ])
+
+    messageDraft.onChange(
+      `Hello @real #real #fake @fake @real #fake #fake #real @real #fake #real @@@ @@@@ @ #fake #fake`
+    )
+    messageDraft.addReferencedChannel(channel1, 0)
+    messageDraft.addReferencedChannel(channel2, 4)
+    messageDraft.addReferencedChannel(channel3, 6)
+    messageDraft.addMentionedUser(user1, 0)
+    messageDraft.addMentionedUser(user2, 2)
+    messageDraft.addMentionedUser(user3, 3)
+    const messagePreview = messageDraft.getMessagePreview()
+
+    expect(messagePreview.map(renderMessagePart).join("")).toBe(
+      "Hello @Test User #Test Channel #fake @fake @Test User #fake #fake #Test Channel @Test User #fake #Test Channel @@@ @@@@ @ #fake #fake"
+    )
+
+    await Promise.all([
+      channel1.delete({ soft: false }),
+      channel2.delete({ soft: false }),
+      channel3.delete({ soft: false }),
+    ])
+    await Promise.all([
+      user1.delete({ soft: false }),
+      user2.delete({ soft: false }),
+      user3.delete({ soft: false }),
+    ])
+  })
 })
