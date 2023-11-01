@@ -21,8 +21,8 @@ export function AddTextLinkBox({ onAdd, onCancel }: AddTextLinkBoxProps) {
 
   return (
     <View style={styles.container}>
-      <TextInput label="Text" value={text} onChangeText={setText} />
-      <TextInput label="Link" value={link} onChangeText={setLink} />
+      <TextInput label="Text" value={text} onChangeText={setText} autoCapitalize="none" />
+      <TextInput label="Link" value={link} onChangeText={setLink} autoCapitalize="none" />
       <View style={styles.buttonsContainer}>
         <Button onPress={handleAddTextLink}>Add text link</Button>
         <View style={{ marginRight: 8 }} />
