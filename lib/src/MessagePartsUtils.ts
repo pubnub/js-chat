@@ -90,7 +90,6 @@ export class MessagePartsUtils {
           link: textLinks[relevantIndex].link,
           substring,
         })
-        spacesSoFar += 0
         return
       }
       if (allIndices.filter((index) => !endIndices.includes(index)).includes(i)) {
@@ -139,9 +138,6 @@ export class MessagePartsUtils {
               },
             })
           }
-          // console.log("resultWithTextLinks", resultWithTextLinks)
-          // console.log("word?", word)
-          // console.log("next word", splitText[index + 1])
           arrayOfTextElements.push({
             type: "text",
             content: {
