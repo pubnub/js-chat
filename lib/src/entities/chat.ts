@@ -16,7 +16,7 @@ import { Event } from "./event"
 import { Membership } from "./membership"
 import { MESSAGE_THREAD_ID_PREFIX, INTERNAL_MODERATION_PREFIX } from "../constants"
 import { ThreadChannel } from "./thread-channel"
-import { MessagePartsUtils } from "../MessagePartsUtils"
+import { MessageElementsUtils } from "../message-elements-utils"
 import { getErrorProxiedEntity, ErrorLogger } from "../error-logging"
 import { cyrb53a } from "../hash"
 import { uuidv4 } from "../uuidv4"
@@ -842,7 +842,7 @@ export class Chat {
     text: string,
     options: { limit: number } = { limit: 10 }
   ): Promise<User[]> {
-    const cacheKey = MessagePartsUtils.getPhraseToLookFor(text)
+    const cacheKey = MessageElementsUtils.getPhraseToLookFor(text)
 
     if (!cacheKey) {
       return []
@@ -866,7 +866,7 @@ export class Chat {
     text: string,
     options: { limit: number } = { limit: 10 }
   ): Promise<Channel[]> {
-    const cacheKey = MessagePartsUtils.getChannelPhraseToLookFor(text)
+    const cacheKey = MessageElementsUtils.getChannelPhraseToLookFor(text)
 
     if (!cacheKey) {
       return []

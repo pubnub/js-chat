@@ -17,7 +17,7 @@ type GetLinkedTextParams = {
 const range = (start: number, stop: number, step = 1) =>
   Array.from({ length: (stop - start) / step + 1 }, (_, i) => start + i * step)
 
-export class MessagePartsUtils {
+export class MessageElementsUtils {
   static getPhraseToLookFor(text: string) {
     const lastAtIndex = text.lastIndexOf("@")
     const charactersAfterAt = text.split("@").slice(-1)[0]
@@ -82,7 +82,7 @@ export class MessagePartsUtils {
         const relevantIndex = startIndices.indexOf(i)
         const substring = text.substring(i, endIndices[relevantIndex])
 
-        resultWithTextLinks += `${substring}`
+        resultWithTextLinks += substring
 
         indicesOfWordsWithTextLinks.push({
           start: spacesSoFar,

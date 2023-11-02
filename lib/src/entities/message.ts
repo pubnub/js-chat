@@ -9,7 +9,7 @@ import {
 } from "../types"
 import { INTERNAL_ADMIN_CHANNEL } from "../constants"
 import { getErrorProxiedEntity } from "../error-logging"
-import { MessagePartsUtils } from "../MessagePartsUtils"
+import { MessageElementsUtils } from "../message-elements-utils"
 
 export type MessageFields = Pick<
   Message,
@@ -182,7 +182,7 @@ export class Message {
   getMessageElements() {
     const text = this.text
 
-    return MessagePartsUtils.getMessageElements({
+    return MessageElementsUtils.getMessageElements({
       text,
       textLinks: this.textLinks,
       mentionedUsers: this.mentionedUsers,

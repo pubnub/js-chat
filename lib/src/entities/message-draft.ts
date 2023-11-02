@@ -4,7 +4,7 @@ import { User } from "./user"
 import { Channel } from "./channel"
 import { MessageDraftConfig, MessageDraftOptions, TextLink } from "../types"
 import { Validator } from "../validator"
-import { MessagePartsUtils } from "../MessagePartsUtils"
+import { MessageElementsUtils } from "../message-elements-utils"
 import { Message } from "./message"
 
 declare global {
@@ -609,7 +609,7 @@ export class MessageDraft {
   }
 
   getMessagePreview() {
-    return MessagePartsUtils.getMessageElements({
+    return MessageElementsUtils.getMessageElements({
       text: this.value,
       textLinks: this.textLinks,
       mentionedUsers: this.transformMentionedUsersToSend(),
