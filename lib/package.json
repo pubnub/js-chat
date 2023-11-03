@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "description": "PubNub JavaScript Chat SDK",
   "author": "PubNub <support@pubnub.com>",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
