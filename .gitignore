@@ -9,3 +9,4 @@ results.xml
 junit.xml
 yarn-error.log
 package-lock.json
+samples/astro
