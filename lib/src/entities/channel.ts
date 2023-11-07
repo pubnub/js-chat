@@ -19,7 +19,7 @@ import {
 import { ExponentialRateLimiter } from "../rate-limiter"
 import { Membership } from "./membership"
 import { User } from "./user"
-import { MentionsUtils } from "../mentions-utils"
+import { MessageElementsUtils } from "../message-elements-utils"
 import { MessageDraft } from "./message-draft"
 import { getErrorProxiedEntity } from "../error-logging"
 import { INTERNAL_MODERATION_PREFIX } from "../constants"
@@ -596,7 +596,7 @@ export class Channel {
     text: string,
     options: { limit: number } = { limit: 10 }
   ): Promise<Membership[]> {
-    const cacheKey = MentionsUtils.getPhraseToLookFor(text)
+    const cacheKey = MessageElementsUtils.getPhraseToLookFor(text)
 
     if (!cacheKey) {
       return []
