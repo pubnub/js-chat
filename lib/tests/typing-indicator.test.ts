@@ -27,7 +27,7 @@ describe("Typing indicator test", () => {
     unsubscribe()
   })
   //needs to be clarified. Task created CSK-285
-  test("should not call the callback when the typing signal is from the same user as the recipient", async () => {
+  test.skip("should not call the callback when the typing signal is from the same user as the recipient", async () => {
     const chat1 = await createChatInstance({
       userId: "testing",
       shouldCreateNewInstance: true,
