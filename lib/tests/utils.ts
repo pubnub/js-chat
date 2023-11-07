@@ -2,6 +2,9 @@
 import { Chat, MessageDraft, Channel, Message } from "../src"
 import * as dotenv from "dotenv"
 import { User } from "../src"
+import React, { useCallback } from "react"
+import { MixedTextTypedElement } from "../dist"
+import { Text } from "react-native-group-chat/ui-components"
 
 dotenv.config()
 
@@ -199,4 +202,24 @@ export const sendMessageAndWaitForHistory = async (
     (message: any) => message.content.text === messageDraft.value
   )
   return messageInHistory
+}
+
+export const renderMessagePart = (messagePart: MixedTextTypedElement) => {
+  if (messagePart.type === "text") {
+    return messagePart.content.text
+  }
+  if (messagePart.type === "plainLink") {
+    return messagePart.content.link
+  }
+  if (messagePart.type === "textLink") {
+    return messagePart.content.text
+  }
+  if (messagePart.type === "mention") {
+    return `@${messagePart.content.name}`
+  }
+  if (messagePart.type === "channelReference") {
+    return `#${messagePart.content.name}`
+  }
+
+  return null
 }

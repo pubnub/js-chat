@@ -111,7 +111,7 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
     [chat?.currentUser]
   )
 
-  if (messageProps.currentMessage?.originalPnMessage.getLinkedText()) {
+  if (messageProps.currentMessage?.originalPnMessage.getMessageElements()) {
     return (
       <View>
         {messageProps.currentMessage?.originalPnMessage.quotedMessage ? (
@@ -125,7 +125,7 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
         ) : null}
         <Text variant="body">
           {messageProps.currentMessage.originalPnMessage
-            .getLinkedText()
+            .getMessageElements()
             .map((msgPart, index) =>
               renderMessagePart(
                 msgPart,

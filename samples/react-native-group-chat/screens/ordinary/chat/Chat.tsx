@@ -18,7 +18,7 @@ import { Avatar, useActionsMenu } from "../../../components"
 import { colorPalette as colors, Text } from "../../../ui-components"
 import { useNavigation } from "@react-navigation/native"
 import { useCommonChatRenderers } from "../../../hooks"
-import { MaterialCommunityIcons } from "@expo/vector-icons"
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons"
 
 export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
   const { chat, setCurrentChannel, currentChannel, getUser, currentChannelMembers } =
@@ -31,6 +31,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
   const [messageDraft, setMessageDraft] = useState<MessageDraft | null>(null)
   const [suggestedData, setSuggestedData] = useState<User[] | Channel[]>([])
   const [showSuggestedData, setShowSuggestedData] = useState(false)
+  const [showTextLinkBox, setShowTextLinkBox] = useState(false)
   const giftedChatRef = useRef<FlatList<EnhancedIMessage>>(null)
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
   const [text, setText] = useState("")
@@ -48,6 +49,8 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     setShowSuggestedData,
     showSuggestedData,
     suggestedData,
+    showTextLinkBox,
+    setShowTextLinkBox,
   })
 
   const handleQuote = useCallback(
@@ -289,6 +292,20 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     )
   }
 
+  const renderActions = () => {
+    return (
+      <View style={styles.actionsContainer}>
+        <MaterialIcons
+          name="insert-link"
+          size={20}
+          style={{ marginRight: 8 }}
+          color={colors.neutral600}
+          onPress={() => setShowTextLinkBox(true)}
+        />
+      </View>
+    )
+  }
+
   if (!messageDraft || !chat) {
     return (
       <View style={{ justifyContent: "center", flex: 1 }}>
@@ -323,6 +340,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
           handlePresentModalPress({ message: giftedMessage })
         }}
         messageContainerRef={giftedChatRef}
+        renderActions={renderActions}
       />
       <ActionsMenuComponent />
     </SafeAreaView>
@@ -339,6 +357,12 @@ const styles = StyleSheet.create({
   outgoingText: { color: "#000000" },
   threadRepliesContainer: {
     flexDirection: "row",
+    alignItems: "center",
+  },
+  actionsContainer: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
     alignItems: "center",
   },
 })

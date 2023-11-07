@@ -28,27 +28,22 @@ export type TextMessageContent = {
 
 type TypingEventParams = {
   type: "typing"
-  method?: "signal"
   channel: string
 }
 type ReportEventParams = {
   type: "report"
-  method?: "publish"
   channel: string
 }
 type ReceiptEventParams = {
   type: "receipt"
-  method?: "signal"
   channel: string
 }
 type MentionEventParams = {
   type: "mention"
-  method?: "publish"
   user: string
 }
 type InviteEventParams = {
   type: "invite"
-  method?: "publish"
   channel: string
 }
 type CustomEventParams = {
