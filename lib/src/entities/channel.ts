@@ -296,7 +296,6 @@ export class Channel {
 
     return this.chat.listenForEvents({
       channel: this.id,
-      method: "signal",
       type: "typing",
       callback: handler,
     })
