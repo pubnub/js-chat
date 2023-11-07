@@ -1,11 +1,30 @@
 ---
 name: pubnub-js-chat
-version: v0.2.0
+version: v0.3.0
 scm: github.com/pubnub/js-chat
 schema: 1
 files:
   - lib/dist/index.js
 changelog:
+  - date: 2023-11-07
+    version: v0.3.0
+    changes:
+      - type: feature
+        text: "Updated pubnub dependency."
+      - type: feature
+        text: "New type of software license."
+      - type: feature
+        text: "New "invite" custom event emitted when users are added to channels."
+      - type: feature
+        text: "Auto generation of channel IDs in every type of channel creation method, that can be bypassed."
+      - type: feature
+        text: "Fully optional parameters for `getUsers` and `getChannels` methods."
+      - type: feature
+        text: "Improved parameter lists for custom event related methods."
+      - type: feature
+        text: "Ability to forward message to the original channel."
+      - type: bug
+        text: "Behavior of spaces around mentions in Message Drafts."
   - date: 2023-10-23
     version: v0.2.0
     changes:
