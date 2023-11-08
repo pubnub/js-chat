@@ -1,11 +1,16 @@
 ---
 name: pubnub-js-chat
-version: v0.3.0
+version: v0.3.1
 scm: github.com/pubnub/js-chat
 schema: 1
 files:
   - lib/dist/index.js
 changelog:
+  - date: 2023-11-08
+    version: v0.3.1
+    changes:
+      - type: bug
+        text: "Typo in moderation setRestrictions method names."
   - date: 2023-11-07
     version: v0.3.0
     changes:
