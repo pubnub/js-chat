@@ -2759,10 +2759,10 @@
     vue "3.2.30"
 
 "@pubnub/chat@*", "@pubnub/chat@file:/Users/przemyslaw.janowski/Code/js-chat/lib":
-  version "0.2.0"
+  version "0.3.1"
   resolved "file:lib"
   dependencies:
-    pubnub "7.4.2"
+    pubnub "7.4.3"
 
 "@react-native-community/cli-clean@11.3.6":
   version "11.3.6"
@@ -11738,10 +11738,10 @@ proxy-from-env@^1.1.0:
   resolved "https://registry.npmjs.org/proxy-from-env/-/proxy-from-env-1.1.0.tgz"
   integrity sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==
 
-pubnub@7.4.2:
-  version "7.4.2"
-  resolved "https://registry.npmjs.org/pubnub/-/pubnub-7.4.2.tgz"
-  integrity sha512-jwt/3XW6QnWgutGpHSlnPJcRDhea0BrkJclU9PeUNsJpaNb94nNOHxDzMWan7waB7svQikYoqV2TSiN7oU+xcg==
+pubnub@7.4.3:
+  version "7.4.3"
+  resolved "https://registry.npmjs.org/pubnub/-/pubnub-7.4.3.tgz"
+  integrity sha512-eGxOaF8mHThu5V/EA8IyinwwNnoDTVwhRFX/HSIedKx5mmHtu8zupFw4DP3MJuC85Ts2T2SkyyNvjn/XHeR2fA==
   dependencies:
     agentkeepalive "^3.5.2"
     buffer "^6.0.3"

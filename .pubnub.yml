@@ -9,13 +9,15 @@ changelog:
   - date: 2023-11-08
     version: v0.3.1
     changes:
+      - type: feature
+        text: "Updated pubnub dependency to 7.4.3."
       - type: bug
         text: "Typo in moderation setRestrictions method names."
   - date: 2023-11-07
     version: v0.3.0
     changes:
       - type: feature
-        text: "Updated pubnub dependency."
+        text: "Updated pubnub dependency to 7.4.2."
       - type: feature
         text: "New type of software license."
       - type: feature
