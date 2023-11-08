@@ -1080,7 +1080,7 @@ export class Chat {
    * Moderation restrictions
    */
 
-  async setResctrictions(
+  async setRestrictions(
     userId: string,
     channelId: string,
     params: { ban?: boolean; mute?: boolean }

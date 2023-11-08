@@ -143,10 +143,10 @@ export class User {
    * Moderation restrictions
    */
 
-  async setResctrictions(channel: Channel, params: { ban?: boolean; mute?: boolean }) {
+  async setRestrictions(channel: Channel, params: { ban?: boolean; mute?: boolean }) {
     if (!(this.chat.sdk as any)._config.secretKey)
       throw "Moderation restrictions can only be set by clients initialized with a Secret Key."
-    return this.chat.setResctrictions(this.id, channel.id, params)
+    return this.chat.setRestrictions(this.id, channel.id, params)
   }
 
   /* @internal */
