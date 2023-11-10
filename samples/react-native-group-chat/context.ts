@@ -6,7 +6,7 @@ type ChatContextParams = {
   setLoading: (state: boolean) => void
   chat: null | Chat
   setChat: (chat: Chat | null) => void
-  currentChannel?: Channel
+  currentChannel?: Channel | null
   setCurrentChannel: (channel: Channel | null) => void
   currentChannelMembers: Membership[]
   users: User[]
