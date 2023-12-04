@@ -30,22 +30,6 @@ export type ChannelFields = Pick<
   "id" | "name" | "custom" | "description" | "updated" | "status" | "type"
 >
 
-function normalizeChannelParams(params: ChannelDTOParams | ChannelMetadataObject<ObjectCustom>) {
-  return {
-    ...params,
-    id: params.id,
-    name: params.name || undefined,
-    custom: params.custom || undefined,
-    description: params.description || undefined,
-    updated: params.updated || undefined,
-    status: params.status || undefined,
-    type:
-      params.type && ["direct", "group", "public"].includes(params.type)
-        ? (params.type as ChannelType)
-        : "unknown",
-  }
-}
-
 export class Channel {
   protected chat: Chat
   readonly id: string
@@ -89,10 +73,13 @@ export class Channel {
       description: params.description || undefined,
       updated: params.updated || undefined,
       status: params.status || undefined,
-      type: params.type || undefined,
+      type:
+        params.type && ["direct", "group", "public"].includes(params.type)
+          ? (params.type as ChannelType)
+          : "unknown",
     }
 
-    return getErrorProxiedEntity(new Channel(chat, normalizeChannelParams(data)), chat.errorLogger)
+    return getErrorProxiedEntity(new Channel(chat, data), chat.errorLogger)
   }
 
   /*
@@ -116,7 +103,7 @@ export class Channel {
         if (event.message.type !== "channel") return
         const channel = channels.find((c) => c.id === event.channel)
         if (!channel) return
-        const newChannel = Channel.fromDTO(channel.chat, normalizeChannelParams(event.message.data))
+        const newChannel = Channel.fromDTO(channel.chat, event.message.data)
         const newChannels = channels.map((channel) =>
           channel.id === newChannel.id ? newChannel : channel
         )
@@ -574,12 +561,12 @@ export class Channel {
 
   async pinMessage(message: Message) {
     const response = await this.chat.pinMessageToChannel(message, this)
-    return Channel.fromDTO(this.chat, normalizeChannelParams(response.data))
+    return Channel.fromDTO(this.chat, response.data)
   }
 
   async unpinMessage() {
     const response = await this.chat.pinMessageToChannel(null, this)
-    return Channel.fromDTO(this.chat, normalizeChannelParams(response.data))
+    return Channel.fromDTO(this.chat, response.data)
   }
 
   async getPinnedMessage() {
