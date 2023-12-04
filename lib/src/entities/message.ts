@@ -26,6 +26,7 @@ export class Message {
   readonly meta?: {
     [key: string]: any
   }
+  readonly error?: string
 
   get hasThread() {
     if (!this.actions?.["threadRootId"]) {
@@ -90,12 +91,20 @@ export class Message {
   static fromDTO(chat: Chat, params: MessageDTOParams) {
     const data = {
       timetoken: String(params.timetoken),
-      content: params.message,
+      content:
+        typeof params.message === "string"
+          ? {
+              type: "text",
+              text: params.message,
+              files: [],
+            }
+          : params.message,
       channelId: params.channel,
       userId: "publisher" in params ? params.publisher : params.uuid || "unknown-user",
       actions: "actions" in params ? params.actions : undefined,
       meta:
         "meta" in params ? params.meta : "userMetadata" in params ? params.userMetadata : undefined,
+      error: params.error || undefined,
     }
 
     return getErrorProxiedEntity(new Message(chat, data), chat.errorLogger)

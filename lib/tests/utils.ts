@@ -1,10 +1,9 @@
 // lib/tests/testUtils.ts
-import { Chat, MessageDraft, Channel, Message } from "../src"
+import { Chat, MessageDraft, Channel, Message, ChatConfig } from "../src"
 import * as dotenv from "dotenv"
 import { User } from "../src"
-import React, { useCallback } from "react"
 import { MixedTextTypedElement } from "../dist"
-import { Text } from "react-native-group-chat/ui-components"
+import PubNub from "pubnub"
 
 dotenv.config()
 
@@ -27,7 +26,11 @@ export function sleep(ms) {
 }
 
 export async function createChatInstance(
-  options: { userId?: string; shouldCreateNewInstance?: boolean; config?: Partial<ChatConfig> } = {}
+  options: {
+    userId?: string
+    shouldCreateNewInstance?: boolean
+    config?: Partial<ChatConfig> & PubNub.PubnubConfig
+  } = {}
 ) {
   const keysetError = `
     #######################################################

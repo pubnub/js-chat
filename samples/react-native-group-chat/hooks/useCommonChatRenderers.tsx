@@ -21,6 +21,7 @@ type UseCommonChatRenderersProps = {
   giftedChatRef: React.RefObject<FlatList<EnhancedIMessage>>
   giftedChatMappedMessages: EnhancedIMessage[]
   suggestedData: User[] | Channel[]
+  image: string
 }
 
 export function useCommonChatRenderers({
@@ -35,6 +36,7 @@ export function useCommonChatRenderers({
   showSuggestedData,
   showTextLinkBox,
   setShowTextLinkBox,
+  image,
 }: UseCommonChatRenderersProps) {
   const { getUser } = useContext(ChatContext)
 
@@ -119,12 +121,14 @@ export function useCommonChatRenderers({
 
     return (
       <>
+        {image ? `${image.slice(0, 20)}...` : ""}
         {addTextLinkComponent}
         {quotedMessageComponent}
         {dataSuggestionComponent}
       </>
     )
   }, [
+    image,
     messageDraft,
     showSuggestedData,
     showTextLinkBox,

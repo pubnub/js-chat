@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   SafeAreaView,
+  Platform,
 } from "react-native"
 import { GiftedChat, Bubble } from "react-native-gifted-chat"
 import { StackScreenProps } from "@react-navigation/stack"
@@ -25,6 +26,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     useContext(ChatContext)
   const navigation = useNavigation()
   const [isMoreMessages, setIsMoreMessages] = useState(true)
+  const [image, setImage] = useState<string>("")
   const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false)
   const [giftedChatMappedMessages, setGiftedChatMappedMessages] = useState<EnhancedIMessage[]>([])
   const [typingData, setTypingData] = useState<string[]>([])
@@ -51,6 +53,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     suggestedData,
     showTextLinkBox,
     setShowTextLinkBox,
+    image,
   })
 
   const handleQuote = useCallback(
@@ -151,12 +154,12 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
 
   useEffect(() => {
     async function switchChannelImplementation() {
-      if (!currentChannel) {
+      if (!currentChannel || !chat) {
         return
       }
       setGiftedChatMappedMessages([])
 
-      const historicalMessagesObject = await currentChannel.getHistory({ count: 5 })
+      const historicalMessagesObject = await currentChannel.getHistory({ count: 10 })
 
       if (currentChannelMembership && historicalMessagesObject.messages.length) {
         await currentChannelMembership.setLastReadMessageTimetoken(
@@ -225,7 +228,9 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     }
     messageDraft.onChange("")
     messageDraft.removeQuote()
+    messageDraft.files = undefined
     setText("")
+    setImage("")
   }
 
   const onSend = (messages: EnhancedIMessage[] = []) => {
@@ -263,6 +268,13 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     [messageDraft]
   )
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && messageDraft) {
+      messageDraft.files = [e.target.files[0]]
+      setImage(e.target.files[0].name)
+    }
+  }
+
   const renderBubble = (props: Bubble<EnhancedIMessage>["props"]) => {
     return (
       <View>
@@ -295,6 +307,25 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
   const renderActions = () => {
     return (
       <View style={styles.actionsContainer}>
+        {Platform.OS === "web" ? (
+          <>
+            <label htmlFor="fileInput">
+              <MaterialIcons
+                name="camera-alt"
+                size={20}
+                style={{ marginRight: 8, cursor: "pointer" }}
+                color={colors.neutral600}
+              />
+            </label>
+            <input
+              id="fileInput"
+              type="file"
+              accept="image/png, image/gif, image/jpeg"
+              onChange={handleFileChange}
+              style={{ display: "none" }}
+            />
+          </>
+        ) : null}
         <MaterialIcons
           name="insert-link"
           size={20}
@@ -360,9 +391,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   actionsContainer: {
-    width: 40,
+    width: 80,
     height: 40,
     justifyContent: "center",
     alignItems: "center",
+    flexDirection: "row",
   },
 })

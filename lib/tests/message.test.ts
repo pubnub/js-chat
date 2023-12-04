@@ -9,6 +9,7 @@ import {
 } from "./utils"
 import { jest } from "@jest/globals"
 import * as fs from "fs"
+import { CryptoUtils, PubNubCryptoModule } from "../dist"
 
 describe("Send message test", () => {
   jest.retryTimes(3)
@@ -922,5 +923,268 @@ describe("Send message test", () => {
     const pinnedThread = await thread.pinMessage(messageToPin)
 
     expect(pinnedThread.custom?.["pinnedMessageTimetoken"]).toBe(messageToPin.timetoken)
+  })
+
+  test("should encrypt and decrypt a message", async () => {
+    const encryptedChat = await createChatInstance({
+      shouldCreateNewInstance: true,
+      config: {
+        cryptoModule: PubNubCryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
+        userId: "another-user",
+      },
+    })
+    const someRandomUser1 = await encryptedChat.createUser(makeid(), { name: "random-1" })
+
+    const someEncryptedGroupChannel = await encryptedChat.createGroupConversation({
+      users: [someRandomUser1],
+    })
+    const sameCipheredGroupChannel = await chat.getChannel(someEncryptedGroupChannel.channel.id)
+    let encryptedMessage: Message
+    let cipheredMessage: Message | undefined
+
+    someEncryptedGroupChannel.channel.connect((msg) => {
+      encryptedMessage = msg
+    })
+    sameCipheredGroupChannel.connect((msg) => {
+      cipheredMessage = msg
+    })
+
+    await someEncryptedGroupChannel.channel.sendText("Random text")
+    await sleep(200) // history calls have around 130ms of cache time
+    const encryptedHistory = await someEncryptedGroupChannel.channel.getHistory()
+    const cipheredHistory = await sameCipheredGroupChannel.getHistory()
+    expect(encryptedMessage).toBeDefined()
+    expect(cipheredMessage).toBeUndefined()
+    expect(encryptedMessage.text).toBe("Random text")
+    expect(encryptedHistory.messages[0].text).toBe("Random text")
+    expect(cipheredHistory.messages[0].text.startsWith("UE5FRAFBQ1JIE")).toBeTruthy()
+    await someEncryptedGroupChannel.channel.delete({ soft: false })
+    await sameCipheredGroupChannel.delete({ soft: false })
+    await someRandomUser1.delete({ soft: false })
+  })
+
+  test("should encrypt and decrypt a file", async () => {
+    const file1 = fs.createReadStream("tests/fixtures/pblogo1.png")
+    const file2 = fs.createReadStream("tests/fixtures/pblogo2.png")
+    const file3 = fs.createReadStream("tests/fixtures/pblogo3.png")
+
+    const filesFromInput = [
+      { stream: file1, name: "pblogo1.png", mimeType: "image/png" },
+      { stream: file2, name: "pblogo2.png", mimeType: "image/png" },
+      { stream: file3, name: "pblogo3.png", mimeType: "image/png" },
+    ]
+
+    const encryptedChat = await createChatInstance({
+      shouldCreateNewInstance: true,
+      config: {
+        cryptoModule: PubNubCryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
+        userId: "another-user",
+      },
+    })
+    const someRandomUser1 = await encryptedChat.createUser(makeid(), { name: "random-1" })
+
+    const someEncryptedGroupChannel = await encryptedChat.createGroupConversation({
+      users: [someRandomUser1],
+    })
+    const sameCipheredGroupChannel = await chat.getChannel(someEncryptedGroupChannel.channel.id)
+    let encryptedMessage: Message
+    let cipheredMessage: Message | undefined
+
+    someEncryptedGroupChannel.channel.connect((msg) => {
+      encryptedMessage = msg
+    })
+    sameCipheredGroupChannel.connect((msg) => {
+      cipheredMessage = msg
+    })
+
+    await someEncryptedGroupChannel.channel.sendText("Random text", { files: filesFromInput })
+    await sleep(200) // history calls have around 130ms of cache time
+    const encryptedHistory = await someEncryptedGroupChannel.channel.getHistory()
+    const cipheredHistory = await sameCipheredGroupChannel.getHistory()
+    expect(encryptedMessage).toBeDefined()
+    expect(cipheredMessage).toBeUndefined()
+    expect(encryptedMessage.text).toBe("Random text")
+    expect(encryptedHistory.messages[0].text).toBe("Random text")
+    expect(cipheredHistory.messages[0].text.startsWith("UE5FRAFBQ1JIE")).toBeTruthy()
+    expect(encryptedHistory.messages[0].files.length).toBe(3)
+    expect(cipheredHistory.messages[0].files.length).toBe(0)
+    await someEncryptedGroupChannel.channel.delete({ soft: false })
+    await sameCipheredGroupChannel.delete({ soft: false })
+    await someRandomUser1.delete({ soft: false })
+  })
+
+  test("should still view text messages sent before enabling encryption", async () => {
+    const encryptedChat = await createChatInstance({
+      shouldCreateNewInstance: true,
+      config: {
+        cryptoModule: PubNubCryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
+        userId: "another-user",
+      },
+    })
+    const someRandomUser1 = await encryptedChat.createUser(makeid(), { name: "random-1" })
+
+    const somePlainGroupChannel = await chat.createGroupConversation({
+      users: [someRandomUser1],
+    })
+    const sameEncryptedGroupChannel = await encryptedChat.getChannel(
+      somePlainGroupChannel.channel.id
+    )
+    let plainMessage: Message
+    let cipheredMessage: Message | undefined
+
+    somePlainGroupChannel.channel.connect((msg) => {
+      plainMessage = msg
+    })
+    sameEncryptedGroupChannel.connect((msg) => {
+      cipheredMessage = msg
+    })
+
+    await somePlainGroupChannel.channel.sendText("Random text")
+    await sleep(200) // history calls have around 130ms of cache time
+    const plainHistory = await somePlainGroupChannel.channel.getHistory()
+    const cipheredHistory = await sameEncryptedGroupChannel.getHistory()
+    expect(plainMessage).toBeDefined()
+    expect(cipheredMessage).toBeDefined()
+    expect(plainMessage.text).toBe("Random text")
+    expect(cipheredMessage.text).toBe("Random text")
+    expect(plainHistory.messages[0].text).toBe("Random text")
+    expect(cipheredHistory.messages[0].text).toBe("Random text")
+    await somePlainGroupChannel.channel.delete({ soft: false })
+    await sameEncryptedGroupChannel.delete({ soft: false })
+    await someRandomUser1.delete({ soft: false })
+  })
+
+  test("should still view files sent before enabling encryption", async () => {
+    const file1 = fs.createReadStream("tests/fixtures/pblogo1.png")
+    const file2 = fs.createReadStream("tests/fixtures/pblogo2.png")
+    const file3 = fs.createReadStream("tests/fixtures/pblogo3.png")
+
+    const filesFromInput = [
+      { stream: file1, name: "pblogo1.png", mimeType: "image/png" },
+      { stream: file2, name: "pblogo2.png", mimeType: "image/png" },
+      { stream: file3, name: "pblogo3.png", mimeType: "image/png" },
+    ]
+
+    const encryptedChat = await createChatInstance({
+      shouldCreateNewInstance: true,
+      config: {
+        cryptoModule: PubNubCryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
+        userId: "another-user",
+      },
+    })
+    const someRandomUser1 = await encryptedChat.createUser(makeid(), { name: "random-1" })
+
+    const somePlainGroupChannel = await chat.createGroupConversation({
+      users: [someRandomUser1],
+    })
+    const sameEncryptedGroupChannel = await encryptedChat.getChannel(
+      somePlainGroupChannel.channel.id
+    )
+    let plainMessage: Message
+    let cipheredMessage: Message | undefined
+
+    somePlainGroupChannel.channel.connect((msg) => {
+      plainMessage = msg
+    })
+    sameEncryptedGroupChannel.connect((msg) => {
+      cipheredMessage = msg
+    })
+
+    await somePlainGroupChannel.channel.sendText("Random text", { files: filesFromInput })
+    await sleep(200) // history calls have around 130ms of cache time
+    const plainHistory = await somePlainGroupChannel.channel.getHistory()
+    const cipheredHistory = await sameEncryptedGroupChannel.getHistory()
+    expect(plainMessage).toBeDefined()
+    expect(cipheredMessage).toBeDefined()
+    expect(plainMessage.text).toBe("Random text")
+    expect(cipheredMessage.text).toBe("Random text")
+    expect(plainHistory.messages[0].text).toBe("Random text")
+    expect(cipheredHistory.messages[0].text).toBe("Random text")
+    expect(plainHistory.messages[0].files.length).toBe(3)
+    expect(cipheredHistory.messages[0].files.length).toBe(3)
+    await somePlainGroupChannel.channel.delete({ soft: false })
+    await sameEncryptedGroupChannel.delete({ soft: false })
+    await someRandomUser1.delete({ soft: false })
+  })
+
+  test.only("should be able to decrypt text and file messages sent using a previous encryption key", async () => {
+    const file1 = fs.createReadStream("tests/fixtures/pblogo1.png")
+    const file2 = fs.createReadStream("tests/fixtures/pblogo2.png")
+    const file3 = fs.createReadStream("tests/fixtures/pblogo3.png")
+
+    const filesFromInput = [
+      { stream: file1, name: "pblogo1.png", mimeType: "image/png" },
+      { stream: file2, name: "pblogo2.png", mimeType: "image/png" },
+      { stream: file3, name: "pblogo3.png", mimeType: "image/png" },
+    ]
+
+    const encryptedChat1 = await createChatInstance({
+      shouldCreateNewInstance: true,
+      config: {
+        cryptoModule: PubNubCryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
+        userId: "some-user-1",
+      },
+    })
+    const encryptedChat2 = await createChatInstance({
+      shouldCreateNewInstance: true,
+      config: {
+        cryptoModule: PubNubCryptoModule.aesCbcCryptoModule({ cipherKey: "another-pubnubenigma" }),
+        userId: "some-user-2",
+      },
+    })
+    const someRandomUser1 = await encryptedChat1.createUser(makeid(), { name: "random-1" })
+
+    const someGroupChannel = await encryptedChat1.createGroupConversation({
+      users: [someRandomUser1],
+    })
+
+    await someGroupChannel.channel.sendText("Random text", { files: filesFromInput })
+    await sleep(200) // history calls have around 130ms of cache time
+    const firstCypherKeyHistory = await someGroupChannel.channel.getHistory()
+    expect(firstCypherKeyHistory.messages[0].text).toBe("Random text")
+    expect(firstCypherKeyHistory.messages[0].files.length).toBe(3)
+
+    const sameChannelWithSecondCryptoKey = await encryptedChat2.getChannel(
+      someGroupChannel.channel.id
+    )
+    const secondCypherKeyHistory = await sameChannelWithSecondCryptoKey.getHistory()
+    expect(secondCypherKeyHistory.messages[0].text.startsWith("UE5FRAFBQ1JIE")).toBeTruthy()
+    expect(secondCypherKeyHistory.messages[0].files.length).toBe(0)
+
+    // decryption with the original key
+    const decryptedMessages = secondCypherKeyHistory.messages.map((msg) => {
+      if (msg.error && msg.error.startsWith("Error while decrypting message content")) {
+        return CryptoUtils.decrypt({
+          chat: encryptedChat2,
+          message: msg,
+          decryptor: (encryptedContent) => {
+            const cryptoModule = PubNubCryptoModule.aesCbcCryptoModule({
+              cipherKey: "pubnubenigma",
+            })
+            const enc = new TextDecoder("utf-8")
+            const decryptedArrayBuffer = cryptoModule.decrypt(encryptedContent) as ArrayBuffer
+            if (!decryptedArrayBuffer.byteLength) {
+              return {
+                type: "text",
+                files: [],
+                text: "(This message is corrupted)",
+              }
+            }
+            return JSON.parse(enc.decode(decryptedArrayBuffer))
+          },
+        })
+      }
+
+      return msg
+    })
+    expect(decryptedMessages[0].text).toBe("Random text")
+    expect(decryptedMessages[0].files.length).toBe(3)
+    filesFromInput.forEach((fileFromInput, index) => {
+      expect(decryptedMessages[0].files[index].name).toBe(fileFromInput.name)
+      expect(decryptedMessages[0].files[index].type).toBe(fileFromInput.mimeType)
+    })
+
+    await someGroupChannel.channel.delete({ soft: false })
+    await someRandomUser1.delete({ soft: false })
   })
 })

@@ -14,7 +14,7 @@ import { NavigationContainer } from "@react-navigation/native"
 import { createStackNavigator, StackScreenProps } from "@react-navigation/stack"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 import { StatusBar } from "expo-status-bar"
-import { Channel, Chat, Membership, User } from "@pubnub/chat"
+import { Channel, Chat, Membership, User, PubNubCryptoModule } from "@pubnub/chat"
 import {
   useFonts,
   Roboto_400Regular,
