@@ -1,8 +1,6 @@
 import { Message } from "./entities/message"
-import PubNub from "pubnub"
 import { TextMessageContent } from "./types"
 import { Chat } from "./entities/chat"
-// pubNubCryptoModule: typeof PubNub.CryptoModule
 
 export class CryptoUtils {
   static decrypt({

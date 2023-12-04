@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   actionsContainer: {
-    width: 80,
+    width: Platform.OS === "web" ? 80 : 40,
     height: 40,
     justifyContent: "center",
     alignItems: "center",

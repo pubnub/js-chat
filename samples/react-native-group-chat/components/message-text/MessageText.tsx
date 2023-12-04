@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react"
 import { Bubble } from "react-native-gifted-chat"
 import { EnhancedIMessage } from "../../utils"
-import { Image, Linking, View } from "react-native"
+import { Linking, Platform, View } from "react-native"
 import { Quote } from "../quote"
 import { Text } from "../../ui-components"
 import { Message, MixedTextTypedElement } from "@pubnub/chat"
@@ -132,12 +132,10 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
   )
 
   const renderImage = () => {
-    if (!imageSrc) {
+    if (!imageSrc || Platform.OS !== "web") {
       return
     }
-    // console.log("src?", imageSrc)
     // display just one image for now
-    // return <Image source={{ uri: imageSrc }} style={{ width: 100, height: 100 }} />
     return <img src={imageSrc} style={{ width: 100, height: 100 }} />
   }
 
