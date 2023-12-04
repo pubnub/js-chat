@@ -1114,7 +1114,7 @@ describe("Send message test", () => {
     await someRandomUser1.delete({ soft: false })
   })
 
-  test.only("should be able to decrypt text and file messages sent using a previous encryption key", async () => {
+  test("should be able to decrypt text and file messages sent using a previous encryption key", async () => {
     const file1 = fs.createReadStream("tests/fixtures/pblogo1.png")
     const file2 = fs.createReadStream("tests/fixtures/pblogo2.png")
     const file3 = fs.createReadStream("tests/fixtures/pblogo3.png")
