@@ -14,4 +14,4 @@ export * from "./timetoken-utils"
 export * from "./crypto-utils"
 export * from "./constants"
 
-export const PubNubCryptoModule = PubNub.CryptoModule
+export const CryptoModule = PubNub.CryptoModule

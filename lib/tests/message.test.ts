@@ -5,7 +5,7 @@ import {
   Message,
   MessageDraft,
   CryptoUtils,
-  PubNubCryptoModule,
+  CryptoModule,
 } from "../src"
 import {
   createChatInstance,
@@ -936,7 +936,7 @@ describe("Send message test", () => {
     const encryptedChat = await createChatInstance({
       shouldCreateNewInstance: true,
       config: {
-        cryptoModule: PubNubCryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
+        cryptoModule: CryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
         userId: "another-user",
       },
     })
@@ -984,7 +984,7 @@ describe("Send message test", () => {
     const encryptedChat = await createChatInstance({
       shouldCreateNewInstance: true,
       config: {
-        cryptoModule: PubNubCryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
+        cryptoModule: CryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
         userId: "another-user",
       },
     })
@@ -1024,7 +1024,7 @@ describe("Send message test", () => {
     const encryptedChat = await createChatInstance({
       shouldCreateNewInstance: true,
       config: {
-        cryptoModule: PubNubCryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
+        cryptoModule: CryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
         userId: "another-user",
       },
     })
@@ -1075,7 +1075,7 @@ describe("Send message test", () => {
     const encryptedChat = await createChatInstance({
       shouldCreateNewInstance: true,
       config: {
-        cryptoModule: PubNubCryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
+        cryptoModule: CryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
         userId: "another-user",
       },
     })
@@ -1128,14 +1128,14 @@ describe("Send message test", () => {
     const encryptedChat1 = await createChatInstance({
       shouldCreateNewInstance: true,
       config: {
-        cryptoModule: PubNubCryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
+        cryptoModule: CryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
         userId: "some-user-1",
       },
     })
     const encryptedChat2 = await createChatInstance({
       shouldCreateNewInstance: true,
       config: {
-        cryptoModule: PubNubCryptoModule.aesCbcCryptoModule({ cipherKey: "another-pubnubenigma" }),
+        cryptoModule: CryptoModule.aesCbcCryptoModule({ cipherKey: "another-pubnubenigma" }),
         userId: "some-user-2",
       },
     })
@@ -1165,7 +1165,7 @@ describe("Send message test", () => {
           chat: encryptedChat2,
           message: msg,
           decryptor: (encryptedContent) => {
-            const cryptoModule = PubNubCryptoModule.aesCbcCryptoModule({
+            const cryptoModule = CryptoModule.aesCbcCryptoModule({
               cipherKey: "pubnubenigma",
             })
             const enc = new TextDecoder("utf-8")
