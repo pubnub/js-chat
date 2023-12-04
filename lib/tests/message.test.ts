@@ -1,4 +1,12 @@
-import { Channel, Chat, INTERNAL_ADMIN_CHANNEL, Message, MessageDraft } from "../src"
+import {
+  Channel,
+  Chat,
+  INTERNAL_ADMIN_CHANNEL,
+  Message,
+  MessageDraft,
+  CryptoUtils,
+  PubNubCryptoModule,
+} from "../src"
 import {
   createChatInstance,
   createRandomChannel,
@@ -9,7 +17,6 @@ import {
 } from "./utils"
 import { jest } from "@jest/globals"
 import * as fs from "fs"
-import { CryptoUtils, PubNubCryptoModule } from "../dist"
 
 describe("Send message test", () => {
   jest.retryTimes(3)
