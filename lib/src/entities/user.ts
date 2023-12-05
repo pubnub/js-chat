@@ -34,10 +34,12 @@ export class User {
   /** @internal */
   static fromDTO(
     chat: Chat,
-    params: OptionalAllBut<UUIDMetadataObject<ObjectCustom>, "id"> & {
-      status?: string
-      type?: string
-    }
+    params:
+      | (OptionalAllBut<UUIDMetadataObject<ObjectCustom>, "id"> & {
+          status?: string
+          type?: string | null
+        })
+      | UUIDMetadataObject<ObjectCustom>
   ) {
     const data = {
       id: params.id,
@@ -115,14 +117,18 @@ export class User {
    * Memberships
    */
   async getMemberships(params: Omit<GetMembershipsParametersv2, "include"> = {}) {
+    const include = {
+      totalCount: true,
+      customFields: true,
+      channelFields: true,
+      customChannelFields: true,
+      channelTypeField: true,
+      statusField: true,
+    }
+
     const membershipsResponse = await this.chat.sdk.objects.getMemberships({
       ...params,
-      include: {
-        totalCount: true,
-        customFields: true,
-        channelFields: true,
-        customChannelFields: true,
-      },
+      include,
       filter: `!(channel.id LIKE '${INTERNAL_MODERATION_PREFIX}*')`,
     })
 

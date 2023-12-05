@@ -3,6 +3,7 @@ import PubNub, {
   ObjectCustom,
   GetChannelMembersParameters,
   SetMembershipsParameters,
+  ChannelMetadataObject,
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
@@ -72,7 +73,10 @@ export class Channel {
       description: params.description || undefined,
       updated: params.updated || undefined,
       status: params.status || undefined,
-      type: params.type || undefined,
+      type:
+        params.type && ["direct", "group", "public"].includes(params.type)
+          ? (params.type as ChannelType)
+          : "unknown",
     }
 
     return getErrorProxiedEntity(new Channel(chat, data), chat.errorLogger)

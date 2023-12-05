@@ -1,7 +1,7 @@
-import React, { useCallback, useContext } from "react"
+import React, { useCallback, useContext, useEffect, useState } from "react"
 import { Bubble } from "react-native-gifted-chat"
 import { EnhancedIMessage } from "../../utils"
-import { Linking, View } from "react-native"
+import { Linking, Platform, View } from "react-native"
 import { Quote } from "../quote"
 import { Text } from "../../ui-components"
 import { Message, MixedTextTypedElement } from "@pubnub/chat"
@@ -16,6 +16,26 @@ type MessageTextProps = {
 export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
   const { chat, setCurrentChannel } = useContext(ChatContext)
   const navigation = useNavigation()
+  const [imageSrc, setImageSrc] = useState("")
+
+  useEffect(() => {
+    const files = messageProps.currentMessage?.originalPnMessage.files
+    if (!files || !files.length || files[0].type !== "image/jpeg" || !chat) {
+      return
+    }
+    chat.sdk
+      .downloadFile({
+        channel: messageProps.currentMessage?.originalPnMessage.channelId,
+        id: files[0].id,
+        name: files[0].name,
+      })
+      .then(async (fileParts) => {
+        setImageSrc(URL.createObjectURL(await fileParts.toFile()))
+      })
+      .catch((err) => {
+        setImageSrc(files[0].url)
+      })
+  }, [])
 
   const openLink = (link: string) => {
     Linking.openURL(link)
@@ -111,7 +131,17 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
     [chat?.currentUser]
   )
 
-  if (messageProps.currentMessage?.originalPnMessage.getMessageElements()) {
+  const renderImage = () => {
+    if (!imageSrc || Platform.OS !== "web") {
+      return
+    }
+    // display just one image for now
+    return <img src={imageSrc} style={{ width: 100, height: 100 }} />
+  }
+
+  const messageElements = messageProps.currentMessage?.originalPnMessage.getMessageElements()
+
+  if (messageElements) {
     return (
       <View>
         {messageProps.currentMessage?.originalPnMessage.quotedMessage ? (
@@ -124,16 +154,15 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
           />
         ) : null}
         <Text variant="body">
-          {messageProps.currentMessage.originalPnMessage
-            .getMessageElements()
-            .map((msgPart, index) =>
-              renderMessagePart(
-                msgPart,
-                index,
-                messageProps.currentMessage?.originalPnMessage.userId || ""
-              )
-            )}
+          {messageElements.map((msgPart, index) =>
+            renderMessagePart(
+              msgPart,
+              index,
+              messageProps.currentMessage?.originalPnMessage.userId || ""
+            )
+          )}
         </Text>
+        {renderImage()}
         {renderEmojis()}
       </View>
     )

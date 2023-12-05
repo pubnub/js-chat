@@ -22,7 +22,7 @@ import { getErrorProxiedEntity, ErrorLogger } from "../error-logging"
 import { cyrb53a } from "../hash"
 import { uuidv4 } from "../uuidv4"
 
-type ChatConfig = {
+export type ChatConfig = {
   saveDebugLog: boolean
   typingTimeout: number
   storeUserActivityInterval: number
@@ -114,6 +114,7 @@ export class Chat {
         direct: 0,
         group: 0,
         public: 0,
+        unknown: 0,
       },
     }
   }

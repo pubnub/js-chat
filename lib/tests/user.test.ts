@@ -68,7 +68,9 @@ describe("User test", () => {
     await user.report(reportReason)
     await sleep(150) // history calls have around 130ms of cache time
 
-    const adminChannel = await chat.getChannel(INTERNAL_ADMIN_CHANNEL)
+    const adminChannel =
+      (await chat.getChannel(INTERNAL_ADMIN_CHANNEL)) ||
+      (await chat.createChannel(INTERNAL_ADMIN_CHANNEL, { name: "admin channel" }))
     expect(adminChannel).toBeDefined()
 
     const adminChannelHistory = await adminChannel.getHistory({ count: 1 })

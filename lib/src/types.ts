@@ -8,7 +8,7 @@ import { User } from "./entities/user"
 import { Message } from "./entities/message"
 import { Event } from "./entities/event"
 
-export type ChannelType = "direct" | "group" | "public"
+export type ChannelType = "direct" | "group" | "public" | "unknown"
 
 export enum MessageType {
   TEXT = "text",
@@ -158,8 +158,8 @@ export type MembershipResponse = Awaited<ReturnType<User["getMemberships"]>>
 export type OptionalAllBut<T, K extends keyof T> = Partial<T> & Pick<T, K>
 
 export type ChannelDTOParams = OptionalAllBut<ChannelMetadataObject<ObjectCustom>, "id"> & {
-  status?: string
-  type?: ChannelType
+  status?: string | null
+  type?: ChannelType | null | string
 }
 
 export type ThreadChannelDTOParams = ChannelDTOParams & {

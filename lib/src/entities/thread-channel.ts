@@ -1,10 +1,9 @@
 import { ObjectCustom, SetChannelMetadataResponse } from "pubnub"
 import { Channel, ChannelFields } from "./channel"
 import { Chat } from "./chat"
-import { DeleteParameters, ThreadChannelDTOParams } from "../types"
+import { ChannelType, DeleteParameters, ThreadChannelDTOParams } from "../types"
 import { ThreadMessage } from "./thread-message"
 import { getErrorProxiedEntity } from "../error-logging"
-import { MESSAGE_THREAD_ID_PREFIX } from "../constants"
 import { Message } from "./message"
 
 export class ThreadChannel extends Channel {
@@ -33,7 +32,10 @@ export class ThreadChannel extends Channel {
       description: params.description || undefined,
       updated: params.updated || undefined,
       status: params.status || undefined,
-      type: params.type || undefined,
+      type:
+        params.type && ["direct", "group", "public"].includes(params.type)
+          ? (params.type as ChannelType)
+          : "unknown",
     }
 
     return getErrorProxiedEntity(new ThreadChannel(chat, data), chat.errorLogger)
