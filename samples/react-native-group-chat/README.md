@@ -6,21 +6,21 @@ The app comes with a pre-defined UI to showcase what the final product might loo
 
 This app is written using:
 
-* [PubNub Chat SDK](https://github.com/pubnub/js-chat)
-* [TypeScript](https://www.typescriptlang.org/) (v^5.1.3)
-* [Expo](https://expo.dev/) (v~49.0.8)
-* [React](https://legacy.reactjs.org/versions/) (v18.2.0)
-* [React Native](https://reactnative.dev/) (v0.72.4)
+- [PubNub Chat SDK](https://github.com/pubnub/js-chat)
+- [TypeScript](https://www.typescriptlang.org/) (v^5.1.3)
+- [Expo](https://expo.dev/) (v~49.0.8)
+- [React](https://legacy.reactjs.org/versions/) (v18.2.0)
+- [React Native](https://reactnative.dev/) (v0.72.4)
 
 ## Prerequisites
 
 To run the React Native Group Chat app, make sure to have the following:
 
-* [yarn](https://classic.yarnpkg.com/en/docs/install)(>=1.22.19)
-* [Node.js](https://nodejs.org/en/download/)(>=18.10.0)
-* [Xcode](https://developer.apple.com/xcode/)
-* Code Editor (e.g. [Visual Studio Code](https://code.visualstudio.com/download))
-* PubNub [Publish & Subscribe keys](https://www.pubnub.com/docs/basics/initialize-pubnub) that you can obtain from [Admin Portal](https://admin.pubnub.com/) after setting up an [account](https://www.pubnub.com/docs/setup/account-setup). You must enable **App Context** (with selected region, User Metadata Events, Channel Metadata Events, and Membership Metadata Events) and **Message Persistence** on your keyset to manage user and channel data in the app.
+- [yarn](https://classic.yarnpkg.com/en/docs/install)(>=1.22.19)
+- [Node.js](https://nodejs.org/en/download/)(>=18.10.0)
+- [Xcode](https://developer.apple.com/xcode/)
+- Code Editor (e.g. [Visual Studio Code](https://code.visualstudio.com/download))
+- PubNub [Publish & Subscribe keys](https://www.pubnub.com/docs/basics/initialize-pubnub) that you can obtain from [Admin Portal](https://admin.pubnub.com/) after setting up an [account](https://www.pubnub.com/docs/setup/account-setup). You must enable **App Context** (with selected region, User Metadata Events, Channel Metadata Events, and Membership Metadata Events) and **Message Persistence** on your keyset to manage user and channel data in the app.
 
 ## Usage
 
@@ -85,28 +85,29 @@ The app showcases these PubNub features:
 
 Channels:
 
-* [Group channel creation](https://www.pubnub.com/docs/chat/chat-sdk/build/features/channels/create)
-* [Channel references](https://www.pubnub.com/docs/chat/chat-sdk/build/features/channels/references)
-* [Inviting](https://www.pubnub.com/docs/chat/chat-sdk/build/features/channels/invite) users to channels
-* [Joining](https://www.pubnub.com/docs/chat/chat-sdk/build/features/channels/join) channels
+- [Group channel creation](https://www.pubnub.com/docs/chat/chat-sdk/build/features/channels/create)
+- [Channel references](https://www.pubnub.com/docs/chat/chat-sdk/build/features/channels/references)
+- [Inviting](https://www.pubnub.com/docs/chat/chat-sdk/build/features/channels/invite) users to channels
+- [Joining](https://www.pubnub.com/docs/chat/chat-sdk/build/features/channels/join) channels
 
 Users:
 
-* [User profile editing](https://www.pubnub.com/docs/chat/chat-sdk/build/features/users/updates)
-* [User mentions](https://www.pubnub.com/docs/chat/chat-sdk/build/features/users/mentions)
-* [Global (app) presence](https://www.pubnub.com/docs/chat/chat-sdk/build/features/users/presence#global-presence)
+- [User profile editing](https://www.pubnub.com/docs/chat/chat-sdk/build/features/users/updates)
+- [User mentions](https://www.pubnub.com/docs/chat/chat-sdk/build/features/users/mentions)
+- [Global (app) presence](https://www.pubnub.com/docs/chat/chat-sdk/build/features/users/presence#global-presence)
 
 Messages:
 
-* [Sending and receiving](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/send-receive) messages
-* [Threads](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/threads)
-* [Unread messages](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/unread)
-* [Reactions](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/reactions)
-* [Quotes](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/quotes)
-* [Plain links](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/links)
+- [Sending and receiving](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/send-receive) messages
+- [Threads](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/threads)
+- [Unread messages](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/unread)
+- [Reactions](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/reactions)
+- [Quotes](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/quotes)
+- [Plain links](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/links)
+- [Send files](https://www.pubnub.com/docs/chat/chat-sdk/build/features/messages/files)
 
 Other:
 
-* [Typing indicator](https://www.pubnub.com/docs/chat/chat-sdk/build/features/typing-indicator)
+- [Typing indicator](https://www.pubnub.com/docs/chat/chat-sdk/build/features/typing-indicator)
 
 Still, these are only some of the features available in Chat SDK. For the complete overview, check [Chat SDK docs](https://www.pubnub.com/docs/chat/chat-sdk/overview).
