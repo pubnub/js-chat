@@ -1,11 +1,16 @@
 ---
 name: pubnub-js-chat
-version: v0.3.1
+version: v0.4.0
 scm: github.com/pubnub/js-chat
 schema: 1
 files:
   - lib/dist/index.js
 changelog:
+  - date: 2023-12-06
+    version: v0.4.0
+    changes:
+      - type: feature
+        text: "Add CryptoModule support."
   - date: 2023-11-08
     version: v0.3.1
     changes:
