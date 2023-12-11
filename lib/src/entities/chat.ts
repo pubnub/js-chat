@@ -1095,7 +1095,7 @@ export class Chat {
         channel: userId,
         payload: {
           channelId: channel,
-          action: "restrictionsLifted",
+          restriction: "lifted",
         },
       })
     } else {
@@ -1105,7 +1105,7 @@ export class Chat {
         channel: userId,
         payload: {
           channelId: channel,
-          action: params.ban ? "banned" : "muted",
+          restriction: params.ban ? "banned" : "muted",
         },
       })
     }

@@ -1069,4 +1069,63 @@ describe("Channel test", () => {
 
     await publicChannel.delete()
   })
+
+  test("should set (or lift) restrictions on a user", async () => {
+    const moderationEventCallback = jest.fn()
+
+    const removeModerationListener = chat.listenForEvents({
+      channel: chat.currentUser.id,
+      type: "moderation",
+      callback: moderationEventCallback,
+    })
+
+    await chat.setRestrictions(chat.currentUser.id, "some-channel", { mute: true })
+    await sleep(150) // Wait for the message to be sent and cached
+    expect(moderationEventCallback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: {
+          channelId: "PUBNUB_INTERNAL_MODERATION_some-channel",
+          restriction: "muted",
+        },
+      })
+    )
+    moderationEventCallback.mockReset()
+
+    await chat.setRestrictions(chat.currentUser.id, "some-channel", { ban: true })
+    await sleep(150) // Wait for the message to be sent and cached
+    expect(moderationEventCallback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: {
+          channelId: "PUBNUB_INTERNAL_MODERATION_some-channel",
+          restriction: "banned",
+        },
+      })
+    )
+    moderationEventCallback.mockReset()
+
+    await chat.setRestrictions(chat.currentUser.id, "some-channel", { ban: true, mute: true })
+    await sleep(150) // Wait for the message to be sent and cached
+    expect(moderationEventCallback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: {
+          channelId: "PUBNUB_INTERNAL_MODERATION_some-channel",
+          restriction: "banned",
+        },
+      })
+    )
+    moderationEventCallback.mockReset()
+
+    await chat.setRestrictions(chat.currentUser.id, "some-channel", {})
+    await sleep(150) // Wait for the message to be sent and cached
+    expect(moderationEventCallback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: {
+          channelId: "PUBNUB_INTERNAL_MODERATION_some-channel",
+          restriction: "lifted",
+        },
+      })
+    )
+
+    removeModerationListener()
+  })
 })

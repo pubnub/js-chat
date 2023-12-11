@@ -89,7 +89,7 @@ type InviteEventPayload = {
 }
 type ModerationEventPayload = {
   channelId: string
-  action: "muted" | "banned" | "restrictionsLifted"
+  restriction: "muted" | "banned" | "lifted"
 }
 type CustomEventPayload = any
 
