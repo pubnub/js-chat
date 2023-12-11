@@ -46,6 +46,10 @@ type InviteEventParams = {
   type: "invite"
   channel: string
 }
+type ModerationEventParams = {
+  type: "moderation"
+  channel: string
+}
 type CustomEventParams = {
   type: "custom"
   method: "signal" | "publish"
@@ -59,6 +63,7 @@ export type EventParams = {
   mention: MentionEventParams
   invite: InviteEventParams
   custom: CustomEventParams
+  moderation: ModerationEventParams
 }
 
 type TypingEventPayload = {
@@ -82,6 +87,10 @@ type InviteEventPayload = {
   channelType: ChannelType | "unknown"
   channelId: string
 }
+type ModerationEventPayload = {
+  channelId: string
+  action: "muted" | "banned" | "restrictionsLifted"
+}
 type CustomEventPayload = any
 
 export type EventPayloads = {
@@ -90,6 +99,7 @@ export type EventPayloads = {
   receipt: ReceiptEventPayload
   mention: MentionEventPayload
   invite: InviteEventPayload
+  moderation: ModerationEventPayload
   custom: CustomEventPayload
 }
 
@@ -100,8 +110,16 @@ export type EmitEventParams =
   | (MentionEventParams & { payload: MentionEventPayload })
   | (InviteEventParams & { payload: InviteEventPayload })
   | (CustomEventParams & { payload: CustomEventPayload })
+  | (ModerationEventParams & { payload: ModerationEventPayload })
 
-export type EventType = "typing" | "report" | "receipt" | "mention" | "invite" | "custom"
+export type EventType =
+  | "typing"
+  | "report"
+  | "receipt"
+  | "mention"
+  | "invite"
+  | "custom"
+  | "moderation"
 export type GenericEventParams<T extends keyof EventParams> = EventParams[T]
 
 export type MessageActions = {

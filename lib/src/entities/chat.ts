@@ -1090,8 +1090,24 @@ export class Chat {
 
     if (!params.ban && !params.mute) {
       await this.sdk.objects.removeChannelMembers({ channel, uuids: [userId] })
+      await this.emitEvent({
+        type: "moderation",
+        channel: userId,
+        payload: {
+          channelId: channel,
+          action: "restrictionsLifted",
+        },
+      })
     } else {
       await this.sdk.objects.setChannelMembers({ channel, uuids: [{ id: userId, custom: params }] })
+      await this.emitEvent({
+        type: "moderation",
+        channel: userId,
+        payload: {
+          channelId: channel,
+          action: params.ban ? "banned" : "muted",
+        },
+      })
     }
   }
 }
