@@ -468,6 +468,33 @@ export class Chat {
     ])
   }
 
+  /** @internal */
+  async restoreThreadChannel(message: Message) {
+    const threadChannelId = this.getThreadId(message.channelId, message.timetoken)
+
+    const threadChannel = await this.getChannel(threadChannelId)
+    if (!threadChannel) {
+      return
+    }
+
+    const actionTimetoken =
+      message.actions?.threadRootId?.[this.getThreadId(message.channelId, message.timetoken)]?.[0]
+        ?.actionTimetoken
+
+    if (actionTimetoken) {
+      throw "This thread is already restored"
+    }
+
+    return this.sdk.addMessageAction({
+      channel: message.channelId,
+      messageTimetoken: message.timetoken,
+      action: {
+        type: "threadRootId",
+        value: threadChannelId,
+      },
+    })
+  }
+
   /**
    *  Channels
    */

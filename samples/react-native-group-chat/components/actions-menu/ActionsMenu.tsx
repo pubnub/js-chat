@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from "react"
+import React, { useCallback, useContext, useMemo, useRef, useState } from "react"
 import { StyleSheet, TouchableOpacity, View } from "react-native"
 import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
 import { Gap, Text, colorPalette as colors, Button } from "../../ui-components"
@@ -13,12 +13,14 @@ import { EnhancedIMessage } from "../../utils"
 import { HomeStackNavigation } from "../../types"
 import { Message, ThreadMessage } from "@pubnub/chat"
 import * as Clipboard from "expo-clipboard"
+import { ChatContext } from "../../context"
 
 type UseActionsMenuParams = {
   onQuote: (message: Message) => void
   removeThreadReply?: boolean
   onPinMessage: (message: Message | ThreadMessage) => void
   onToggleEmoji: (message: Message) => void
+  onDeleteMessage: (message: Message) => void
 }
 
 export function useActionsMenu({
@@ -26,9 +28,11 @@ export function useActionsMenu({
   removeThreadReply = false,
   onPinMessage,
   onToggleEmoji,
+  onDeleteMessage,
 }: UseActionsMenuParams) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
   const navigation = useNavigation<HomeStackNavigation>()
+  const { chat } = useContext(ChatContext)
   const [currentlyFocusedMessage, setCurrentlyFocusedMessage] = useState<EnhancedIMessage | null>(
     null
   )
@@ -155,6 +159,27 @@ export function useActionsMenu({
         Pin message
       </Button>
       <Gap value={16} />
+      {currentlyFocusedMessage?.originalPnMessage.userId === chat?.currentUser.id ? (
+        <Button
+          size="md"
+          align="left"
+          icon={
+            currentlyFocusedMessage?.originalPnMessage.deleted ? "restore-from-trash" : "delete"
+          }
+          variant="outlined"
+          onPress={() => {
+            if (currentlyFocusedMessage) {
+              onDeleteMessage(currentlyFocusedMessage.originalPnMessage)
+              setCurrentlyFocusedMessage(null)
+              bottomSheetModalRef.current?.dismiss()
+            }
+          }}
+        >
+          {currentlyFocusedMessage?.originalPnMessage.deleted
+            ? "Restore message"
+            : "Delete message"}
+        </Button>
+      ) : null}
     </BottomSheetModal>
   )
 
