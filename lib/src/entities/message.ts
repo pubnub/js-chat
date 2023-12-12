@@ -298,7 +298,7 @@ export class Message {
       this.restoreThread(),
     ])
 
-    let allActions = this.actions ? { ...this.actions } : {}
+    let allActions = this.actions || {}
     delete allActions[MessageActionType.DELETED]
 
     for (let i = 0; i < data.length; i++) {
