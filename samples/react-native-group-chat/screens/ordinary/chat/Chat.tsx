@@ -100,7 +100,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
 
   const handleDeleteMessage = useCallback(async (message: Message) => {
     if (message.deleted) {
-      const restoredMessage = await message.restore()
+      await message.restore()
     } else {
       await message.delete({ soft: true })
     }

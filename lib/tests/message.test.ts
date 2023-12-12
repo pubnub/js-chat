@@ -208,6 +208,32 @@ describe("Send message test", () => {
     expect(logSpy).toHaveBeenCalledWith("This message has not been deleted")
   })
 
+  test("should throw an error if you try to create a thread on a deleted message", async () => {
+    await channel.sendText("Test message")
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const historyBeforeDelete = await channel.getHistory()
+    const messagesBeforeDelete = historyBeforeDelete.messages
+    const sentMessage = messagesBeforeDelete[messagesBeforeDelete.length - 1]
+
+    await sentMessage.delete({ soft: true })
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const historyAfterDelete = await channel.getHistory()
+    const messagesAfterDelete = historyAfterDelete.messages
+
+    const deletedMessage = messagesAfterDelete.find(
+      (message: Message) => message.timetoken === sentMessage.timetoken
+    )
+    let thrownExceptionString = ""
+
+    await deletedMessage.createThread().catch((e) => {
+      thrownExceptionString = e
+    })
+
+    expect(thrownExceptionString).toBe("You cannot create threads on deleted messages")
+  })
+
   test("should edit the message", async () => {
     await channel.sendText("Test message")
     await sleep(150) // history calls have around 130ms of cache time

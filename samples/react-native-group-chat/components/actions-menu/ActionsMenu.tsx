@@ -109,7 +109,7 @@ export function useActionsMenu({
         Copy message
       </Button>
       <Gap value={16} />
-      {!removeThreadReply ? (
+      {!removeThreadReply && !currentlyFocusedMessage?.originalPnMessage.deleted ? (
         <>
           <Button
             size="md"

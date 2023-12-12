@@ -373,6 +373,9 @@ export class Chat {
       if (message.channelId.startsWith(MESSAGE_THREAD_ID_PREFIX)) {
         throw "Only one level of thread nesting is allowed"
       }
+      if (message.deleted) {
+        throw "You cannot create threads on deleted messages"
+      }
 
       const threadChannelId = this.getThreadId(message.channelId, message.timetoken)
 
