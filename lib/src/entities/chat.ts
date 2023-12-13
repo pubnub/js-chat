@@ -1114,7 +1114,7 @@ export class Chat {
   async setRestrictions(
     userId: string,
     channelId: string,
-    params: { ban?: boolean; mute?: boolean }
+    params: { ban?: boolean; mute?: boolean; reason?: string }
   ) {
     const channel = `${INTERNAL_MODERATION_PREFIX}${channelId}`
 
@@ -1126,6 +1126,7 @@ export class Chat {
         payload: {
           channelId: channel,
           restriction: "lifted",
+          reason: params.reason,
         },
       })
     } else {
@@ -1136,6 +1137,7 @@ export class Chat {
         payload: {
           channelId: channel,
           restriction: params.ban ? "banned" : "muted",
+          reason: params.reason,
         },
       })
     }
