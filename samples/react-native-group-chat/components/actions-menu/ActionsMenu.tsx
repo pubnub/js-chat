@@ -95,70 +95,74 @@ export function useActionsMenu({
         Actions
       </Text>
       <Gap value={20} />
-      <Button
-        size="md"
-        align="left"
-        icon="content-copy"
-        variant="outlined"
-        onPress={() => {
-          Clipboard.setStringAsync(currentlyFocusedMessage?.originalPnMessage.text || "")
-          setCurrentlyFocusedMessage(null)
-          bottomSheetModalRef.current?.dismiss()
-        }}
-      >
-        Copy message
-      </Button>
-      <Gap value={16} />
-      {!removeThreadReply && !currentlyFocusedMessage?.originalPnMessage.deleted ? (
+      {!currentlyFocusedMessage?.originalPnMessage.deleted ? (
         <>
           <Button
             size="md"
             align="left"
-            icon="subdirectory-arrow-right"
+            icon="content-copy"
             variant="outlined"
             onPress={() => {
-              navigation.navigate("ThreadReply", { parentMessage: currentlyFocusedMessage })
+              Clipboard.setStringAsync(currentlyFocusedMessage?.originalPnMessage.text || "")
               setCurrentlyFocusedMessage(null)
               bottomSheetModalRef.current?.dismiss()
             }}
           >
-            Reply in thread
+            Copy message
+          </Button>
+          <Gap value={16} />
+          {!removeThreadReply ? (
+            <>
+              <Button
+                size="md"
+                align="left"
+                icon="subdirectory-arrow-right"
+                variant="outlined"
+                onPress={() => {
+                  navigation.navigate("ThreadReply", { parentMessage: currentlyFocusedMessage })
+                  setCurrentlyFocusedMessage(null)
+                  bottomSheetModalRef.current?.dismiss()
+                }}
+              >
+                Reply in thread
+              </Button>
+              <Gap value={16} />
+            </>
+          ) : null}
+          <Button
+            size="md"
+            align="left"
+            icon="format-quote"
+            variant="outlined"
+            onPress={() => {
+              if (currentlyFocusedMessage) {
+                onQuote(currentlyFocusedMessage.originalPnMessage)
+                setCurrentlyFocusedMessage(null)
+                bottomSheetModalRef.current?.dismiss()
+              }
+            }}
+          >
+            Quote message
+          </Button>
+          <Gap value={16} />
+          <Button
+            size="md"
+            align="left"
+            icon="push-pin"
+            variant="outlined"
+            onPress={() => {
+              if (currentlyFocusedMessage) {
+                onPinMessage(currentlyFocusedMessage.originalPnMessage)
+                setCurrentlyFocusedMessage(null)
+                bottomSheetModalRef.current?.dismiss()
+              }
+            }}
+          >
+            Pin message
           </Button>
           <Gap value={16} />
         </>
       ) : null}
-      <Button
-        size="md"
-        align="left"
-        icon="format-quote"
-        variant="outlined"
-        onPress={() => {
-          if (currentlyFocusedMessage) {
-            onQuote(currentlyFocusedMessage.originalPnMessage)
-            setCurrentlyFocusedMessage(null)
-            bottomSheetModalRef.current?.dismiss()
-          }
-        }}
-      >
-        Quote message
-      </Button>
-      <Gap value={16} />
-      <Button
-        size="md"
-        align="left"
-        icon="push-pin"
-        variant="outlined"
-        onPress={() => {
-          if (currentlyFocusedMessage) {
-            onPinMessage(currentlyFocusedMessage.originalPnMessage)
-            setCurrentlyFocusedMessage(null)
-            bottomSheetModalRef.current?.dismiss()
-          }
-        }}
-      >
-        Pin message
-      </Button>
-      <Gap value={16} />
       {currentlyFocusedMessage?.originalPnMessage.userId === chat?.currentUser.id ? (
         <Button
           size="md"
