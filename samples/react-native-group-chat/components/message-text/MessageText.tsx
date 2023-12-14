@@ -154,13 +154,15 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
           />
         ) : null}
         <Text variant="body">
-          {messageElements.map((msgPart, index) =>
-            renderMessagePart(
-              msgPart,
-              index,
-              messageProps.currentMessage?.originalPnMessage.userId || ""
-            )
-          )}
+          {messageProps.currentMessage?.originalPnMessage.deleted
+            ? "(Message softly deleted)"
+            : messageElements.map((msgPart, index) =>
+                renderMessagePart(
+                  msgPart,
+                  index,
+                  messageProps.currentMessage?.originalPnMessage.userId || ""
+                )
+              )}
         </Text>
         {renderImage()}
         {renderEmojis()}

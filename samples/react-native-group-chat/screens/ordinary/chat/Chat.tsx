@@ -98,10 +98,19 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     [giftedChatMappedMessages]
   )
 
+  const handleDeleteMessage = useCallback(async (message: Message) => {
+    if (message.deleted) {
+      await message.restore()
+    } else {
+      await message.delete({ soft: true })
+    }
+  }, [])
+
   const { ActionsMenuComponent, handlePresentModalPress } = useActionsMenu({
     onQuote: handleQuote,
     onPinMessage: handlePin,
     onToggleEmoji: handleEmoji,
+    onDeleteMessage: handleDeleteMessage,
   })
 
   useEffect(() => {

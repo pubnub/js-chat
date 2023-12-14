@@ -180,6 +180,7 @@ export class User {
     return {
       ban: !!restrictions?.ban,
       mute: !!restrictions?.mute,
+      reason: restrictions?.reason,
     }
   }
 
@@ -197,6 +198,7 @@ export class User {
       restrictions: response.data.map(({ custom, channel }) => ({
         ban: !!custom?.ban,
         mute: !!custom?.mute,
+        reason: custom?.reason,
         channelId: channel.id.replace(INTERNAL_MODERATION_PREFIX, ""),
       })),
     }
