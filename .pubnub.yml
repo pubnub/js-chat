@@ -1,11 +1,16 @@
 ---
 name: pubnub-js-chat
-version: v0.5.0
+version: v0.5.1
 scm: github.com/pubnub/js-chat
 schema: 1
 files:
   - lib/dist/index.js
 changelog:
+  - date: 2023-12-18
+    version: v0.5.1
+    changes:
+      - type: feature
+        text: "Add missing "reason" parameter to user restrictions."
   - date: 2023-12-14
     version: v0.5.0
     changes:
