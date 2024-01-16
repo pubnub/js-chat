@@ -111,14 +111,14 @@ export class Message {
   }
 
   /** @internal */
-  private clone(params: Partial<MessageFields>) {
+  protected clone(params: Partial<MessageFields>) {
     const { timetoken, content, channelId, userId, actions, meta } = this
     const data = Object.assign({}, { timetoken, content, channelId, userId, actions, meta }, params)
     return new Message(this.chat, data)
   }
 
   /** @internal */
-  private assignAction(action: PubNub.MessageAction) {
+  protected assignAction(action: PubNub.MessageAction) {
     const { actionTimetoken, type, value, uuid } = action
     const newActions = this.actions || {}
     newActions[type] ||= {}
@@ -128,7 +128,7 @@ export class Message {
   }
 
   /** @internal */
-  private filterAction(action: PubNub.MessageAction) {
+  protected filterAction(action: PubNub.MessageAction) {
     const { actionTimetoken, type, value, uuid } = action
     const newActions = this.actions || {}
     newActions[type] ||= {}

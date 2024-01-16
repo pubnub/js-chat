@@ -3,6 +3,7 @@ import { Chat } from "./chat"
 import { ThreadMessageDTOParams } from "../types"
 import { Channel } from "./channel"
 import { getErrorProxiedEntity } from "../error-logging"
+import PubNub from "pubnub"
 
 export class ThreadMessage extends Message {
   readonly parentChannelId: string
@@ -27,6 +28,51 @@ export class ThreadMessage extends Message {
     }
 
     return getErrorProxiedEntity(new ThreadMessage(chat, data), chat.errorLogger)
+  }
+
+  /** @internal */
+  protected clone(params: Partial<MessageFields>) {
+    const { timetoken, content, channelId, userId, actions, meta, parentChannelId } = this
+    const data = Object.assign(
+      {},
+      { parentChannelId, timetoken, content, channelId, userId, actions, meta },
+      params
+    )
+    return new ThreadMessage(this.chat, data)
+  }
+
+  static streamUpdatesOn(
+    threadMessages: ThreadMessage[],
+    callback: (threadMessages: ThreadMessage[]) => unknown
+  ) {
+    if (!threadMessages.length) throw "Cannot stream message updates on an empty list"
+    const listener = {
+      messageAction: (event: PubNub.MessageActionEvent) => {
+        const threadMessage = threadMessages.find(
+          (msg) => msg.timetoken === event.data.messageTimetoken
+        )
+        if (!threadMessage) return
+        if (threadMessage.channelId !== event.channel) return
+        let actions
+        if (event.event === "added") actions = threadMessage.assignAction(event.data)
+        if (event.event === "removed") actions = threadMessage.filterAction(event.data)
+        const newMessage = threadMessage.clone({ actions })
+        const newMessages = threadMessages.map((msg) =>
+          msg.timetoken === newMessage.timetoken ? newMessage : msg
+        )
+        callback(newMessages)
+      },
+    }
+    const { chat } = threadMessages[0]
+    const removeListener = chat.addListener(listener)
+    const subscriptions = threadMessages
+      .filter((m1, i) => threadMessages.findIndex((m2) => m1.channelId === m2.channelId) === i)
+      .map((message) => chat.subscribe(message.channelId))
+
+    return () => {
+      removeListener()
+      subscriptions.map((unsub) => unsub())
+    }
   }
 
   async pinToParentChannel() {
