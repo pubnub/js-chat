@@ -1,11 +1,16 @@
 ---
 name: pubnub-js-chat
-version: v0.5.1
+version: v0.5.2
 scm: github.com/pubnub/js-chat
 schema: 1
 files:
   - lib/dist/index.js
 changelog:
+  - date: 2024-01-16
+    version: v0.5.2
+    changes:
+      - type: feature
+        text: "Make ThreadMessage.streamUpdatesOn return ThreadMessage[] instead of Message[]."
   - date: 2023-12-18
     version: v0.5.1
     changes:
