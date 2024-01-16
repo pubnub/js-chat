@@ -30,6 +30,7 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
   const [suggestedData, setSuggestedData] = useState<User[] | Channel[]>([])
   const [showSuggestedData, setShowSuggestedData] = useState(false)
   const [lastAffectedNameOccurrenceIndex, setLastAffectedNameOccurrenceIndex] = useState(-1)
+  const [showTextLinkBox, setShowTextLinkBox] = useState(false)
 
   const { renderFooter, renderMessageText, renderChatFooter } = useCommonChatRenderers({
     typingData,
@@ -41,6 +42,9 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
     giftedChatMappedMessages,
     giftedChatRef,
     lastAffectedNameOccurrenceIndex,
+    showTextLinkBox,
+    setShowTextLinkBox,
+    image: "",
   })
 
   const handleQuote = useCallback(
@@ -67,10 +71,39 @@ export function ThreadReply({ route }: StackScreenProps<HomeStackParamList, "Thr
     [chat]
   )
 
+  const handleEmoji = useCallback(
+    (message: Message) => {
+      const copiedMessages = [...giftedChatMappedMessages]
+
+      const index = copiedMessages.findIndex(
+        (msg) => msg.originalPnMessage.timetoken === message.timetoken
+      )
+
+      if (index === -1) {
+        return
+      }
+
+      copiedMessages[index].originalPnMessage = message
+
+      setGiftedChatMappedMessages(copiedMessages)
+    },
+    [giftedChatMappedMessages]
+  )
+
+  const handleDeleteMessage = useCallback(async (message: Message) => {
+    if (message.deleted) {
+      await message.restore()
+    } else {
+      await message.delete({ soft: true })
+    }
+  }, [])
+
   const { ActionsMenuComponent, handlePresentModalPress } = useActionsMenu({
     onQuote: handleQuote,
     removeThreadReply: true,
     onPinMessage: handlePin,
+    onDeleteMessage: handleDeleteMessage,
+    onToggleEmoji: handleEmoji,
   })
 
   useEffect(() => {

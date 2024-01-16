@@ -112,6 +112,128 @@ describe("Send message test", () => {
     expect(deletedMessage).toBeUndefined()
   }, 30000)
 
+  test("should restore a soft deleted message", async () => {
+    await channel.sendText("Test message")
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const historyBeforeDelete = await channel.getHistory()
+    const messagesBeforeDelete = historyBeforeDelete.messages
+    const sentMessage = messagesBeforeDelete[messagesBeforeDelete.length - 1]
+
+    await sentMessage.delete({ soft: true })
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const historyAfterDelete = await channel.getHistory()
+    const messagesAfterDelete = historyAfterDelete.messages
+
+    const deletedMessage = messagesAfterDelete.find(
+      (message: Message) => message.timetoken === sentMessage.timetoken
+    )
+
+    expect(deletedMessage.deleted).toBe(true)
+
+    const restoredMessage = await deletedMessage.restore()
+
+    expect(restoredMessage.deleted).toBe(false)
+
+    const historyAfterRestore = await channel.getHistory()
+    const messagesAfterRestore = historyAfterRestore.messages
+
+    const historicRestoredMessage = messagesAfterRestore.find(
+      (message: Message) => message.timetoken === sentMessage.timetoken
+    )
+
+    expect(historicRestoredMessage.deleted).toBe(false)
+  })
+
+  test("should restore a soft deleted message together with its thread", async () => {
+    await channel.sendText("Test message")
+    await sleep(150) // history calls have around 130ms of cache time
+
+    let historyBeforeDelete = await channel.getHistory()
+    let messagesBeforeDelete = historyBeforeDelete.messages
+    let sentMessage = messagesBeforeDelete[messagesBeforeDelete.length - 1]
+    const messageThread = await sentMessage.createThread()
+    await messageThread.sendText("Some message in a thread")
+    await sleep(150) // history calls have around 130ms of cache time
+    historyBeforeDelete = await channel.getHistory()
+    messagesBeforeDelete = historyBeforeDelete.messages
+    sentMessage = messagesBeforeDelete[messagesBeforeDelete.length - 1]
+
+    await sentMessage.delete({ soft: true })
+    await sleep(200) // history calls have around 130ms of cache time
+
+    const historyAfterDelete = await channel.getHistory()
+    const messagesAfterDelete = historyAfterDelete.messages
+
+    const deletedMessage = messagesAfterDelete.find(
+      (message: Message) => message.timetoken === sentMessage.timetoken
+    )
+
+    expect(deletedMessage.deleted).toBe(true)
+    expect(deletedMessage.hasThread).toBe(false)
+
+    const restoredMessage = await deletedMessage.restore()
+
+    expect(restoredMessage.deleted).toBe(false)
+    expect(restoredMessage.hasThread).toBe(true)
+    expect(await restoredMessage.getThread()).toBeDefined()
+    expect((await restoredMessage.getThread()).id).toBe(
+      chat.getThreadId(restoredMessage.channelId, restoredMessage.timetoken)
+    )
+
+    const historyAfterRestore = await channel.getHistory()
+    const messagesAfterRestore = historyAfterRestore.messages
+
+    const historicRestoredMessage = messagesAfterRestore.find(
+      (message: Message) => message.timetoken === sentMessage.timetoken
+    )
+
+    expect(historicRestoredMessage.deleted).toBe(false)
+    expect(await historicRestoredMessage.getThread()).toBeDefined()
+    expect((await historicRestoredMessage.getThread()).id).toBe(
+      chat.getThreadId(historicRestoredMessage.channelId, historicRestoredMessage.timetoken)
+    )
+  })
+
+  test("should only log a warning if you try to restore an undeleted message", async () => {
+    await channel.sendText("Test message")
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const historicMessages = (await channel.getHistory()).messages
+    const sentMessage = historicMessages[historicMessages.length - 1]
+    const logSpy = jest.spyOn(console, "warn")
+    await sentMessage.restore()
+    expect(sentMessage.deleted).toBe(false)
+    expect(logSpy).toHaveBeenCalledWith("This message has not been deleted")
+  })
+
+  test("should throw an error if you try to create a thread on a deleted message", async () => {
+    await channel.sendText("Test message")
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const historyBeforeDelete = await channel.getHistory()
+    const messagesBeforeDelete = historyBeforeDelete.messages
+    const sentMessage = messagesBeforeDelete[messagesBeforeDelete.length - 1]
+
+    await sentMessage.delete({ soft: true })
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const historyAfterDelete = await channel.getHistory()
+    const messagesAfterDelete = historyAfterDelete.messages
+
+    const deletedMessage = messagesAfterDelete.find(
+      (message: Message) => message.timetoken === sentMessage.timetoken
+    )
+    let thrownExceptionString = ""
+
+    await deletedMessage.createThread().catch((e) => {
+      thrownExceptionString = e
+    })
+
+    expect(thrownExceptionString).toBe("You cannot create threads on deleted messages")
+  })
+
   test("should edit the message", async () => {
     await channel.sendText("Test message")
     await sleep(150) // history calls have around 130ms of cache time

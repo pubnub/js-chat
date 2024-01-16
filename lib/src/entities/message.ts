@@ -123,6 +123,9 @@ export class Message {
     const newActions = this.actions || {}
     newActions[type] ||= {}
     newActions[type][value] ||= []
+    if (newActions[type][value].find((a) => a.actionTimetoken === actionTimetoken)) {
+      return newActions
+    }
     newActions[type][value] = [...newActions[type][value], { uuid, actionTimetoken }]
     return newActions
   }
@@ -226,7 +229,7 @@ export class Message {
    */
   get deleted() {
     const type = MessageActionType.DELETED
-    return !!this.actions?.[type]
+    return !!this.actions?.[type] && !!this.actions?.[type][type].length
   }
 
   async delete(params: DeleteParameters & { preserveFiles?: boolean } = {}) {
@@ -263,6 +266,56 @@ export class Message {
     } catch (error) {
       throw error
     }
+  }
+
+  async restore() {
+    if (!this.deleted) {
+      console.warn("This message has not been deleted")
+      return
+    }
+    const deletedActions = this.actions?.[MessageActionType.DELETED]?.[MessageActionType.DELETED]
+    if (!deletedActions) {
+      console.warn("Malformed data", deletedActions)
+      return
+    }
+
+    // in practise it's possible to have a few soft deletions on a message
+    // so take care of it
+    for (let i = 0; i < deletedActions.length; i++) {
+      const deleteActionTimetoken = deletedActions[i].actionTimetoken
+      await this.chat.sdk.removeMessageAction({
+        channel: this.channelId,
+        messageTimetoken: this.timetoken,
+        actionTimetoken: String(deleteActionTimetoken),
+      })
+    }
+    const [{ data }, restoredThreadAction] = await Promise.all([
+      this.chat.sdk.getMessageActions({
+        channel: this.channelId,
+        start: this.timetoken,
+        end: this.timetoken,
+      }),
+      this.restoreThread(),
+    ])
+
+    let allActions = this.actions || {}
+    delete allActions[MessageActionType.DELETED]
+
+    for (let i = 0; i < data.length; i++) {
+      const actions = this.assignAction(data[i])
+      allActions = {
+        ...allActions,
+        ...actions,
+      }
+    }
+    if (restoredThreadAction) {
+      allActions = {
+        ...allActions,
+        ...this.assignAction(restoredThreadAction.data),
+      }
+    }
+
+    return this.clone({ actions: allActions })
   }
 
   /**
@@ -351,5 +404,10 @@ export class Message {
       const thread = await this.getThread()
       await thread.delete(params)
     }
+  }
+
+  /** @internal */
+  private async restoreThread() {
+    return this.chat.restoreThreadChannel(this)
   }
 }
