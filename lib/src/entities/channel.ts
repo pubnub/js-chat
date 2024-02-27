@@ -1,21 +1,20 @@
 import PubNub, {
+  GetChannelMembersParameters,
   MessageEvent,
   ObjectCustom,
-  GetChannelMembersParameters,
   SetMembershipsParameters,
-  ChannelMetadataObject,
 } from "pubnub"
 import { Chat } from "./chat"
 import { Message } from "./message"
 import { Event } from "./event"
 import {
-  SendTextOptionParams,
-  DeleteParameters,
   ChannelDTOParams,
+  ChannelType,
+  DeleteParameters,
   MessageDraftConfig,
   MessageType,
+  SendTextOptionParams,
   TextMessageContent,
-  ChannelType,
 } from "../types"
 import { ExponentialRateLimiter } from "../rate-limiter"
 import { Membership } from "./membership"
@@ -24,6 +23,7 @@ import { MessageElementsUtils } from "../message-elements-utils"
 import { MessageDraft } from "./message-draft"
 import { getErrorProxiedEntity } from "../error-logging"
 import { INTERNAL_MODERATION_PREFIX } from "../constants"
+import { defaultGetMessagePublishBody } from "../default-values"
 
 export type ChannelFields = Pick<
   Channel,
@@ -65,7 +65,7 @@ export class Channel {
   }
 
   /** @internal */
-  static fromDTO(chat: Chat, params: ChannelDTOParams) {
+  static fromDTO(chat: Chat, params: ChannelDTOParams): Channel {
     const data = {
       id: params.id,
       name: params.name || undefined,
@@ -194,10 +194,23 @@ export class Channel {
         }
       }
 
-      const message: TextMessageContent = {
-        type: MessageType.TEXT,
-        text,
-        ...(filesData.length && { files: filesData }),
+      // const message: TextMessageContent = {
+      //   type: MessageType.TEXT,
+      //   text,
+      //   ...(filesData.length && { files: filesData }),
+      //   ...this.getPushPayload(text),
+      // }
+      const getMessagePublishBody =
+        this.chat.config.customPayloads.getMessagePublishBody || defaultGetMessagePublishBody
+      const message = {
+        ...getMessagePublishBody(
+          {
+            type: MessageType.TEXT,
+            text,
+            files: filesData,
+          },
+          this
+        ),
         ...this.getPushPayload(text),
       }
 

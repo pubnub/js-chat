@@ -22,7 +22,7 @@ export class ThreadChannel extends Channel {
   }
 
   /** @internal */
-  static override fromDTO(chat: Chat, params: ThreadChannelDTOParams) {
+  static override fromDTO(chat: Chat, params: ThreadChannelDTOParams): ThreadChannel {
     const data = {
       id: params.id,
       parentChannelId: params.parentChannelId,
