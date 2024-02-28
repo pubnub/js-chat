@@ -16,22 +16,7 @@ export function defaultGetMessageResponseBody(messageParams: MessageDTOParams) {
       files: [],
     }
   }
-  if (
-    "type" in messageParams.message &&
-    "text" in messageParams.message &&
-    "files" in messageParams.message
-  ) {
-    return {
-      type: MessageType.TEXT,
-      text: typeof messageParams.message.text === "string" ? messageParams.message.text : "UNKNOWN",
-      files: Array.isArray(messageParams.message.files) ? messageParams.message.files : [],
-    }
-  }
-  return {
-    type: MessageType.TEXT,
-    text: "UNKNOWN",
-    files: [],
-  }
+  return messageParams.message
 }
 
 export const defaultEditActionName = MessageActionType.EDITED
