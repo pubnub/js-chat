@@ -1,4 +1,4 @@
-import { Chat, MessageType, TextMessageContent } from "@pubnub/chat"
+import { Chat, MessageDTOParams, MessageType, TextMessageContent } from "@pubnub/chat"
 
 type CustomMessageBody = {
   body: {
@@ -14,8 +14,8 @@ type CustomMessageBody = {
 
 async function runApp() {
   const chat = await Chat.init({
-    publishKey: "pub",
-    subscribeKey: "sub",
+    publishKey: "pub-c-0457cb83-0786-43df-bc70-723b16a6e816",
+    subscribeKey: "sub-c-e654122d-85b5-49a6-a3dd-8ebc93c882de",
     userId: "myFirstUser",
     customPayloads: {
       getMessagePublishBody: ({ type, text, files }): CustomMessageBody => {
@@ -31,16 +31,13 @@ async function runApp() {
           messageType: type,
         }
       },
-      getMessageResponseBody: (messageBody: CustomMessageBody) => {
+      getMessageResponseBody: (messageParams: MessageDTOParams) => {
         return {
-          text: messageBody.body.message.content.text,
-          type: messageBody.messageType,
-          files: messageBody.body.files,
+          text: messageParams.message.body.message.content.text,
+          type: messageParams.message.messageType,
+          files: messageParams.message.body.files,
         }
       },
-      // editMessage: (m) => {
-      //   return Promise.resolve(m)
-      // },
       editMessageActionName: "updated",
       deleteMessageActionName: "removed",
     },
@@ -56,14 +53,25 @@ async function runApp() {
       })
     ).channel
 
-  // await trashChannel.sendText(`Some other text, ${Math.random()}`)
+  const disconnect = trashChannel.connect((stuff) => {
+    console.log("stuff", stuff.text)
+  })
+
+  await trashChannel.sendText(`Hello Lukasz`)
+  await trashChannel.sendText(`Hello Lukasz 2`)
 
   const historyObject = await trashChannel.getHistory()
   // await historyObject.messages[0].editText("Custom edited text")
   // await historyObject.messages[1].delete({ soft: true })
   historyObject.messages.forEach((m) => {
-    console.log("m", m.text)
+    console.log("m", m.content)
   })
+  function sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+  }
+
+  await sleep(2000)
+  disconnect()
 }
 
 runApp()

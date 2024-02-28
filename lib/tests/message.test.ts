@@ -6,6 +6,7 @@ import {
   MessageDraft,
   CryptoUtils,
   CryptoModule,
+  MessageDTOParams,
 } from "../src"
 import {
   createChatInstance,
@@ -17,6 +18,7 @@ import {
 } from "./utils"
 import { jest } from "@jest/globals"
 import * as fs from "fs"
+import { defaultDeleteActionName, defaultEditActionName } from "../src/default-values"
 
 describe("Send message test", () => {
   jest.retryTimes(3)
@@ -1315,5 +1317,237 @@ describe("Send message test", () => {
 
     await someGroupChannel.channel.delete({ soft: false })
     await someRandomUser1.delete({ soft: false })
+  })
+
+  test("should send a message with custom body and transform it to TextMessageContent when received", async () => {
+    const chat = await createChatInstance({
+      shouldCreateNewInstance: true,
+      config: {
+        customPayloads: {
+          getMessagePublishBody: ({ type, text, files }) => {
+            return {
+              body: {
+                message: {
+                  content: {
+                    text,
+                  },
+                },
+                files,
+              },
+              messageType: type,
+            }
+          },
+          getMessageResponseBody: (messageParams: MessageDTOParams) => {
+            return {
+              text: messageParams.message.body.message.content.text,
+              type: messageParams.message.messageType,
+              files: messageParams.message.body.files,
+            }
+          },
+        },
+      },
+    })
+
+    const someChannel =
+      (await chat.getChannel("some-channel-custom-body")) ||
+      (await chat.createChannel("some-channel-custom-body", { name: "Custom body channel" }))
+
+    await someChannel.sendText("Hello world!")
+    await sleep(200)
+
+    const historyObject = await someChannel.getHistory({ count: 1 })
+    expect(historyObject.messages[0].text).toBe("Hello world!")
+  })
+
+  test("should send a message with custom body and crash if getMessageResponseBody is incorrect", async () => {
+    const chat = await createChatInstance({
+      shouldCreateNewInstance: true,
+      config: {
+        customPayloads: {
+          getMessageResponseBody: (messageParams: MessageDTOParams) => {
+            return {
+              text: messageParams.message.it.does.not.exist,
+              type: messageParams.message.messageType,
+              files: messageParams.message.body.files,
+            }
+          },
+        },
+      },
+    })
+
+    const someChannel =
+      (await chat.getChannel("some-channel-custom-body")) ||
+      (await chat.createChannel("some-channel-custom-body", { name: "Custom body channel" }))
+
+    await someChannel.sendText("Hello world!")
+    await sleep(200)
+    let thrownErrorMessage = ""
+
+    try {
+      await someChannel.getHistory()
+    } catch (error) {
+      thrownErrorMessage = error.message
+    }
+
+    expect(thrownErrorMessage).toBe("Cannot read properties of undefined (reading 'does')")
+  })
+
+  test("should be able to pass custom edit and delete action names", async () => {
+    const chat = await createChatInstance({
+      shouldCreateNewInstance: true,
+      config: {
+        customPayloads: {
+          editMessageActionName: "field-updated",
+          deleteMessageActionName: "field-removed",
+        },
+      },
+    })
+
+    const someChannel =
+      (await chat.getChannel("some-channel-custom-actions")) ||
+      (await chat.createChannel("some-channel-custom-actions", { name: "Custom actions channel" }))
+
+    await someChannel.sendText("Hello world!")
+    await sleep(200)
+    let historyObject = await someChannel.getHistory({ count: 1 })
+    await historyObject.messages[0].editText("Edited text")
+    await sleep(200)
+    historyObject = await someChannel.getHistory({ count: 1 })
+    expect(historyObject.messages[0].text).toBe("Edited text")
+    expect(historyObject.messages[0].actions["field-updated"]).toBeDefined()
+    expect(historyObject.messages[0].actions[defaultEditActionName]).toBeUndefined()
+    expect(historyObject.messages[0].deleted).toBe(false)
+    await historyObject.messages[0].delete({ soft: true })
+    await sleep(200)
+    historyObject = await someChannel.getHistory({ count: 1 })
+    expect(historyObject.messages[0].deleted).toBe(true)
+    expect(historyObject.messages[0].actions["field-removed"]).toBeDefined()
+    expect(historyObject.messages[0].actions[defaultDeleteActionName]).toBeUndefined()
+  })
+
+  test("should work fine even for multiple schemas on different channels", async () => {
+    const chat = await createChatInstance({
+      shouldCreateNewInstance: true,
+      config: {
+        customPayloads: {
+          getMessagePublishBody: ({ type, text, files }, channelId) => {
+            if (channelId === "different-schema-for-no-reason") {
+              return {
+                different: {
+                  schema: {
+                    for: {
+                      no: {
+                        reason: text,
+                      },
+                    },
+                  },
+                  files,
+                },
+                messageType: type,
+              }
+            }
+
+            return {
+              body: {
+                message: {
+                  content: {
+                    text,
+                  },
+                },
+                files,
+              },
+              messageType: type,
+            }
+          },
+          getMessageResponseBody: (messageParams: MessageDTOParams) => {
+            if (messageParams.channel === "different-schema-for-no-reason") {
+              return {
+                text: messageParams.message.different.schema.for.no.reason,
+                type: messageParams.message.messageType,
+                files: messageParams.message.different.files,
+              }
+            }
+
+            return {
+              text: messageParams.message.body.message.content.text,
+              type: messageParams.message.messageType,
+              files: messageParams.message.body.files,
+            }
+          },
+        },
+      },
+    })
+
+    const someChannel =
+      (await chat.getChannel("some-channel-custom-body")) ||
+      (await chat.createChannel("some-channel-custom-body", { name: "Custom body channel" }))
+
+    await someChannel.sendText("One type of schema")
+    await sleep(200)
+
+    const someChannelWithDifferentSchema =
+      (await chat.getChannel("different-schema-for-no-reason")) ||
+      (await chat.createChannel("different-schema-for-no-reason", {
+        name: "Custom body channel with a different schema",
+      }))
+
+    await someChannelWithDifferentSchema.sendText("Another type of schema")
+    await sleep(200)
+
+    const someChannelHistoryObject = await someChannel.getHistory({ count: 1 })
+    const someChannelWithDifferentSchemaHistoryObject =
+      await someChannelWithDifferentSchema.getHistory({ count: 1 })
+    expect(someChannelHistoryObject.messages[0].text).toBe("One type of schema")
+    expect(someChannelWithDifferentSchemaHistoryObject.messages[0].text).toBe(
+      "Another type of schema"
+    )
+  })
+
+  test("should be able to read live messages with custom payloads as well", async () => {
+    const chat = await createChatInstance({
+      shouldCreateNewInstance: true,
+      config: {
+        customPayloads: {
+          getMessagePublishBody: ({ type, text, files }) => {
+            return {
+              body: {
+                message: {
+                  content: {
+                    text,
+                  },
+                },
+                files,
+              },
+              messageType: type,
+            }
+          },
+          getMessageResponseBody: (messageParams: MessageDTOParams) => {
+            return {
+              text: messageParams.message.body.message.content.text,
+              type: messageParams.message.messageType,
+              files: messageParams.message.body.files,
+            }
+          },
+        },
+      },
+    })
+
+    const someChannel =
+      (await chat.getChannel("some-channel-custom-body3")) ||
+      (await chat.createChannel("some-channel-custom-body3", { name: "Custom body channel" }))
+
+    let liveMessageText = ""
+
+    const disconnect = someChannel.connect((msg) => {
+      liveMessageText = msg.text
+    })
+
+    await someChannel.sendText("Hello live world!")
+    await sleep(500)
+    expect(liveMessageText).toBe("Hello live world!")
+    await someChannel.sendText("Hello live world! Number 2")
+    await sleep(500)
+    expect(liveMessageText).toBe("Hello live world! Number 2")
+    disconnect()
   })
 })

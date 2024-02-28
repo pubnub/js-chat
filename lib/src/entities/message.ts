@@ -4,14 +4,13 @@ import {
   DeleteParameters,
   MessageActions,
   MessageDTOParams,
-  MessageType,
   TextMessageContent,
   MessageActionType,
 } from "../types"
 import { INTERNAL_ADMIN_CHANNEL } from "../constants"
 import { getErrorProxiedEntity } from "../error-logging"
 import { MessageElementsUtils } from "../message-elements-utils"
-import { defaultGetMessageDisplayContent, defaultGetMessageResponseBody } from "../default-values"
+import { defaultGetMessageResponseBody } from "../default-values"
 
 export type MessageFields = Pick<
   Message,
@@ -96,14 +95,7 @@ export class Message {
 
     const data = {
       timetoken: String(params.timetoken),
-      content:
-        typeof params.message === "string"
-          ? getMessageResponseBody({
-              type: MessageType.TEXT,
-              text: params.message,
-              files: [],
-            })
-          : getMessageResponseBody(params.message),
+      content: getMessageResponseBody(params),
       channelId: params.channel,
       userId: "publisher" in params ? params.publisher : params.uuid || "unknown-user",
       actions: "actions" in params ? params.actions : undefined,
@@ -187,16 +179,12 @@ export class Message {
    * Message text
    */
   get text() {
-    // const type = MessageActionType.EDITED
-    // const edits = this.actions?.[type]
-    // if (!edits) return this.content.text || ""
-    // const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
-    // const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
-    //
-    // return lastEdit.value
-    const getMessageDisplayContent =
-      this.chat.config.customPayloads.getMessageDisplayContent || defaultGetMessageDisplayContent
-    return getMessageDisplayContent(this, this.chat.editMessageActionName)
+    const edits = this.actions?.[this.chat.editMessageActionName]
+    if (!edits) return this.content.text || ""
+    const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
+    const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
+
+    return lastEdit.value
   }
 
   getMessageElements() {
@@ -218,10 +206,6 @@ export class Message {
   }
 
   async editText(newText: string) {
-    if (this.chat.config.customPayloads.editMessage) {
-      return this.chat.config.customPayloads.editMessage(this, newText)
-    }
-
     const type = this.chat.editMessageActionName
     try {
       const { data } = await this.chat.sdk.addMessageAction({
@@ -245,10 +229,6 @@ export class Message {
   }
 
   async delete(params: DeleteParameters & { preserveFiles?: boolean } = {}) {
-    if (this.chat.config.customPayloads.deleteMessage) {
-      return this.chat.config.customPayloads.deleteMessage(this)
-    }
-
     const { soft } = params
     const type = this.chat.deleteMessageActionName
     try {

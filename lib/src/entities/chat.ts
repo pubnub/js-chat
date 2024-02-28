@@ -11,6 +11,7 @@ import {
   EventType,
   EmitEventParams,
   GenericEventParams,
+  MessageDTOParams,
 } from "../types"
 import { Message } from "./message"
 import { Event } from "./event"
@@ -41,12 +42,9 @@ export type ChatConfig = {
   }
   errorLogger?: ErrorLoggerImplementation
   customPayloads: {
-    getMessagePublishBody?: (m: TextMessageContent, channel: Channel) => any
-    getMessageResponseBody?: (m: any) => TextMessageContent
-    getMessageDisplayContent?: (m: Message) => string
-    editMessage?: (m: Message, newText: string) => Promise<Message>
+    getMessagePublishBody?: (m: TextMessageContent, channelId: string) => any
+    getMessageResponseBody?: (m: MessageDTOParams) => TextMessageContent
     editMessageActionName?: string
-    deleteMessage?: (m: Message) => Promise<boolean>
     deleteMessageActionName?: string
   }
 }
@@ -68,9 +66,9 @@ export class Chat {
   /** @internal */
   errorLogger: ErrorLogger
   /** @internal */
-  public editMessageActionName: string
+  readonly editMessageActionName: string
   /** @internal */
-  public deleteMessageActionName: string
+  readonly deleteMessageActionName: string
 
   /** @internal */
   private constructor(params: ChatConstructor) {
@@ -102,23 +100,6 @@ export class Chat {
       }
     } catch (error) {
       this.errorLogger.setItem("PushNotificationError", error, arguments)
-      throw error
-    }
-
-    try {
-      if (customPayloads?.deleteMessageActionName && customPayloads?.deleteMessage) {
-        throw "Both 'deleteMessageActionName' and 'deleteMessage' are defined. Choose just one of them instead."
-      }
-    } catch (error) {
-      this.errorLogger.setItem("deleteMessageConfigError", error, arguments)
-      throw error
-    }
-    try {
-      if (customPayloads?.editMessageActionName && customPayloads?.editMessage) {
-        throw "Both 'editMessageActionName' and 'editMessage' are defined. Choose just one of them instead."
-      }
-    } catch (error) {
-      this.errorLogger.setItem("editMessageConfigError", error, arguments)
       throw error
     }
 
@@ -154,9 +135,6 @@ export class Chat {
       customPayloads: {
         getMessagePublishBody: customPayloads?.getMessagePublishBody,
         getMessageResponseBody: customPayloads?.getMessageResponseBody,
-        getMessageDisplayContent: customPayloads?.getMessageDisplayContent,
-        editMessage: customPayloads?.editMessage,
-        deleteMessage: customPayloads?.deleteMessage,
       },
     } as ChatConfig
   }

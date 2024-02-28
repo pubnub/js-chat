@@ -28,7 +28,7 @@ export class Event<T extends EventType> {
   }
 
   /** @internal */
-  static fromDTO<T extends EventType>(
+  static fromDTO(
     chat: Chat,
     params:
       | Pick<MessageEvent, "timetoken" | "message" | "channel" | "publisher">
@@ -36,7 +36,7 @@ export class Event<T extends EventType> {
           FetchMessagesResponse["channels"][string][number],
           "timetoken" | "message" | "channel" | "uuid"
         >
-  ): Event<T> {
+  ) {
     const { type, ...payload } = params.message
     const data = {
       timetoken: String(params.timetoken),

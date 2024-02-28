@@ -1,5 +1,4 @@
-import { MessageActionType, MessageType, TextMessageContent } from "./types"
-import { Message } from "./entities/message"
+import { MessageActionType, MessageDTOParams, MessageType, TextMessageContent } from "./types"
 
 export function defaultGetMessagePublishBody(messageBody: TextMessageContent) {
   return {
@@ -9,14 +8,23 @@ export function defaultGetMessagePublishBody(messageBody: TextMessageContent) {
   }
 }
 
-export function defaultGetMessageResponseBody<MessageBody extends object = TextMessageContent>(
-  messageBody: MessageBody
-) {
-  if ("type" in messageBody && "text" in messageBody && "files" in messageBody) {
+export function defaultGetMessageResponseBody(messageParams: MessageDTOParams) {
+  if (typeof messageParams.message === "string") {
     return {
       type: MessageType.TEXT,
-      text: typeof messageBody.text === "string" ? messageBody.text : "UNKNOWN",
-      files: Array.isArray(messageBody.files) ? messageBody.files : [],
+      text: messageParams.message,
+      files: [],
+    }
+  }
+  if (
+    "type" in messageParams.message &&
+    "text" in messageParams.message &&
+    "files" in messageParams.message
+  ) {
+    return {
+      type: MessageType.TEXT,
+      text: typeof messageParams.message.text === "string" ? messageParams.message.text : "UNKNOWN",
+      files: Array.isArray(messageParams.message.files) ? messageParams.message.files : [],
     }
   }
   return {
@@ -24,15 +32,6 @@ export function defaultGetMessageResponseBody<MessageBody extends object = TextM
     text: "UNKNOWN",
     files: [],
   }
-}
-
-export function defaultGetMessageDisplayContent(message: Message, editActionName: string) {
-  const edits = message.actions?.[editActionName]
-  if (!edits) return message.content.text || ""
-  const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
-  const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
-
-  return lastEdit.value
 }
 
 export const defaultEditActionName = MessageActionType.EDITED

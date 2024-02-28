@@ -23,7 +23,7 @@ import { MessageElementsUtils } from "../message-elements-utils"
 import { MessageDraft } from "./message-draft"
 import { getErrorProxiedEntity } from "../error-logging"
 import { INTERNAL_MODERATION_PREFIX } from "../constants"
-import { defaultGetMessagePublishBody } from "../default-values"
+import { defaultGetMessagePublishBody, defaultGetMessageResponseBody } from "../default-values"
 
 export type ChannelFields = Pick<
   Channel,
@@ -194,14 +194,9 @@ export class Channel {
         }
       }
 
-      // const message: TextMessageContent = {
-      //   type: MessageType.TEXT,
-      //   text,
-      //   ...(filesData.length && { files: filesData }),
-      //   ...this.getPushPayload(text),
-      // }
       const getMessagePublishBody =
         this.chat.config.customPayloads.getMessagePublishBody || defaultGetMessagePublishBody
+
       const message = {
         ...getMessagePublishBody(
           {
@@ -209,7 +204,7 @@ export class Channel {
             text,
             files: filesData,
           },
-          this
+          this.id
         ),
         ...this.getPushPayload(text),
       }
@@ -325,7 +320,9 @@ export class Channel {
     const listener = {
       message: (event: MessageEvent) => {
         if (event.channel !== this.id) return
-        if (event.message.type !== "text") return
+        const getMessageResponseBody =
+          this.chat.config.customPayloads.getMessageResponseBody || defaultGetMessageResponseBody
+        if (getMessageResponseBody(event).type !== "text") return
         callback(Message.fromDTO(this.chat, event))
       },
     }
