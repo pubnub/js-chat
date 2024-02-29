@@ -1564,4 +1564,95 @@ describe("Send message test", () => {
     expect(liveMessageText).toBe("Hello live world! Number 2")
     disconnect()
   })
+
+  test("should be able to read live encrypted messages with custom payloads", async () => {
+    const chat = await createChatInstance({
+      shouldCreateNewInstance: true,
+      config: {
+        customPayloads: {
+          getMessagePublishBody: ({ type, text, files }) => {
+            return {
+              body: {
+                message: {
+                  content: {
+                    text,
+                  },
+                },
+                files,
+              },
+              messageType: type,
+            }
+          },
+          getMessageResponseBody: (messageParams: MessageDTOParams) => {
+            return {
+              text: messageParams.message.body.message.content.text,
+              type: messageParams.message.messageType,
+              files: messageParams.message.body.files,
+            }
+          },
+        },
+        cryptoModule: CryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
+      },
+    })
+
+    const someChannel =
+      (await chat.getChannel("some-channel-custom-body3")) ||
+      (await chat.createChannel("some-channel-custom-body3", { name: "Custom body channel" }))
+
+    let liveMessageText = ""
+
+    const disconnect = someChannel.connect((msg) => {
+      liveMessageText = msg.text
+    })
+
+    await someChannel.sendText("Hello encrypted world!")
+    await sleep(500)
+    expect(liveMessageText).toBe("Hello encrypted world!")
+    await someChannel.sendText("Hello encrypted world! Number 2")
+    await sleep(500)
+    expect(liveMessageText).toBe("Hello encrypted world! Number 2")
+    disconnect()
+  })
+
+  test("should be able to read historic encrypted messages with custom payloads", async () => {
+    const chat = await createChatInstance({
+      shouldCreateNewInstance: true,
+      config: {
+        customPayloads: {
+          getMessagePublishBody: ({ type, text, files }) => {
+            return {
+              body: {
+                message: {
+                  content: {
+                    text,
+                  },
+                },
+                files,
+              },
+              messageType: type,
+            }
+          },
+          getMessageResponseBody: (messageParams: MessageDTOParams) => {
+            return {
+              text: messageParams.message.body.message.content.text,
+              type: messageParams.message.messageType,
+              files: messageParams.message.body.files,
+            }
+          },
+        },
+        cryptoModule: CryptoModule.aesCbcCryptoModule({ cipherKey: "pubnubenigma" }),
+      },
+    })
+
+    const someChannel =
+      (await chat.getChannel("some-channel-custom-body3")) ||
+      (await chat.createChannel("some-channel-custom-body3", { name: "Custom body channel" }))
+
+    await someChannel.sendText("Hello encrypted world!")
+    await someChannel.sendText("Hello encrypted world! Number 2")
+    await sleep(500)
+    const historyObject = await someChannel.getHistory({ count: 2 })
+    expect(historyObject.messages[0].text).toBe("Hello encrypted world!")
+    expect(historyObject.messages[1].text).toBe("Hello encrypted world! Number 2")
+  })
 })
