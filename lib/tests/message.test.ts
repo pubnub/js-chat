@@ -333,10 +333,16 @@ describe("Send message test", () => {
 
   test("should render URLs correctly", async () => {
     const messageDraft = channel.createMessageDraft()
-    const someUser =
-      (await chat.getUser("Przemek")) || (await chat.createUser("Przemek", { name: "Lukasz" }))
-    const someUser2 =
-      (await chat.getUser("whatever")) || (await chat.createUser("whatever", { name: "Anton" }))
+    let someUser = await chat.getUser("Przemek")
+    let someUser2 = await chat.getUser("whatever")
+    if (someUser) {
+      await someUser.delete({ soft: false })
+    }
+    if (someUser2) {
+      await someUser2.delete({ soft: false })
+    }
+    someUser = await chat.createUser("Przemek", { name: "Lukasz" })
+    someUser2 = await chat.createUser("whatever", { name: "Anton" })
 
     const expectedLinkedText = generateExpectedLinkedText(messageDraft, someUser, someUser2)
 
@@ -1073,10 +1079,10 @@ describe("Send message test", () => {
     let encryptedMessage: Message
     let cipheredMessage: Message | undefined
 
-    someEncryptedGroupChannel.channel.connect((msg) => {
+    const disconnect1 = someEncryptedGroupChannel.channel.connect((msg) => {
       encryptedMessage = msg
     })
-    sameCipheredGroupChannel.connect((msg) => {
+    const disconnect2 = sameCipheredGroupChannel.connect((msg) => {
       cipheredMessage = msg
     })
 
@@ -1085,13 +1091,15 @@ describe("Send message test", () => {
     const encryptedHistory = await someEncryptedGroupChannel.channel.getHistory()
     const cipheredHistory = await sameCipheredGroupChannel.getHistory()
     expect(encryptedMessage).toBeDefined()
-    expect(cipheredMessage).toBeUndefined()
+    expect(cipheredMessage).toBeDefined()
     expect(encryptedMessage.text).toBe("Random text")
     expect(encryptedHistory.messages[0].text).toBe("Random text")
     expect(cipheredHistory.messages[0].text.startsWith("UE5FRAFBQ1JIE")).toBeTruthy()
     await someEncryptedGroupChannel.channel.delete({ soft: false })
     await sameCipheredGroupChannel.delete({ soft: false })
     await someRandomUser1.delete({ soft: false })
+    disconnect1()
+    disconnect2()
   })
 
   test("should encrypt and decrypt a file", async () => {
@@ -1121,10 +1129,10 @@ describe("Send message test", () => {
     let encryptedMessage: Message
     let cipheredMessage: Message | undefined
 
-    someEncryptedGroupChannel.channel.connect((msg) => {
+    const disconnect1 = someEncryptedGroupChannel.channel.connect((msg) => {
       encryptedMessage = msg
     })
-    sameCipheredGroupChannel.connect((msg) => {
+    const disconnect2 = sameCipheredGroupChannel.connect((msg) => {
       cipheredMessage = msg
     })
 
@@ -1142,6 +1150,8 @@ describe("Send message test", () => {
     await someEncryptedGroupChannel.channel.delete({ soft: false })
     await sameCipheredGroupChannel.delete({ soft: false })
     await someRandomUser1.delete({ soft: false })
+    disconnect1()
+    disconnect2()
   })
 
   test("should still view text messages sent before enabling encryption", async () => {
