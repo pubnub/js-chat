@@ -1,6 +1,6 @@
 import { MessageEvent, FetchMessagesResponse } from "pubnub"
 import { Chat } from "./chat"
-import { EventPayloads, EventType, TextMessageContent } from "../types"
+import { EventPayloads, EventType } from "../types"
 import { getErrorProxiedEntity } from "../error-logging"
 
 export type EventFields<T extends EventType> = Pick<
