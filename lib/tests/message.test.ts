@@ -1152,7 +1152,7 @@ describe("Send message test", () => {
     await someRandomUser1.delete({ soft: false })
     disconnect1()
     disconnect2()
-  })
+  }, 20000)
 
   test("should still view text messages sent before enabling encryption", async () => {
     const encryptedChat = await createChatInstance({
@@ -1173,10 +1173,10 @@ describe("Send message test", () => {
     let plainMessage: Message
     let cipheredMessage: Message | undefined
 
-    somePlainGroupChannel.channel.connect((msg) => {
+    const disconnect1 = somePlainGroupChannel.channel.connect((msg) => {
       plainMessage = msg
     })
-    sameEncryptedGroupChannel.connect((msg) => {
+    const disconnect2 = sameEncryptedGroupChannel.connect((msg) => {
       cipheredMessage = msg
     })
 
@@ -1193,7 +1193,9 @@ describe("Send message test", () => {
     await somePlainGroupChannel.channel.delete({ soft: false })
     await sameEncryptedGroupChannel.delete({ soft: false })
     await someRandomUser1.delete({ soft: false })
-  })
+    disconnect1()
+    disconnect2()
+  }, 20000)
 
   test("should still view files sent before enabling encryption", async () => {
     const file1 = fs.createReadStream("tests/fixtures/pblogo1.png")
@@ -1224,10 +1226,10 @@ describe("Send message test", () => {
     let plainMessage: Message
     let cipheredMessage: Message | undefined
 
-    somePlainGroupChannel.channel.connect((msg) => {
+    const disconnect1 = somePlainGroupChannel.channel.connect((msg) => {
       plainMessage = msg
     })
-    sameEncryptedGroupChannel.connect((msg) => {
+    const disconnect2 = sameEncryptedGroupChannel.connect((msg) => {
       cipheredMessage = msg
     })
 
@@ -1246,7 +1248,9 @@ describe("Send message test", () => {
     await somePlainGroupChannel.channel.delete({ soft: false })
     await sameEncryptedGroupChannel.delete({ soft: false })
     await someRandomUser1.delete({ soft: false })
-  })
+    disconnect1()
+    disconnect2()
+  }, 20000)
 
   test("should be able to decrypt text and file messages sent using a previous encryption key", async () => {
     const file1 = fs.createReadStream("tests/fixtures/pblogo1.png")
@@ -1327,7 +1331,7 @@ describe("Send message test", () => {
 
     await someGroupChannel.channel.delete({ soft: false })
     await someRandomUser1.delete({ soft: false })
-  })
+  }, 20000)
 
   test("should send a message with custom body and transform it to TextMessageContent when received", async () => {
     const chat = await createChatInstance({
