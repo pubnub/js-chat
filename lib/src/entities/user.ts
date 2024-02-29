@@ -1,6 +1,6 @@
 import PubNub, { UUIDMetadataObject, ObjectCustom, GetMembershipsParametersv2 } from "pubnub"
 import { Chat } from "./chat"
-import { DeleteParameters, OptionalAllBut, TextMessageContent } from "../types"
+import { DeleteParameters, OptionalAllBut } from "../types"
 import { Channel } from "./channel"
 import { Membership } from "./membership"
 import { INTERNAL_ADMIN_CHANNEL, INTERNAL_MODERATION_PREFIX } from "../constants"
@@ -40,7 +40,7 @@ export class User {
           type?: string | null
         })
       | UUIDMetadataObject<ObjectCustom>
-  ): User {
+  ) {
     const data = {
       id: params.id,
       name: params.name || undefined,
