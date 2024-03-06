@@ -1,15 +1,16 @@
 import { Chat } from "./chat"
 import PubNub from "pubnub"
 import {
-  MessageActionType,
-  MessageActions,
   DeleteParameters,
+  MessageActions,
   MessageDTOParams,
   TextMessageContent,
+  MessageActionType,
 } from "../types"
 import { INTERNAL_ADMIN_CHANNEL } from "../constants"
 import { getErrorProxiedEntity } from "../error-logging"
 import { MessageElementsUtils } from "../message-elements-utils"
+import { defaultGetMessageResponseBody } from "../default-values"
 
 export type MessageFields = Pick<
   Message,
@@ -88,17 +89,13 @@ export class Message {
   }
 
   /** @internal */
-  static fromDTO(chat: Chat, params: MessageDTOParams) {
+  static fromDTO(chat: Chat, params: MessageDTOParams): Message {
+    const getMessageResponseBody =
+      chat.config.customPayloads.getMessageResponseBody || defaultGetMessageResponseBody
+
     const data = {
       timetoken: String(params.timetoken),
-      content:
-        typeof params.message === "string"
-          ? {
-              type: "text",
-              text: params.message,
-              files: [],
-            }
-          : params.message,
+      content: getMessageResponseBody(params),
       channelId: params.channel,
       userId: "publisher" in params ? params.publisher : params.uuid || "unknown-user",
       actions: "actions" in params ? params.actions : undefined,
@@ -182,8 +179,7 @@ export class Message {
    * Message text
    */
   get text() {
-    const type = MessageActionType.EDITED
-    const edits = this.actions?.[type]
+    const edits = this.actions?.[this.chat.editMessageActionName]
     if (!edits) return this.content.text || ""
     const flatEdits = Object.entries(edits).map(([k, v]) => ({ value: k, ...v[0] }))
     const lastEdit = flatEdits.reduce((a, b) => (a.actionTimetoken > b.actionTimetoken ? a : b))
@@ -210,7 +206,7 @@ export class Message {
   }
 
   async editText(newText: string) {
-    const type = MessageActionType.EDITED
+    const type = this.chat.editMessageActionName
     try {
       const { data } = await this.chat.sdk.addMessageAction({
         channel: this.channelId,
@@ -228,13 +224,13 @@ export class Message {
    * Deletions
    */
   get deleted() {
-    const type = MessageActionType.DELETED
+    const type = this.chat.deleteMessageActionName
     return !!this.actions?.[type] && !!this.actions?.[type][type].length
   }
 
   async delete(params: DeleteParameters & { preserveFiles?: boolean } = {}) {
     const { soft } = params
-    const type = MessageActionType.DELETED
+    const type = this.chat.deleteMessageActionName
     try {
       if (soft) {
         const { data } = await this.chat.sdk.addMessageAction({
@@ -273,7 +269,8 @@ export class Message {
       console.warn("This message has not been deleted")
       return
     }
-    const deletedActions = this.actions?.[MessageActionType.DELETED]?.[MessageActionType.DELETED]
+    const deletedActions =
+      this.actions?.[this.chat.deleteMessageActionName]?.[this.chat.deleteMessageActionName]
     if (!deletedActions) {
       console.warn("Malformed data", deletedActions)
       return
@@ -299,7 +296,7 @@ export class Message {
     ])
 
     let allActions = this.actions || {}
-    delete allActions[MessageActionType.DELETED]
+    delete allActions[this.chat.deleteMessageActionName]
 
     for (let i = 0; i < data.length; i++) {
       const actions = this.assignAction(data[i])
