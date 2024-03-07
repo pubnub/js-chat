@@ -201,13 +201,11 @@ export class Chat {
       return this.sdk.signal(params)
     }
 
-    if (this.config.saveDebugLog) {
-      console.warn(
-        `You tried to send a signal containing message: ${JSON.stringify(
-          params.message
-        )} to channel: ${params.channel} but PubNub Access Manager prevented you from doing so.`
-      )
-    }
+    throw new Error(
+      `You tried to send a signal containing message: ${JSON.stringify(
+        params.message
+      )} to channel: ${params.channel} but PubNub Access Manager prevented you from doing so.`
+    )
   }
 
   /**

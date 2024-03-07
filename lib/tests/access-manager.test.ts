@@ -315,4 +315,30 @@ describe("Pubnub Access Manager", () => {
 
     parseTokenSpy.mockRestore()
   })
+
+  test("should throw an error when PAM does not grant 'write' access", async () => {
+    chat = await createChatInstance({
+      config: {
+        authKey: "hello",
+      },
+    })
+
+    const parseTokenSpy = jest.spyOn(chat.sdk, "parseToken").mockImplementation(() => {
+      return {
+        patterns: parseTokenReturnValue.patterns,
+      }
+    })
+    let thrownErrorMessage = ""
+    try {
+      await chat.signal({ channel: "forbidden-channel", message: { signaling: "forbidden" } })
+    } catch (e) {
+      thrownErrorMessage = e.message
+    }
+
+    expect(thrownErrorMessage).toBe(
+      'You tried to send a signal containing message: {"signaling":"forbidden"} to channel: forbidden-channel but PubNub Access Manager prevented you from doing so.'
+    )
+
+    parseTokenSpy.mockRestore()
+  })
 })
