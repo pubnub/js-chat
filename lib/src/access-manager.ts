@@ -1,7 +1,7 @@
 import { GrantTokenPermissions } from "pubnub"
 import type { Chat } from "./entities/chat"
 
-export class PubnubAccessManager {
+export class AccessManager {
   chat: Chat
 
   constructor(chat: Chat) {

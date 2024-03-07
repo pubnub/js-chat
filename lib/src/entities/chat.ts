@@ -23,7 +23,7 @@ import { getErrorProxiedEntity, ErrorLogger } from "../error-logging"
 import { cyrb53a } from "../hash"
 import { uuidv4 } from "../uuidv4"
 import { defaultEditActionName, defaultDeleteActionName } from "../default-values"
-import { PubnubAccessManager } from "../pubnub-access-manager"
+import { AccessManager } from "../access-manager"
 
 export type ChatConfig = {
   saveDebugLog: boolean
@@ -72,7 +72,7 @@ export class Chat {
   /** @internal */
   readonly deleteMessageActionName: string
   /** @internal */
-  readonly pubnubAccessManager: PubnubAccessManager
+  readonly accessManager: AccessManager
 
   /** @internal */
   private constructor(params: ChatConstructor) {
@@ -143,7 +143,7 @@ export class Chat {
       authKey: pubnubConfig.authKey,
     } as ChatConfig
 
-    this.pubnubAccessManager = new PubnubAccessManager(this)
+    this.accessManager = new AccessManager(this)
   }
 
   static async init(params: ChatConstructor) {
@@ -192,7 +192,7 @@ export class Chat {
 
   /* @internal */
   signal(params: { channel: string; message: any }) {
-    const canISendSignal = this.pubnubAccessManager.canI({
+    const canISendSignal = this.accessManager.canI({
       permission: "write",
       resourceName: params.channel,
       resourceType: "channels",

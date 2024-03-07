@@ -95,7 +95,7 @@ describe("Pubnub Access Manager", () => {
     const channelAPermissions = parseTokenReturnValue.resources.channels["channel-a"]
     for (const key of Object.keys(channelAPermissions)) {
       expect(
-        chat.pubnubAccessManager.canI({
+        chat.accessManager.canI({
           resourceName: "channel-a",
           resourceType: "channels",
           permission: key,
@@ -105,7 +105,7 @@ describe("Pubnub Access Manager", () => {
     const channelBPermissions = parseTokenReturnValue.resources.channels["channel-b"]
     for (const key of Object.keys(channelBPermissions)) {
       expect(
-        chat.pubnubAccessManager.canI({
+        chat.accessManager.canI({
           resourceName: "channel-b",
           resourceType: "channels",
           permission: key,
@@ -115,7 +115,7 @@ describe("Pubnub Access Manager", () => {
     const someUuidPermissions = parseTokenReturnValue.resources.uuids["some_uuid"]
     for (const key of Object.keys(someUuidPermissions)) {
       expect(
-        chat.pubnubAccessManager.canI({
+        chat.accessManager.canI({
           resourceName: "some_uuid",
           resourceType: "uuids",
           permission: key,
@@ -125,7 +125,7 @@ describe("Pubnub Access Manager", () => {
     const randomUuidPermissions = parseTokenReturnValue.resources.uuids["random_uuid"]
     for (const key of Object.keys(randomUuidPermissions)) {
       expect(
-        chat.pubnubAccessManager.canI({
+        chat.accessManager.canI({
           resourceName: "random_uuid",
           resourceType: "uuids",
           permission: key,
@@ -134,14 +134,14 @@ describe("Pubnub Access Manager", () => {
     }
 
     expect(
-      chat.pubnubAccessManager.canI({
+      chat.accessManager.canI({
         resourceName: "channel-c",
         resourceType: "channels",
         permission: "write",
       })
     ).toBe(false)
     expect(
-      chat.pubnubAccessManager.canI({
+      chat.accessManager.canI({
         resourceName: "channel-v",
         resourceType: "channels",
         permission: "join",
@@ -166,7 +166,7 @@ describe("Pubnub Access Manager", () => {
       parseTokenReturnValue.patterns.channels["^(?:group-room-){1}(?:.*)$"]
     for (const key of Object.keys(groupRoomsPermissions)) {
       expect(
-        chat.pubnubAccessManager.canI({
+        chat.accessManager.canI({
           resourceName: "group-room-hello",
           resourceType: "channels",
           permission: key,
@@ -177,7 +177,7 @@ describe("Pubnub Access Manager", () => {
       parseTokenReturnValue.patterns.channels["^(?:public-room-){1}(?:.*)$"]
     for (const key of Object.keys(publicRoomsPermissions)) {
       expect(
-        chat.pubnubAccessManager.canI({
+        chat.accessManager.canI({
           resourceName: "public-room-pubnub",
           resourceType: "channels",
           permission: key,
@@ -188,7 +188,7 @@ describe("Pubnub Access Manager", () => {
       parseTokenReturnValue.patterns.channels["^(?:unknown-room-){1}(?:.*)$"]
     for (const key of Object.keys(unknownRoomsPermissions)) {
       expect(
-        chat.pubnubAccessManager.canI({
+        chat.accessManager.canI({
           resourceName: "unknown-room-pubnub",
           resourceType: "channels",
           permission: key,
@@ -196,7 +196,7 @@ describe("Pubnub Access Manager", () => {
       ).toBe(unknownRoomsPermissions[key])
     }
     expect(
-      chat.pubnubAccessManager.canI({
+      chat.accessManager.canI({
         resourceName: "some_jibberish",
         resourceType: "channels",
         permission: "manage",
@@ -218,14 +218,14 @@ describe("Pubnub Access Manager", () => {
     })
 
     expect(
-      chat.pubnubAccessManager.canI({
+      chat.accessManager.canI({
         resourceName: "some-channel",
         resourceType: "channels",
         permission: "join",
       })
     ).toBe(false)
     expect(
-      chat.pubnubAccessManager.canI({
+      chat.accessManager.canI({
         resourceName: "some-kind-of-uuid",
         resourceType: "uuids",
         permission: "update",
@@ -239,18 +239,80 @@ describe("Pubnub Access Manager", () => {
     chat = await createChatInstance({ shouldCreateNewInstance: true })
 
     expect(
-      chat.pubnubAccessManager.canI({
+      chat.accessManager.canI({
         resourceName: "some-channel",
         resourceType: "channels",
         permission: "join",
       })
     ).toBe(true)
     expect(
-      chat.pubnubAccessManager.canI({
+      chat.accessManager.canI({
         resourceName: "some-kind-of-uuid",
         resourceType: "uuids",
         permission: "update",
       })
     ).toBe(true)
+  })
+
+  test("should work if only 'resources' are provided", async () => {
+    chat = await createChatInstance({
+      config: {
+        authKey: "hello",
+      },
+    })
+
+    const parseTokenSpy = jest.spyOn(chat.sdk, "parseToken").mockImplementation(() => {
+      return {
+        resources: parseTokenReturnValue.resources,
+      }
+    })
+
+    expect(
+      chat.accessManager.canI({
+        resourceName: "some-channel",
+        resourceType: "channels",
+        permission: "join",
+      })
+    ).toBe(false)
+    expect(
+      chat.accessManager.canI({
+        resourceName: "channel-b",
+        resourceType: "channels",
+        permission: "get",
+      })
+    ).toBe(true)
+
+    parseTokenSpy.mockRestore()
+  })
+
+  test("should work if only 'patterns' are provided", async () => {
+    chat = await createChatInstance({
+      config: {
+        authKey: "hello",
+      },
+    })
+
+    const parseTokenSpy = jest.spyOn(chat.sdk, "parseToken").mockImplementation(() => {
+      return {
+        patterns: parseTokenReturnValue.patterns,
+      }
+    })
+
+    expect(
+      chat.accessManager.canI({
+        resourceName: "public-room-hello",
+        resourceType: "channels",
+        permission: "update",
+      })
+    ).toBe(false)
+    expect(
+      chat.accessManager.canI({
+        resourceName: "pattern-not-found-room",
+        resourceType: "channels",
+        permission: "get",
+      })
+    ).toBe(false)
+
+    parseTokenSpy.mockRestore()
   })
 })
