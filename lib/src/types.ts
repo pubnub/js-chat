@@ -7,6 +7,7 @@ import PubNub, {
 import { User } from "./entities/user"
 import { Message } from "./entities/message"
 import { Event } from "./entities/event"
+import { Chat } from "./entities/chat"
 
 export type ChannelType = "direct" | "group" | "public" | "unknown"
 
