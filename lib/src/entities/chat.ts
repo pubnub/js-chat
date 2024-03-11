@@ -23,6 +23,7 @@ import { getErrorProxiedEntity, ErrorLogger } from "../error-logging"
 import { cyrb53a } from "../hash"
 import { uuidv4 } from "../uuidv4"
 import { defaultEditActionName, defaultDeleteActionName } from "../default-values"
+import { AccessManager } from "../access-manager"
 
 export type ChatConfig = {
   saveDebugLog: boolean
@@ -47,6 +48,7 @@ export type ChatConfig = {
     editMessageActionName?: string
     deleteMessageActionName?: string
   }
+  authKey?: string
 }
 
 type ChatConstructor = Partial<ChatConfig> & PubNub.PubnubConfig
@@ -69,6 +71,8 @@ export class Chat {
   readonly editMessageActionName: string
   /** @internal */
   readonly deleteMessageActionName: string
+  /** @internal */
+  readonly accessManager: AccessManager
 
   /** @internal */
   private constructor(params: ChatConstructor) {
@@ -136,7 +140,10 @@ export class Chat {
         getMessagePublishBody: customPayloads?.getMessagePublishBody,
         getMessageResponseBody: customPayloads?.getMessageResponseBody,
       },
+      authKey: pubnubConfig.authKey,
     } as ChatConfig
+
+    this.accessManager = new AccessManager(this)
   }
 
   static async init(params: ChatConstructor) {
@@ -185,7 +192,20 @@ export class Chat {
 
   /* @internal */
   signal(params: { channel: string; message: any }) {
-    return this.sdk.signal(params)
+    const canISendSignal = this.accessManager.canI({
+      permission: "write",
+      resourceName: params.channel,
+      resourceType: "channels",
+    })
+    if (canISendSignal) {
+      return this.sdk.signal(params)
+    }
+
+    throw new Error(
+      `You tried to send a signal containing message: ${JSON.stringify(
+        params.message
+      )} to channel: ${params.channel} but PubNub Access Manager prevented you from doing so.`
+    )
   }
 
   /**

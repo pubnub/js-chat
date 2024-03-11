@@ -1,11 +1,18 @@
 ---
 name: pubnub-js-chat
-version: v0.5.2
+version: v0.6.0
 scm: github.com/pubnub/js-chat
 schema: 1
 files:
   - lib/dist/index.js
 changelog:
+  - date: 2024-03-11
+    version: v0.6.0
+    changes:
+      - type: feature
+        text: "Check PAM permissions before sending signals."
+      - type: feature
+        text: "Allow custom payloads while sending and receiving messages."
   - date: 2024-01-16
     version: v0.5.2
     changes:

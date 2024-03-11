@@ -144,11 +144,23 @@ export class Membership {
         custom: { ...this.custom, lastReadMessageTimetoken: timetoken },
       })
 
-      await this.chat.emitEvent({
-        channel: this.channel.id,
-        type: "receipt",
-        payload: { messageTimetoken: timetoken },
+      const canISendSignal = this.chat.accessManager.canI({
+        permission: "write",
+        resourceName: this.channel.id,
+        resourceType: "channels",
       })
+      if (canISendSignal) {
+        await this.chat.emitEvent({
+          channel: this.channel.id,
+          type: "receipt",
+          payload: { messageTimetoken: timetoken },
+        })
+      }
+      if (!canISendSignal && this.chat.config.saveDebugLog) {
+        console.warn(
+          `'receipt' event was not sent to channel '${this.channel.id}' because PAM did not allow it.`
+        )
+      }
 
       return response
     } catch (error) {
