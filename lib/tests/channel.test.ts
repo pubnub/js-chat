@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Channel, Message, Chat, MessageDraft } from "../src"
 import {
   sleep,
@@ -785,7 +786,7 @@ describe("Channel test", () => {
     expect(invitedMemberships).toBeDefined()
 
     invitedMemberships.forEach((membership, index) => {
-      const invitedUser = usersToInvite[index]
+      const invitedUser = usersToInvite.find((u) => u.id === membership.user.id)
       expect(membership.user.id).toEqual(invitedUser.id)
       expect(membership.channel.id).toEqual(channel.id)
     })

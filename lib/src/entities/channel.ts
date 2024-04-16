@@ -319,6 +319,7 @@ export class Channel {
   connect(callback: (message: Message) => void) {
     const listener = {
       message: (event: MessageEvent) => {
+        console.log('event', event)
         if (event.channel !== this.id) return
         const getMessageResponseBody =
           this.chat.config.customPayloads.getMessageResponseBody || defaultGetMessageResponseBody

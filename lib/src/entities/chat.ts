@@ -303,8 +303,8 @@ export class Chat {
       const response = await this.sdk.objects.getUUIDMetadata({ uuid: id })
       return User.fromDTO(this, response.data)
     } catch (error) {
-      const e = error as { status: { errorData: { status: number } } }
-      if (e?.status?.errorData?.status === 404) return null
+      const e = error as { status: { statusCode: number } }
+      if (e?.status?.statusCode === 404) return null
       else throw error
     }
   }
@@ -549,8 +549,8 @@ export class Chat {
       })
       return Channel.fromDTO(this, response.data)
     } catch (error) {
-      const e = error as { status: { errorData: { status: number } } }
-      if (e?.status?.errorData?.status === 404) return null
+      const e = error as { status: { statusCode: number } }
+      if (e?.status?.statusCode === 404) return null
       else throw error
     }
   }

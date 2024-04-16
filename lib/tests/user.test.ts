@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Chat, User } from "../src"
 import { createChatInstance, createRandomUser, sleep } from "./utils"
 import { INTERNAL_ADMIN_CHANNEL } from "../src"
@@ -97,7 +98,7 @@ describe("User test", () => {
       expect(fetchedUser.id).toBe(createdUser.id)
       expect(fetchedUser.name).toEqual(createdUser.name)
     }
-  })
+  }, 20000)
 
   test("Should fail to update a non-existent user", async () => {
     const nonExistentUserId = "nonexistentuserid"

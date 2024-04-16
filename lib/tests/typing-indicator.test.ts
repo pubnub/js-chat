@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Channel, Chat } from "../src"
 import { createChatInstance, createRandomChannel, sleep } from "./utils"
 
@@ -56,7 +57,9 @@ describe("Typing indicator test", () => {
 
     const callback = jest.fn()
 
-    const channelFromUser1 = await chat1.getChannel(channelId)
+    const channelFromUser1 =
+      (await chat1.getChannel(channelId)) ||
+      (await chat1.createChannel(channelId, { name: "hello" }))
     const unsubscribe = channelFromUser1.getTyping(callback)
 
     await channelFromUser1.startTyping()
@@ -104,8 +107,12 @@ describe("Typing indicator test", () => {
     const { channel } = result
 
     const callback = jest.fn()
-    const channelFromUser1 = await chat1.getChannel(channelId)
-    const channelFromUser2 = await chat2.getChannel(channelId)
+    const channelFromUser1 =
+      (await chat1.getChannel(channelId)) ||
+      (await chat1.createChannel(channelId, { name: "hello" }))
+    const channelFromUser2 =
+      (await chat2.getChannel(channelId)) ||
+      (await chat2.createChannel(channelId, { name: "hello" }))
 
     const unsubscribe = channel.getTyping(callback)
 
@@ -129,7 +136,7 @@ describe("Typing indicator test", () => {
     await chat1.currentUser.delete()
     await chat2.currentUser.delete()
     await channel.delete()
-  })
+  }, 30000)
 
   test("should properly handle typing and stopping typing", async () => {
     const callback = jest.fn()

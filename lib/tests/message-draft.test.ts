@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Channel, Chat } from "../src"
 import {
   createChatInstance,

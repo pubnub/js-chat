@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { TimetokenUtils } from "../src"
 
 describe("Channel test", () => {

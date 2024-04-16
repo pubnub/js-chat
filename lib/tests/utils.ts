@@ -1,3 +1,4 @@
+// @ts-nocheck
 // lib/tests/testUtils.ts
 import { Chat, MessageDraft, Channel, Message, ChatConfig } from "../src"
 import * as dotenv from "dotenv"

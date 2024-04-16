@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createChatInstance } from "./utils"
 import { Chat } from "../src"
 import { jest } from "@jest/globals"

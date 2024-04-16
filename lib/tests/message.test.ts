@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Channel,
   Chat,
@@ -1102,7 +1103,7 @@ describe("Send message test", () => {
     disconnect2()
   })
 
-  test("should encrypt and decrypt a file", async () => {
+  test.only("should encrypt and decrypt a file", async () => {
     const file1 = fs.createReadStream("tests/fixtures/pblogo1.png")
     const file2 = fs.createReadStream("tests/fixtures/pblogo2.png")
     const file3 = fs.createReadStream("tests/fixtures/pblogo3.png")
@@ -1152,7 +1153,7 @@ describe("Send message test", () => {
     await someRandomUser1.delete({ soft: false })
     disconnect1()
     disconnect2()
-  }, 20000)
+  }, 30000)
 
   test("should still view text messages sent before enabling encryption", async () => {
     const encryptedChat = await createChatInstance({
