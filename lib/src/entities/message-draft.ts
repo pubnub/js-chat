@@ -313,8 +313,8 @@ export class MessageDraft {
 
       const regex =
         splitSymbol === "@"
-          ? /(?<=^|\s)@[^@\s]+(?:\s+[^@\s]+)*/g
-          : /(?<=^|\s)#[^#\s]+(?:\s+[^#\s]+)*/g
+          ? /(?:^|\s)@[^@\s]+(?:\s+[^@\s]+)*/g
+          : /(?:^|\s)#[^#\s]+(?:\s+[^#\s]+)*/g
 
       const splitMentionsByAt = (this.value.match(regex) || []).map((splitMention) =>
         splitMention.substring(1)
