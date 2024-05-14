@@ -17,13 +17,11 @@ export function NewChatScreen({ navigation }: StackScreenProps<HomeStackParamLis
     setLoading(true)
     navigation.popToTop()
     navigation.navigate("Chat")
-    // const { channel } = await chat.createDirectConversation({
-    //   user,
-    //   channelData: { name: `1:1 with ${user.name}` },
-    // })
-    const ch = await chat.getChannel("general_chat")
-    setCurrentChannel(ch)
-    // setCurrentChannel(channel)
+    const { channel } = await chat.createDirectConversation({
+      user,
+      channelData: { name: `1:1 with ${user.name}` },
+    })
+    setCurrentChannel(channel)
     setLoading(false)
   }
 
