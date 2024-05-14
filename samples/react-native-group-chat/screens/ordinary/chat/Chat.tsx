@@ -7,6 +7,7 @@ import {
   FlatList,
   SafeAreaView,
   Platform,
+  Alert,
 } from "react-native"
 import { GiftedChat, Bubble } from "react-native-gifted-chat"
 import { StackScreenProps } from "@react-navigation/stack"
@@ -163,48 +164,61 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
 
   useEffect(() => {
     async function switchChannelImplementation() {
-      if (!currentChannel || !chat) {
-        return
-      }
-      setGiftedChatMappedMessages([])
+      try {
+        if (!currentChannel || !chat) {
+          return
+        }
+        setGiftedChatMappedMessages([])
 
-      const historicalMessagesObject = await currentChannel.getHistory({ count: 10 })
+        const historicalMessagesObject = await currentChannel.getHistory({ count: 10 })
 
-      if (currentChannelMembership && historicalMessagesObject.messages.length) {
-        await currentChannelMembership.setLastReadMessageTimetoken(
-          historicalMessagesObject.messages[historicalMessagesObject.messages.length - 1].timetoken
+        if (currentChannelMembership && historicalMessagesObject.messages.length) {
+          await currentChannelMembership.setLastReadMessageTimetoken(
+            historicalMessagesObject.messages[historicalMessagesObject.messages.length - 1]
+              .timetoken
+          )
+        }
+
+        setMessageDraft(
+          currentChannel.createMessageDraft({
+            userSuggestionSource: "global",
+            isTypingIndicatorTriggered: currentChannel.type !== "public",
+          })
         )
-      }
 
-      setMessageDraft(
-        currentChannel.createMessageDraft({
-          userSuggestionSource: "global",
-          isTypingIndicatorTriggered: currentChannel.type !== "public",
-        })
-      )
+        if (currentChannel.type !== "public") {
+          currentChannel.getTyping((value) => {
+            setTypingData(value)
+          })
+        }
 
-      if (currentChannel.type !== "public") {
-        currentChannel.getTyping((value) => {
-          setTypingData(value)
-        })
-      }
-
-      setGiftedChatMappedMessages((msgs) =>
-        GiftedChat.prepend(
-          [],
-          historicalMessagesObject.messages
-            .map((msg) => mapPNMessageToGChatMessage(msg, getUser(msg.userId)))
-            .reverse()
+        setGiftedChatMappedMessages((msgs) =>
+          GiftedChat.prepend(
+            [],
+            historicalMessagesObject.messages
+              .map((msg) => mapPNMessageToGChatMessage(msg, getUser(msg.userId)))
+              .reverse()
+          )
         )
-      )
-      setGiftedChatMappedMessages((msgs) =>
-        GiftedChat.prepend(
-          [],
-          historicalMessagesObject.messages
-            .map((msg) => mapPNMessageToGChatMessage(msg, getUser(msg.userId)))
-            .reverse()
+        setGiftedChatMappedMessages((msgs) =>
+          GiftedChat.prepend(
+            [],
+            historicalMessagesObject.messages
+              .map((msg) => mapPNMessageToGChatMessage(msg, getUser(msg.userId)))
+              .reverse()
+          )
         )
-      )
+      } catch (error) {
+        const e = error as { status: { errorData: { status: number } } }
+        if (e?.status?.errorData?.status !== 403) {
+          return
+        }
+        if (Platform.OS === "web") {
+          alert(`You cannot access this channel: ${currentChannel?.id}`)
+        } else {
+          Alert.alert("You cannot access this channel:", currentChannel?.id)
+        }
+      }
     }
 
     switchChannelImplementation()
@@ -242,12 +256,24 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     setImage("")
   }
 
-  const onSend = (messages: EnhancedIMessage[] = []) => {
+  const onSend = async () => {
     if (!messageDraft) {
       return
     }
 
-    messageDraft.send()
+    try {
+      await messageDraft.send()
+    } catch (error) {
+      const e = error as { status: { errorData: { status: number } } }
+      if (e?.status?.errorData?.status !== 403) {
+        return
+      }
+      if (Platform.OS === "web") {
+        alert(`You cannot send messages to this channel: ${currentChannel?.id}`)
+      } else {
+        Alert.alert("You cannot send messages to this channel:", currentChannel?.id)
+      }
+    }
     resetInput()
   }
 

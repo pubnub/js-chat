@@ -9,10 +9,18 @@ import { Gap, Line, TextInput, colorPalette as colors, Accordion } from "../../.
 import { ListItem, Avatar } from "../../../components"
 import { HomeStackParamList } from "../../../types"
 import { ChatContext } from "../../../context"
+import { getAuthKey } from "../../../utils/getAuthKey"
 
 export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, "Home">) {
-  const { chat, memberships, setCurrentChannel, setMemberships, setUsers, getInterlocutor } =
-    useContext(ChatContext)
+  const {
+    chat,
+    memberships,
+    currentChannel,
+    setCurrentChannel,
+    setMemberships,
+    setUsers,
+    getInterlocutor,
+  } = useContext(ChatContext)
   const [searchText, setSearchText] = useState("")
   const [unreadChannels, setUnreadChannels] = useState<
     { channel: Channel; count: number; membership: Membership }[]
@@ -53,6 +61,53 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
       removeInvitationListener()
     }
   }, [chat])
+
+  useEffect(() => {
+    if (!chat) {
+      return
+    }
+
+    const removeModerationListener = chat.listenForEvents({
+      channel: chat.currentUser.id,
+      type: "moderation",
+      callback: async ({ payload }) => {
+        const { authKey } = await getAuthKey(chat.currentUser.id)
+        if (!authKey) {
+          return
+        }
+        chat.sdk.setAuthKey(authKey)
+        if (
+          payload.restriction === "banned" &&
+          payload.channelId.replace("PUBNUB_INTERNAL_MODERATION_", "") === currentChannel?.id
+        ) {
+          navigation.popToTop()
+        }
+      },
+    })
+
+    async function statusFunc(status: Pubnub.StatusEvent) {
+      if (status?.errorData?.status === 403) {
+        const { authKey } = await getAuthKey(chat.currentUser.id)
+        if (!authKey) {
+          return
+        }
+        chat?.sdk.setAuthKey(authKey)
+        navigation.popToTop()
+        chat?.sdk.reconnect()
+      }
+    }
+
+    chat.sdk.addListener({
+      status: statusFunc,
+    })
+
+    return () => {
+      removeModerationListener()
+      chat.sdk.removeListener({
+        status: statusFunc,
+      })
+    }
+  }, [chat, currentChannel])
 
   useEffect(() => {
     const disconnectFuncs = channels.map((ch) =>
