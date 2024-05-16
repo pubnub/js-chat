@@ -15,12 +15,20 @@ export class AppService {
         [curr.id]: {
           read: true,
           write: true,
+          manage: false,
+          delete: false,
           get: true,
+          join: true,
+          update: true,
         },
         [`${curr.id}-pnpres`]: {
           read: true,
           write: true,
+          manage: false,
+          delete: false,
           get: true,
+          join: true,
+          update: true,
         },
       }),
       {},
@@ -35,7 +43,21 @@ export class AppService {
             channels: allChannelsDefaultPermissions,
             uuids: {
               [userId]: {
+                read: true,
+                write: true,
+                manage: true,
+                delete: true,
                 get: true,
+                join: true,
+                update: true,
+              },
+              [`${userId}-pnpres`]: {
+                read: true,
+                write: true,
+                manage: true,
+                delete: true,
+                get: true,
+                join: true,
                 update: true,
               },
             },
@@ -44,9 +66,10 @@ export class AppService {
       };
     }
 
+    const userMemberships = await user.getMemberships();
     const userRestrictions = await user.getChannelsRestrictions();
 
-    const reducedChannels = userRestrictions.restrictions.reduce(
+    const reducedRestrictedChannels = userRestrictions.restrictions.reduce(
       (acc, curr) => {
         return {
           ...acc,
@@ -64,6 +87,32 @@ export class AppService {
       },
       {},
     );
+    const reducedMemberships = userMemberships.memberships.reduce(
+      (acc, curr) => {
+        return {
+          ...acc,
+          [curr.channel.id]: {
+            read: true,
+            write: true,
+            manage: false,
+            delete: false,
+            get: true,
+            join: true,
+            update: true,
+          },
+          [`${curr.channel.id}-pnpres`]: {
+            read: true,
+            write: true,
+            manage: false,
+            delete: false,
+            get: true,
+            join: true,
+            update: true,
+          },
+        };
+      },
+      {},
+    );
 
     const grantTokenParams = {
       ttl: 15,
@@ -71,7 +120,8 @@ export class AppService {
       resources: {
         channels: {
           ...allChannelsDefaultPermissions,
-          ...reducedChannels,
+          ...reducedMemberships,
+          ...reducedRestrictedChannels,
           [userId]: {
             read: true,
             write: true,

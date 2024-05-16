@@ -116,7 +116,7 @@ export class User {
   /*
    * Memberships
    */
-  async getMemberships(params: Omit<GetMembershipsParametersv2, "include"> = {}) {
+  async getMemberships(params: Omit<GetMembershipsParametersv2, "include" | "uuid"> = {}) {
     const include = {
       totalCount: true,
       customFields: true,
@@ -128,6 +128,7 @@ export class User {
 
     const membershipsResponse = await this.chat.sdk.objects.getMemberships({
       ...params,
+      uuid: this.id,
       include,
       filter: `!(channel.id LIKE '${INTERNAL_MODERATION_PREFIX}*')`,
     })
