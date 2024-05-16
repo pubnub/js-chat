@@ -311,13 +311,13 @@ export class MessageDraft {
         delete copiedObject[Number(key)]
       }
 
-      const regex =
+      const splitSymbolRegex =
         splitSymbol === "@"
-          ? /(?:^|\s)@[^@\s]+(?:\s+[^@\s]+)*/g
-          : /(?:^|\s)#[^#\s]+(?:\s+[^#\s]+)*/g
+          ? /(^|\s)@([^\s@]+(?:\s+[^\s@]+)*)/g
+          : /(^|\s)#([^\s#]+(?:\s+[^\s#]+)*)/g
 
-      const splitMentionsByAt = (this.value.match(regex) || []).map((splitMention) =>
-        splitMention.substring(1)
+      const splitMentionsByAt = (this.value.match(splitSymbolRegex) || []).map((match) =>
+        match.trim().substring(1)
       )
 
       if (referencedName && !splitMentionsByAt[Number(key)]?.startsWith(referencedName)) {
