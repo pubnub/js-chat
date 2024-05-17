@@ -29,12 +29,13 @@ Also, add [typing indicators](https://www.pubnub.com/docs/chat/chat-sdk/build/fe
 
 ## Samples
 
-Test our TypeScript sample chat apps created in various JavaScript frameworks:
+Test our sample Chat SDK apps created in various frameworks:
 
-| Source code                                                                                 | Framework    | Description                                                                              |
-| :------------------------------------------------------------------------------------------ | :----------- | :--------------------------------------------------------------------------------------- |
-| [Direct chat](https://github.com/pubnub/js-chat/blob/master/samples/getting-started/README.md)        | React        | Basic 1:1 support chat letting you exchange messages between a user and a support agent. |
-| [Group chat](https://github.com/pubnub/js-chat/blob/master/samples/react-native-group-chat/README.md) | React Native | Feature-full group chat letting you test most of the features offered by the Chat SDK.   |
+| Source code                                                                                                      | Framework    | Description                                                                                                                                                                                                                                                                                                         |
+| :--------------------------------------------------------------------------------------------------------------- | :----------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [Direct chat](https://github.com/pubnub/js-chat/blob/master/samples/getting-started/README.md)                   | React        | Basic 1:1 support chat letting you exchange messages between a user and a support agent.                                                                                                                                                                                                                            |
+| [Group chat](https://github.com/pubnub/js-chat/blob/master/samples/react-native-group-chat/README.md)            | React Native | Feature-full group chat letting you test most of the features offered by the Chat SDK.                                                                                                                                                                                                                              |
+| [Access Manager API service](https://github.com/pubnub/js-chat/blob/master/samples/access-manager-api/README.md) | NestJS       | Backend service creating an authentication key endpoint for users, integrated with PubNub's Chat SDK to generate Access Manager authentication tokens with appropriate permissions. It allows for controlled access to all channels and reflects user-specific restrictions, with tokens expiring after 15 minutes. |
 
 ## Chat SDK docs
 
