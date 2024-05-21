@@ -1,11 +1,16 @@
 ---
 name: pubnub-js-chat
-version: v0.6.0
+version: v0.6.1
 scm: github.com/pubnub/js-chat
 schema: 1
 files:
   - lib/dist/index.js
 changelog:
+  - date: 2024-05-21
+    version: v0.6.1
+    changes:
+      - type: feature
+        text: "Fix whose memberships are returned when using user.getMemberships()."
   - date: 2024-03-11
     version: v0.6.0
     changes:
