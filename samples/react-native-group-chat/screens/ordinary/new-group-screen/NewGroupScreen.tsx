@@ -30,7 +30,7 @@ export function NewGroupScreen({ navigation }: StackScreenProps<HomeStackParamLi
     navigation.navigate("Chat")
     const { channel } = await chat.createGroupConversation({
       users: selectedUsers,
-      channelId: nanoid(),
+      channelId: `group.${nanoid()}`,
       channelData: { name: groupName },
     })
     setCurrentChannel(channel)

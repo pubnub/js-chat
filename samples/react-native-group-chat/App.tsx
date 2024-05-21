@@ -57,8 +57,8 @@ function MainRoutesNavigator({ route }: StackScreenProps<RootStackParamList, "ma
       const { authKey } = await getAuthKey(name || "test-user")
 
       const chat = await Chat.init({
-        publishKey: process.env.EXPO_PUBLIC_PUBNUB_PUB_KEY || "demo",
-        subscribeKey: process.env.EXPO_PUBLIC_PUBNUB_SUB_KEY || "demo",
+        publishKey: "YOUR_PUB_KEY",
+        subscribeKey: "YOUR_SUB_KEY",
         userId: name || "test-user",
         typingTimeout: 2000,
         storeUserActivityTimestamps: true,

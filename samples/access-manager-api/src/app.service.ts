@@ -8,7 +8,10 @@ export class AppService {
   async getAuthKey(userId: string) {
     const chat = await this.chatsdkService.getChatSdkInstance();
     const user = await chat.getUser(userId);
-    const allChannels = await chat.getChannels();
+    const [allChannels, allUsers] = await Promise.all([
+      chat.getChannels(),
+      chat.getUsers(),
+    ]);
     const allChannelsDefaultPermissions = allChannels.channels.reduce(
       (acc, curr) => ({
         ...acc,
@@ -30,9 +33,60 @@ export class AppService {
           join: true,
           update: true,
         },
+        [userId]: {
+          read: true,
+          write: true,
+          manage: true,
+          delete: true,
+          get: true,
+          join: true,
+          update: true,
+        },
+        [`${userId}-pnpres`]: {
+          read: true,
+          write: true,
+          manage: true,
+          delete: true,
+          get: true,
+          join: true,
+          update: true,
+        },
       }),
       {},
     );
+    const allUsersDefaultPermissions = allUsers.users.reduce(
+      (acc, curr) => ({
+        ...acc,
+        [curr.id]: {
+          read: true,
+          write: true,
+          manage: true,
+          get: true,
+          update: true,
+        },
+      }),
+      {},
+    );
+    const createNewChannelsPatterns = {
+      'direct.*': {
+        read: true,
+        write: true,
+        manage: false,
+        delete: false,
+        get: true,
+        join: true,
+        update: true,
+      },
+      'group.*': {
+        read: true,
+        write: true,
+        manage: false,
+        delete: false,
+        get: true,
+        join: true,
+        update: true,
+      },
+    };
 
     if (!user) {
       return {
@@ -40,8 +94,12 @@ export class AppService {
           ttl: 15,
           authorized_uuid: userId,
           resources: {
-            channels: allChannelsDefaultPermissions,
+            channels: {
+              ...allChannelsDefaultPermissions,
+              ...allUsersDefaultPermissions,
+            },
             uuids: {
+              ...allUsersDefaultPermissions,
               [userId]: {
                 read: true,
                 write: true,
@@ -61,6 +119,9 @@ export class AppService {
                 update: true,
               },
             },
+          },
+          patterns: {
+            channels: createNewChannelsPatterns,
           },
         }),
       };
@@ -122,6 +183,7 @@ export class AppService {
           ...allChannelsDefaultPermissions,
           ...reducedMemberships,
           ...reducedRestrictedChannels,
+          ...allUsersDefaultPermissions,
           [userId]: {
             read: true,
             write: true,
@@ -142,6 +204,7 @@ export class AppService {
           },
         },
         uuids: {
+          ...allUsersDefaultPermissions,
           [userId]: {
             read: true,
             write: true,
@@ -161,6 +224,9 @@ export class AppService {
             update: true,
           },
         },
+      },
+      patterns: {
+        channels: createNewChannelsPatterns,
       },
     };
 
