@@ -25,7 +25,7 @@ To run the React Native Group Chat app, make sure to have the following:
   - **Message Persistence** to store messages in your app.
   - **Access Manager** if you want to use Access Manager in your app.
 
-> **NOTE:** You can use the React Native Group Chat app in an end-to-end scenario to see how to integrate Access Manager in your Chat SDK app. To do that, use [Channel Monitor](https://www.pubnub.com/docs/bizops-workspace/channel-monitor) from [BizOps Workspace](https://www.pubnub.com/docs/bizops-workspace/basics) to mute or ban users on a given keyset, [Access Manager API service](https://github.com/pubnub/js-chat/tree/master/samples/access-manager-api) to generate authentication tokens for users with correct permissions on channels, and the React Native Group Chat app to mock muted/banned users.
+> **NOTE:** You can use the React Native Group Chat app in an end-to-end scenario to see how to integrate Access Manager in your Chat SDK app. To do that, use [Channel Monitor](https://www.pubnub.com/docs/bizops-workspace/channel-monitor) from [BizOps Workspace](https://www.pubnub.com/docs/bizops-workspace/basics) to mute or ban users on a given keyset, [Access Manager API service](https://github.com/pubnub/js-chat/tree/master/samples/access-manager-api) to generate authentication tokens for users with correct permissions on channels, and the React Native Group Chat app to mock muted/banned users. Read the [How to Securely Moderate Chat and Users with BizOps Workspace](https://www.pubnub.com/how-to/securely-moderate-chat-and-users/) for details.
 
 ## Usage
 
