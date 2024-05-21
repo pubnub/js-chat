@@ -20,7 +20,12 @@ To run the React Native Group Chat app, make sure to have the following:
 - [Node.js](https://nodejs.org/en/download/)(>=18.10.0)
 - [Xcode](https://developer.apple.com/xcode/)
 - Code Editor (e.g. [Visual Studio Code](https://code.visualstudio.com/download))
-- PubNub [Publish & Subscribe keys](https://www.pubnub.com/docs/basics/initialize-pubnub) that you can obtain from [Admin Portal](https://admin.pubnub.com/) after setting up an [account](https://www.pubnub.com/docs/setup/account-setup). You must enable **App Context** (with selected region, User Metadata Events, Channel Metadata Events, and Membership Metadata Events) and **Message Persistence** on your keyset to manage user and channel data in the app.
+- PubNub [Publish & Subscribe keys](https://www.pubnub.com/docs/basics/initialize-pubnub) that you can obtain from [Admin Portal](https://admin.pubnub.com/) after setting up an [account](https://www.pubnub.com/docs/setup/account-setup). You must enable the following configuration options on your app's keyset:
+  - **App Context** (with selected region, `User Metadata Events`, `Channel Metadata Events`, and `Membership Metadata Events`) to manage user and channel data in your app. If you use Access Manager in the app, the `Disallow Get All Channel Metadata` and `Disallow Get All User Metadata` options must be unmarked.
+  - **Message Persistence** to store messages in your app.
+  - **Access Manager** if you want to use Access Manager in your app.
+
+> **NOTE:** You can use the React Native Group Chat app in an end-to-end scenario to see how to integrate Access Manager in your Chat SDK app. To do that, use [Channel Monitor](https://www.pubnub.com/docs/bizops-workspace/channel-monitor) from [BizOps Workspace](https://www.pubnub.com/docs/bizops-workspace/basics) to mute or ban users on a given keyset, [Access Manager API service](https://github.com/pubnub/js-chat/tree/master/samples/access-manager-api) to generate authentication tokens for users with correct permissions on channels, and the React Native Group Chat app to mock muted/banned users.
 
 ## Usage
 
@@ -35,7 +40,7 @@ To run the app on an iOS simulator, follow these steps:
 1. Go to the downloaded repository folder.
 
    ```bash showLineNumbers
-   cd js-chat-master
+   cd js-chat
    ```
 
 1. Install all the required dependencies.
