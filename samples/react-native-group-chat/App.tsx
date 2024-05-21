@@ -15,6 +15,7 @@ import { createStackNavigator, StackScreenProps } from "@react-navigation/stack"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 import { StatusBar } from "expo-status-bar"
 import { Channel, Chat, Membership, User } from "@pubnub/chat"
+import Toast from "react-native-toast-message"
 import {
   useFonts,
   Roboto_400Regular,
@@ -37,6 +38,7 @@ import { ChatContext } from "./context"
 import { RootStackParamList } from "./types"
 import { defaultTheme, colorPalette as colors, Text } from "./ui-components"
 import { Avatar } from "./components"
+import { getAuthKey } from "./utils/getAuthKey"
 
 LogBox.ignoreLogs(["Require cycle:", "Sending"])
 
@@ -52,6 +54,8 @@ function MainRoutesNavigator({ route }: StackScreenProps<RootStackParamList, "ma
 
   useEffect(() => {
     async function init() {
+      const { authKey } = await getAuthKey(name || "test-user")
+
       const chat = await Chat.init({
         publishKey: process.env.EXPO_PUBLIC_PUBNUB_PUB_KEY || "demo",
         subscribeKey: process.env.EXPO_PUBLIC_PUBNUB_SUB_KEY || "demo",
@@ -59,6 +63,7 @@ function MainRoutesNavigator({ route }: StackScreenProps<RootStackParamList, "ma
         typingTimeout: 2000,
         storeUserActivityTimestamps: true,
         storeUserActivityInterval: 60000,
+        authKey,
       })
 
       setChat(chat)
@@ -269,6 +274,7 @@ function App() {
               </NavigationContainer>
             </SafeAreaView>
           </SafeAreaProvider>
+          <Toast />
         </BottomSheetModalProvider>
       </GestureHandlerRootView>
     </ChatContext.Provider>

@@ -9,11 +9,20 @@ import { Gap, Line, TextInput, colorPalette as colors, Accordion } from "../../.
 import { ListItem, Avatar } from "../../../components"
 import { HomeStackParamList } from "../../../types"
 import { ChatContext } from "../../../context"
+import { getAuthKey } from "../../../utils/getAuthKey"
 
 export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, "Home">) {
-  const { chat, memberships, setCurrentChannel, setMemberships, setUsers, getInterlocutor } =
-    useContext(ChatContext)
+  const {
+    chat,
+    memberships,
+    currentChannel,
+    setCurrentChannel,
+    setMemberships,
+    setUsers,
+    getInterlocutor,
+  } = useContext(ChatContext)
   const [searchText, setSearchText] = useState("")
+  const [authKeyPending, setAuthKeyPending] = useState(false)
   const [unreadChannels, setUnreadChannels] = useState<
     { channel: Channel; count: number; membership: Membership }[]
   >([])
@@ -55,6 +64,66 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
   }, [chat])
 
   useEffect(() => {
+    if (!chat) {
+      return
+    }
+
+    const removeModerationListener = chat.listenForEvents({
+      channel: chat.currentUser.id,
+      type: "moderation",
+      callback: async ({ payload }) => {
+        const { authKey } = await getAuthKey(chat.currentUser.id)
+        if (!authKey) {
+          return
+        }
+        chat.sdk.setAuthKey(authKey)
+        if (
+          payload.restriction === "banned" &&
+          payload.channelId.replace("PUBNUB_INTERNAL_MODERATION_", "") === currentChannel?.id
+        ) {
+          navigation.popToTop()
+        }
+      },
+    })
+
+    return () => {
+      removeModerationListener()
+    }
+  }, [chat, currentChannel])
+
+  useEffect(() => {
+    if (!chat) {
+      return
+    }
+    async function statusFunc(status: Pubnub.StatusEvent) {
+      if (status?.errorData?.status === 403) {
+        if (authKeyPending) {
+          return
+        }
+        const { authKey } = await getAuthKey(chat.currentUser.id)
+        setAuthKeyPending(true)
+        if (!authKey) {
+          return
+        }
+        chat?.sdk.setAuthKey(authKey)
+        setAuthKeyPending(false)
+        navigation.popToTop()
+        chat?.sdk.reconnect()
+      }
+    }
+
+    chat.sdk.addListener({
+      status: statusFunc,
+    })
+
+    return () => {
+      chat.sdk.removeListener({
+        status: statusFunc,
+      })
+    }
+  }, [chat, authKeyPending])
+
+  useEffect(() => {
     const disconnectFuncs = channels.map((ch) =>
       ch.connect(() => {
         fetchUnreadMessagesCount()
@@ -77,7 +146,7 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
         const [, { memberships: refreshedMemberships }, { users }] = await Promise.all([
           fetchUnreadMessagesCount(),
           chat.currentUser.getMemberships(),
-          chat.getUsers({}),
+          chat.getUsers(),
         ])
 
         setUsers(users)
@@ -181,14 +250,13 @@ export function HomeScreen({ navigation }: StackScreenProps<HomeStackParamList, 
         <Gap value={8} />
         <Line />
         <Gap value={20} />
-
         <Accordion title="DIRECT MESSAGES">
           {getFilteredChannels(currentUserDirectChannels).map((channel) => {
             const source = getInterlocutor(channel) || channel
 
             return (
               <ListItem
-                key={source.id}
+                key={channel.id}
                 title={source.name || source.id}
                 avatar={<Avatar source={source} showIndicator />}
                 onPress={() => navigateToChat(channel)}
