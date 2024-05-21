@@ -129,7 +129,7 @@ export class Channel {
    */
   /** @internal */
   protected getPushPayload(text: string) {
-    const { sendPushes, apnsTopic } = this.chat.config.pushNotifications
+    const { sendPushes, apnsTopic, apnsEnvironment } = this.chat.config.pushNotifications
     if (!sendPushes) return {}
 
     const title = this.chat.currentUser.name || this.chat.currentUser.id
@@ -138,7 +138,9 @@ export class Channel {
     pushBuilder.sound = "default"
     if (this.name) pushBuilder.subtitle = this.name
     if (apnsTopic) {
-      pushBuilder.apns.configurations = [{ targets: [{ topic: apnsTopic }] }]
+      pushBuilder.apns.configurations = [
+        { targets: [{ topic: apnsTopic, environment: apnsEnvironment }] },
+      ]
       pushGateways.push("apns2")
     }
 
