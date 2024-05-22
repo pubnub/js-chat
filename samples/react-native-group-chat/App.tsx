@@ -57,10 +57,9 @@ function MainRoutesNavigator({ route }: StackScreenProps<RootStackParamList, "ma
       const { authKey } = await getAuthKey(name || "test-user")
 
       const chat = await Chat.init({
-        publishKey: "pub-c-009185a0-fd47-4cfa-af73-b3ad88c52b8a", // process.env.EXPO_PUBLIC_PUBNUB_PUB_KEY || "demo",
-        subscribeKey: "sub-c-10ef96d2-b4a1-46d6-afa7-2c5f4455c034", // process.env.EXPO_PUBLIC_PUBNUB_SUB_KEY || "demo",
+        publishKey: process.env.EXPO_PUBLIC_PUBNUB_PUB_KEY || "demo",
+        subscribeKey: process.env.EXPO_PUBLIC_PUBNUB_SUB_KEY || "demo",
         userId: name || "test-user",
-        origin: "ingress-http.pdx1.aws.int.ps.pn",
         typingTimeout: 2000,
         storeUserActivityTimestamps: true,
         storeUserActivityInterval: 60000,
