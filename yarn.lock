@@ -3447,10 +3447,10 @@
   resolved "https://registry.npmjs.org/@types/prop-types/-/prop-types-15.7.7.tgz"
   integrity sha512-FbtmBWCcSa2J4zL781Zf1p5YUBXQomPEcep9QZCfRfQgTxz3pJWiDFLebohZ9fFntX5ibzOkSsrJ0TEew8cAog==
 
-"@types/pubnub@7.4.0":
-  version "7.4.0"
-  resolved "https://registry.yarnpkg.com/@types/pubnub/-/pubnub-7.4.0.tgz#a446c02565b78ac079716f67ff15a5b417387cac"
-  integrity sha512-z3v/yAolY0ZnJsBBmxJ+bHPtjVSUlEcMyqauKvH43HJ5/kbjeUBJ9axwMpMKYOfvWfHkjLbD8H2HQ996pQn0FA==
+"@types/pubnub@7.4.2":
+  version "7.4.2"
+  resolved "https://registry.yarnpkg.com/@types/pubnub/-/pubnub-7.4.2.tgz#d8179bbbf18c3d8bafaa03d9c04b038cd2792940"
+  integrity sha512-Vjkol3ix8IMrFdwtrLP9XkWc93cWDYpfs4tK6pvOUi8/G5+og2NRJ0AcGhMAQ4wuciHxDzJNkpPIGpRAgYAa4A==
 
 "@types/qs@*":
   version "6.9.8"
@@ -4727,7 +4727,7 @@ buffer@5.5.0:
     base64-js "^1.0.2"
     ieee754 "^1.1.4"
 
-buffer@^5.5.0:
+buffer@^5.4.3, buffer@^5.5.0:
   version "5.7.1"
   resolved "https://registry.npmjs.org/buffer/-/buffer-5.7.1.tgz"
   integrity sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==
@@ -10124,7 +10124,7 @@ node-emoji@1.11.0:
   dependencies:
     lodash "^4.17.21"
 
-node-fetch@^2.2.0, node-fetch@^2.6.0, node-fetch@^2.6.1, node-fetch@^2.6.12, node-fetch@^2.6.7:
+node-fetch@^2.2.0, node-fetch@^2.6.0, node-fetch@^2.6.1, node-fetch@^2.6.12, node-fetch@^2.6.7, node-fetch@^2.7.0:
   version "2.7.0"
   resolved "https://registry.npmjs.org/node-fetch/-/node-fetch-2.7.0.tgz"
   integrity sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==
@@ -11152,18 +11152,21 @@ proxy-from-env@^1.1.0:
   resolved "https://registry.npmjs.org/proxy-from-env/-/proxy-from-env-1.1.0.tgz"
   integrity sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==
 
-pubnub@7.4.5:
-  version "7.4.5"
-  resolved "https://registry.yarnpkg.com/pubnub/-/pubnub-7.4.5.tgz#488892f30b0b62bf6dc0c469c50954c21aee6669"
-  integrity sha512-1TFAfMZ/wz0Y4W6U1zPSZBLtBrz4qnSsn/WlqVArqrcKTvim08DaqjpPcLIQaTBFgyr3wgOTnudKKhXp8QFLUA==
+pubnub@8.2.0:
+  version "8.2.0"
+  resolved "https://registry.yarnpkg.com/pubnub/-/pubnub-8.2.0.tgz#6de8ee52be0c03d48c66667397f1e84a08d54268"
+  integrity sha512-gXck3w/9es+w3/tdzipIjIpzKEl2CAcWnKSyMhBP/Q43Rbk0eAeS0JV6uzcTsJdi6v8nZ6TAqghjy/0Y73zqoQ==
   dependencies:
     agentkeepalive "^3.5.2"
     buffer "^6.0.3"
     cbor-js "^0.1.0"
     cbor-sync "^1.0.4"
+    form-data "^4.0.0"
     lil-uuid "^0.1.1"
+    node-fetch "^2.7.0"
     proxy-agent "^6.3.0"
-    superagent "^8.1.2"
+    react-native-url-polyfill "^2.0.0"
+    text-encoding "^0.7.0"
 
 pump@^3.0.0:
   version "3.0.0"
@@ -11177,6 +11180,11 @@ punycode@^2.1.0:
   version "2.3.0"
   resolved "https://registry.npmjs.org/punycode/-/punycode-2.3.0.tgz"
   integrity sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==
+
+punycode@^2.1.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
+  integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
 pure-rand@^6.0.0:
   version "6.0.3"
@@ -11423,6 +11431,13 @@ react-native-typing-animation@0.1.7, react-native-typing-animation@^0.1.7:
   version "0.1.7"
   resolved "https://registry.npmjs.org/react-native-typing-animation/-/react-native-typing-animation-0.1.7.tgz"
   integrity sha512-4H3rF9M+I2yAZpYJcY0Mb29TXkn98QK12rrKSY6LZj1BQD9NNmRZuNXzwX4XHapsIz+N/J8M3p27FOQPbfzqeg==
+
+react-native-url-polyfill@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-url-polyfill/-/react-native-url-polyfill-2.0.0.tgz#db714520a2985cff1d50ab2e66279b9f91ffd589"
+  integrity sha512-My330Do7/DvKnEvwQc0WdcBnFPploYKp9CYlefDXzIdEaA+PAhDYllkvGeEroEzvc4Kzzj2O4yVdz8v6fjRvhA==
+  dependencies:
+    whatwg-url-without-unicode "8.0.0-3"
 
 react-native-web@~0.19.6:
   version "0.19.9"
@@ -12928,6 +12943,11 @@ test-exclude@^6.0.0:
     glob "^7.1.4"
     minimatch "^3.0.4"
 
+text-encoding@^0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/text-encoding/-/text-encoding-0.7.0.tgz#f895e836e45990624086601798ea98e8f36ee643"
+  integrity sha512-oJQ3f1hrOnbRLOcwKz0Liq2IcrvDeZRHXhd9RgLrsT+DjWY/nty1Hi7v3dtkaEYbPYe0mUoOfzRrMwfXXwgPUA==
+
 text-extensions@^1.0.0:
   version "1.9.0"
   resolved "https://registry.npmjs.org/text-extensions/-/text-extensions-1.9.0.tgz"
@@ -13561,6 +13581,11 @@ webidl-conversions@^3.0.0:
   resolved "https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-3.0.1.tgz"
   integrity sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==
 
+webidl-conversions@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/webidl-conversions/-/webidl-conversions-5.0.0.tgz#ae59c8a00b121543a2acc65c0434f57b0fc11aff"
+  integrity sha512-VlZwKPCkYKxQgeSbH5EyngOmRp7Ww7I9rQLERETtf5ofd9pGeswWiOtogpEO850jziPRarreGxn5QIiTqpb2wA==
+
 webpack-dev-middleware@^5.3.1:
   version "5.3.3"
   resolved "https://registry.npmjs.org/webpack-dev-middleware/-/webpack-dev-middleware-5.3.3.tgz"
@@ -13682,6 +13707,15 @@ whatwg-fetch@^3.0.0:
   version "3.6.19"
   resolved "https://registry.npmjs.org/whatwg-fetch/-/whatwg-fetch-3.6.19.tgz"
   integrity sha512-d67JP4dHSbm2TrpFj8AbO8DnL1JXL5J9u0Kq2xW6d0TFDbCA3Muhdt8orXC22utleTVj7Prqt82baN6RBvnEgw==
+
+whatwg-url-without-unicode@8.0.0-3:
+  version "8.0.0-3"
+  resolved "https://registry.yarnpkg.com/whatwg-url-without-unicode/-/whatwg-url-without-unicode-8.0.0-3.tgz#ab6df4bf6caaa6c85a59f6e82c026151d4bb376b"
+  integrity sha512-HoKuzZrUlgpz35YO27XgD28uh/WJH4B0+3ttFqRo//lmq+9T/mIOJ6kqmINI9HpUpz1imRC/nR/lxKpJiv0uig==
+  dependencies:
+    buffer "^5.4.3"
+    punycode "^2.1.1"
+    webidl-conversions "^5.0.0"
 
 whatwg-url@^5.0.0:
   version "5.0.0"

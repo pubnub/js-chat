@@ -20,7 +20,10 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
 
   useEffect(() => {
     const files = messageProps.currentMessage?.originalPnMessage.files
-    if (!files || !files.length || files[0].type !== "image/jpeg" || !chat) {
+    if (!files || !files.length || !chat) {
+      return
+    }
+    if (files[0].type !== "image/jpeg" && files[0].type !== "image/png") {
       return
     }
     chat.sdk
