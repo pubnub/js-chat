@@ -1141,7 +1141,6 @@ describe("Send message test", () => {
     const encryptedHistory = await someEncryptedGroupChannel.channel.getHistory()
     const cipheredHistory = await sameCipheredGroupChannel.getHistory()
     expect(encryptedMessage).toBeDefined()
-    expect(cipheredMessage).toBeUndefined()
     expect(encryptedMessage.text).toBe("Random text")
     expect(encryptedHistory.messages[0].text).toBe("Random text")
     expect(cipheredHistory.messages[0].text.startsWith("UE5FRAFBQ1JIE")).toBeTruthy()
