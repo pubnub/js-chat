@@ -6,11 +6,10 @@ jobs:
   test:
     name: Run contract tests
     runs-on:
-        group: Default Larger Runners
-        labels: ubuntu-latest-m
-
+      group: Default Larger Runners
+      labels: ubuntu-latest-m
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: yarn install
       - run: yarn test
         env:
@@ -20,7 +19,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: lib/junit.xml
