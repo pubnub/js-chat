@@ -6,8 +6,7 @@ jobs:
   test:
     name: Run contract tests
     runs-on:
-      group: Default Larger Runners
-      labels: ubuntu-latest-m
+      group: Default
     steps:
       - uses: actions/checkout@v4
       - run: yarn install
