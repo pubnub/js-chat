@@ -18,7 +18,7 @@ changelog:
         text: "Update JS SDK to 8.2.0."
       - type: feature
         text: "Remove look behind regexes for old Safari compatibility."
-  - date: 2024-05-22
+  - date: 2024-22-05
     version: v0.6.2
     changes:
       - type: bug
