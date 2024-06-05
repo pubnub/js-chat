@@ -123,7 +123,7 @@ describe("User test", () => {
     }
   })
 
-  test.only("Should apply filter to 'getMemberships'", async () => {
+  test("Should apply filter to 'getMemberships'", async () => {
     jest.spyOn(chat.sdk.objects, "getMemberships")
     const commonParams = {
       include: {
