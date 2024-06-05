@@ -1,4 +1,4 @@
-import { Channel, Message, Chat, MessageDraft } from "../src"
+import { Channel, Message, Chat, MessageDraft, INTERNAL_MODERATION_PREFIX } from "../src"
 import {
   sleep,
   extractMentionedUserIds,
@@ -1127,5 +1127,39 @@ describe("Channel test", () => {
     )
 
     removeModerationListener()
+  })
+
+  test("Should get the number of unread messages on channels", async () => {
+    jest.spyOn(chat.sdk.objects, "getMemberships")
+    const commonParams = {
+      include: {
+        totalCount: true,
+        customFields: true,
+        channelFields: true,
+        customChannelFields: true,
+        channelTypeField: true,
+        statusField: true,
+        channelStatusField: true,
+      },
+      uuid: chat.currentUser.id,
+    }
+
+    await chat.getUnreadMessagesCounts({ filter: "channel.id like 'hello*'" })
+    expect(chat.sdk.objects.getMemberships).toHaveBeenCalledWith({
+      ...commonParams,
+      filter: `!(channel.id LIKE '${INTERNAL_MODERATION_PREFIX}*') && (channel.id like 'hello*')`,
+    })
+
+    await chat.getUnreadMessagesCounts({ filter: "channel.name like '*test-channel'" })
+    expect(chat.sdk.objects.getMemberships).toHaveBeenCalledWith({
+      ...commonParams,
+      filter: `!(channel.id LIKE '${INTERNAL_MODERATION_PREFIX}*') && (channel.name like '*test-channel')`,
+    })
+
+    await chat.getUnreadMessagesCounts()
+    expect(chat.sdk.objects.getMemberships).toHaveBeenCalledWith({
+      ...commonParams,
+      filter: `!(channel.id LIKE '${INTERNAL_MODERATION_PREFIX}*')`,
+    })
   })
 })

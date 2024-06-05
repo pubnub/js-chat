@@ -1,4 +1,4 @@
-import { Chat, User } from "../src"
+import { Chat, INTERNAL_MODERATION_PREFIX, User } from "../src"
 import { createChatInstance, createRandomUser, sleep } from "./utils"
 import { INTERNAL_ADMIN_CHANNEL } from "../src"
 
@@ -121,5 +121,95 @@ describe("User test", () => {
     } catch (error) {
       expect(error.message).toContain("Cannot read properties of null (reading 'delete')")
     }
+  })
+
+  test.only("Should apply filter to 'getMemberships'", async () => {
+    jest.spyOn(chat.sdk.objects, "getMemberships")
+    const commonParams = {
+      include: {
+        totalCount: true,
+        customFields: true,
+        channelFields: true,
+        customChannelFields: true,
+        channelTypeField: true,
+        statusField: true,
+        channelStatusField: true,
+      },
+      uuid: chat.currentUser.id,
+    }
+
+    await chat.currentUser.getMemberships({ filter: "channel.id like 'hello*'" })
+    expect(chat.sdk.objects.getMemberships).toHaveBeenCalledWith({
+      ...commonParams,
+      filter: `!(channel.id LIKE '${INTERNAL_MODERATION_PREFIX}*') && (channel.id like 'hello*')`,
+    })
+
+    await chat.currentUser.getMemberships({ filter: "channel.name like '*test-channel'" })
+    expect(chat.sdk.objects.getMemberships).toHaveBeenCalledWith({
+      ...commonParams,
+      filter: `!(channel.id LIKE '${INTERNAL_MODERATION_PREFIX}*') && (channel.name like '*test-channel')`,
+    })
+
+    await chat.currentUser.getMemberships()
+    expect(chat.sdk.objects.getMemberships).toHaveBeenCalledWith({
+      ...commonParams,
+      filter: `!(channel.id LIKE '${INTERNAL_MODERATION_PREFIX}*')`,
+    })
+
+    const exampleResponse = {
+      prev: undefined,
+      status: 200,
+      totalCount: 307,
+      next: "MTAw",
+      data: [
+        {
+          channel: {
+            id: "0053d903-62d5-4f14-91cc-50aa90b1ab30",
+            name: "0053d903-62d5-4f14-91cc-50aa90b1ab30",
+            description: null,
+            type: "group",
+            status: null,
+            custom: null,
+            updated: "2024-02-28T13:04:28.210319Z",
+            eTag: "41ba0b6a52df2cc52775a83674ad4ba1",
+          },
+          status: null,
+          custom: null,
+          updated: "2024-02-28T13:04:28.645304Z",
+          eTag: "AZO/t53al7m8fw",
+        },
+        {
+          channel: { id: "019b58bd-3592-4184-8bc9-ce4a3ea87b37" },
+          status: null,
+          custom: null,
+          updated: "2024-02-29T09:06:21.629495Z",
+          eTag: "AZO/t53al7m8fw",
+        },
+        {
+          channel: { id: "0336a32b-3568-42ec-8664-48f05f479928" },
+          status: null,
+          custom: null,
+          updated: "2024-05-21T12:12:51.439348Z",
+          eTag: "AZO/t53al7m8fw",
+        },
+      ],
+    }
+
+    jest.spyOn(chat.sdk.objects, "getMemberships").mockImplementation(() => exampleResponse)
+
+    const response = await chat.currentUser.getMemberships()
+    expect(response).toEqual(
+      expect.objectContaining({
+        page: {
+          prev: exampleResponse.prev,
+          next: exampleResponse.next,
+        },
+        total: exampleResponse.totalCount,
+        status: exampleResponse.status,
+      })
+    )
+    expect(response.memberships.map((m) => m.channel.id)).toEqual(
+      exampleResponse.data.map((m) => m.channel.id)
+    )
   })
 })

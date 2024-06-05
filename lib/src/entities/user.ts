@@ -124,13 +124,21 @@ export class User {
       customChannelFields: true,
       channelTypeField: true,
       statusField: true,
+      channelStatusField: true,
+    }
+
+    const filter = params.filter
+    let combinedFilter = `!(channel.id LIKE '${INTERNAL_MODERATION_PREFIX}*')`
+
+    if (filter) {
+      combinedFilter = `${combinedFilter} && (${filter})`
     }
 
     const membershipsResponse = await this.chat.sdk.objects.getMemberships({
       ...params,
       uuid: this.id,
       include,
-      filter: `!(channel.id LIKE '${INTERNAL_MODERATION_PREFIX}*')`,
+      filter: combinedFilter,
     })
 
     return {
