@@ -1,4 +1,11 @@
-import { Channel, Message, Chat, MessageDraft, INTERNAL_MODERATION_PREFIX } from "../src"
+import {
+  Channel,
+  Message,
+  Chat,
+  MessageDraft,
+  INTERNAL_MODERATION_PREFIX,
+  Membership,
+} from "../src"
 import {
   sleep,
   extractMentionedUserIds,
@@ -336,9 +343,6 @@ describe("Channel test", () => {
       await channel.createThread()
     } catch (error) {
       errorOccurred = true
-
-      //Should to be clarified
-      // expect(error.message).toBe("Cannot create an empty thread")
     }
 
     expect(errorOccurred).toBe(true)
@@ -1161,5 +1165,54 @@ describe("Channel test", () => {
       ...commonParams,
       filter: `!(channel.id LIKE '${INTERNAL_MODERATION_PREFIX}*')`,
     })
+  })
+
+  test("should set 'eTag' and 'updated' on the Membership object", async () => {
+    const membershipsDTOMock = {
+      status: 200,
+      data: [
+        {
+          channel: {
+            id: "0053d903-62d5-4f14-91cc-50aa90b1ab30",
+            name: "0053d903-62d5-4f14-91cc-50aa90b1ab30",
+            description: null,
+            type: "group",
+            status: null,
+            custom: null,
+            updated: "2024-02-28T13:04:28.210319Z",
+            eTag: "41ba0b6a52df2cc52775a83674ad4ba1",
+          },
+          status: null,
+          custom: null,
+          updated: "2024-02-28T13:04:28.645304Z",
+          eTag: "AZO/t53al7m8fw",
+        },
+      ],
+      totalCount: 309,
+      next: "MTAw",
+    }
+
+    jest.spyOn(chat.sdk.objects, "getMemberships").mockImplementation(() => membershipsDTOMock)
+
+    const memberships = await chat.currentUser.getMemberships()
+    expect(memberships.memberships[0].updated).toBe(membershipsDTOMock.data[0].updated)
+    expect(memberships.memberships[0].eTag).toBe(membershipsDTOMock.data[0].eTag)
+  })
+
+  test("should set 'eTag' and 'updated' on the Membership object in real time", async () => {
+    const groupConversation = await chat.createGroupConversation({ users: [chat.currentUser] })
+    const hostMembership = groupConversation.hostMembership
+    let updatedMembership: Membership | undefined
+
+    const removeListener = hostMembership.streamUpdates((updatedMembershipData) => {
+      updatedMembership = updatedMembershipData
+    })
+
+    await hostMembership.update({ custom: { hello: "world" } })
+    await sleep(2000)
+    expect(updatedMembership?.custom?.hello).toBe("world")
+    expect(updatedMembership?.updated).toBeDefined()
+    expect(updatedMembership?.eTag).toBeDefined()
+    removeListener()
   })
 })

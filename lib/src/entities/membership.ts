@@ -5,13 +5,15 @@ import { Message } from "./message"
 import { User } from "./user"
 import { getErrorProxiedEntity } from "../error-logging"
 
-export type MembershipFields = Pick<Membership, "channel" | "user" | "custom">
+export type MembershipFields = Pick<Membership, "channel" | "user" | "custom" | "updated" | "eTag">
 
 export class Membership {
   private chat: Chat
   readonly channel: Channel
   readonly user: User
   readonly custom: ObjectCustom | null | undefined
+  readonly updated: string
+  readonly eTag: string
 
   /** @internal */
   constructor(chat: Chat, params: MembershipFields) {
@@ -19,6 +21,8 @@ export class Membership {
     this.channel = params.channel
     this.user = params.user
     this.custom = params.custom
+    this.updated = params.updated
+    this.eTag = params.eTag
   }
 
   /** @internal */
@@ -31,6 +35,8 @@ export class Membership {
       channel: Channel.fromDTO(chat, channelMembershipObject.channel),
       user,
       custom: channelMembershipObject.custom,
+      updated: channelMembershipObject.updated,
+      eTag: channelMembershipObject.eTag,
     }
 
     return getErrorProxiedEntity(new Membership(chat, data), chat.errorLogger)
@@ -46,6 +52,8 @@ export class Membership {
       user: User.fromDTO(chat, userMembershipObject.uuid),
       channel,
       custom: userMembershipObject.custom,
+      updated: userMembershipObject.updated,
+      eTag: userMembershipObject.eTag,
     }
 
     return getErrorProxiedEntity(new Membership(chat, data), chat.errorLogger)
@@ -104,6 +112,8 @@ export class Membership {
           user: membership.user,
           channel: membership.channel,
           custom: event.message.data.custom,
+          updated: event.message.data.updated,
+          eTag: event.message.data.eTag,
         })
         const newMemberships = memberships.map((membership) =>
           membership.channel.id === newMembership.channel.id &&
