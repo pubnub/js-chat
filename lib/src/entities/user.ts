@@ -82,9 +82,7 @@ export class User {
     const listener = {
       objects: (event: PubNub.SetUUIDMetadataEvent<PubNub.ObjectCustom>) => {
         if (event.message.type !== "uuid") return
-        const user =
-          users.find((c) => c.id === event.channel) ||
-          users.find((c) => c.id === event.message.data.id)
+        const user = users.find((c) => c.id === event.channel || c.id === event.message.data.id)
         if (!user) return
         const newUser = User.fromDTO(user.chat, event.message.data)
         const newUsers = users.map((user) => (user.id === newUser.id ? newUser : user))
