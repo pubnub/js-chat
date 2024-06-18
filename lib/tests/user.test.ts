@@ -63,6 +63,64 @@ describe("User test", () => {
     stopUpdates()
   })
 
+  test("should update the user even if they're a member of a particular channel", async () => {
+    let someUser = await chat.getUser("test-user-chatsdk0")
+    if (!someUser) {
+      someUser = await chat.createUser("test-user-chatsdk0", { name: "Chat SDK user 0" })
+    }
+    let someChannel = await chat.getChannel("some-public-channel")
+    if (!someChannel) {
+      someChannel = await chat.createPublicConversation({
+        channelId: "some-public-channel",
+        channelData: { name: "Public channel test" },
+      })
+    }
+    await chat.sdk.objects.setChannelMembers({
+      channel: someChannel.id,
+      uuids: [someUser.id],
+    })
+
+    const stopUpdates = User.streamUpdatesOn([someUser], (updatedUsers) => {
+      someUser = updatedUsers[0]
+    })
+    await someUser.update({ name: "update number 1" })
+    await sleep(1000)
+    expect(someUser.name).toBe("update number 1")
+    await someUser.update({ name: "update number 2" })
+    await sleep(1000)
+    expect(someUser.name).toBe("update number 2")
+
+    stopUpdates()
+  })
+
+  test("should update the user even if they're not a member of a particular channel", async () => {
+    let someUser = await chat.getUser("test-user-chatsdk1")
+    if (!someUser) {
+      someUser = await chat.createUser("test-user-chatsdk1", { name: "Chat SDK user 1" })
+    }
+    let someChannel = await chat.getChannel("some-public-channel-2")
+    if (!someChannel) {
+      someChannel = await chat.createPublicConversation({
+        channelId: "some-public-channel-2",
+        channelData: { name: "Public channel test 2" },
+      })
+    }
+    const { members } = await someChannel.getMembers()
+
+    expect(members.length).toBe(0)
+    const stopUpdates = User.streamUpdatesOn([someUser], (updatedUsers) => {
+      someUser = updatedUsers[0]
+    })
+    await someUser.update({ name: "update number 1" })
+    await sleep(1000)
+    expect(someUser.name).toBe("update number 1")
+    await someUser.update({ name: "update number 2" })
+    await sleep(1000)
+    expect(someUser.name).toBe("update number 2")
+
+    stopUpdates()
+  })
+
   test("should report a user", async () => {
     const reportReason = "Inappropriate behavior"
     await user.report(reportReason)

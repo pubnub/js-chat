@@ -131,13 +131,14 @@ describe("Channel test", () => {
   })
 
   test("should edit membership metadata", async () => {
-    const { membership } = await channel.join(() => null)
+    const { membership, disconnect } = await channel.join(() => null)
     const updatedMembership = await membership.update({
       custom: { role: "admin" },
     })
     expect(updatedMembership.custom?.role).toBe("admin")
 
     await channel.leave()
+    disconnect()
   })
 
   test("should create a direct, group and public chats with a predefined ID", async () => {
@@ -365,7 +366,7 @@ describe("Channel test", () => {
   })
 
   test("should stream membership updates and invoke the callback", async () => {
-    const { membership } = await channel.join(() => null)
+    const { membership, disconnect } = await channel.join(() => null)
     expect(membership).toBeDefined()
 
     let updatedMembership
@@ -382,6 +383,7 @@ describe("Channel test", () => {
 
     await channel.leave()
     stopUpdates()
+    disconnect()
   })
 
   test("should get unread messages count", async () => {
@@ -392,7 +394,9 @@ describe("Channel test", () => {
     await channel.sendText(messageText2)
     await sleep(150) // history calls have around 130ms of cache time
 
-    let { membership } = await channel.join(() => null)
+    const channelJoinData = await channel.join(() => null)
+    let { membership } = channelJoinData
+    const { disconnect } = channelJoinData
     let unreadCount = await membership.getUnreadMessagesCount()
     expect(unreadCount).toBe(0)
 
@@ -402,6 +406,7 @@ describe("Channel test", () => {
     expect(unreadCount).toBe(1)
 
     await channel.leave()
+    disconnect()
   })
 
   test("should mention users in a message and validate mentioned users", async () => {
@@ -873,6 +878,7 @@ describe("Channel test", () => {
       const nonExistentChannel = await chat.getChannel(nonExistentChannelId)
       const membership = await nonExistentChannel.join(() => null)
       await membership.update({ custom: { role: "admin" } })
+      membership.disconnect()
       fail("Editing membership metadata of a non-existent channel should fail")
     } catch (error) {
       expect(error.message).toContain("Cannot read properties of null (reading 'join')")
