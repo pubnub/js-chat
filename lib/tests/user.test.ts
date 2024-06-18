@@ -106,7 +106,7 @@ describe("User test", () => {
     })
   })
 
-  test.only("should update the user even if they're not a member of a particular channel", (done) => {
+  test("should update the user even if they're not a member of a particular channel", (done) => {
     async function prep() {
       let someUser = await chat.getUser("test-user-chatsdk1")
       if (!someUser) {
