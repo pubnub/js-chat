@@ -16,10 +16,6 @@ describe("User test", () => {
     user = await createRandomUser()
   })
 
-  afterEach(() => {
-    chat.sdk.unsubscribeAll()
-  })
-
   test("Should automatically create chat user while initializing", () => {
     expect(chat.currentUser).toBeDefined()
     expect(chat.currentUser.id).toBe(chat.sdk.getUUID())
