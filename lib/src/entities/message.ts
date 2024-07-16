@@ -369,6 +369,18 @@ export class Message {
   }
 
   async report(reason: string) {
+    const channel = INTERNAL_ADMIN_CHANNEL
+    const payload = {
+      text: this.text,
+      reason,
+      reportedMessageChannelId: this.channelId,
+      reportedMessageTimetoken: this.timetoken,
+      reportedUserId: this.userId,
+    }
+    return await this.chat.emitEvent({ channel, type: "report", payload })
+  }
+
+  async reportOnChannel(reason: string) {
     const channel = `${INTERNAL_MODERATION_PREFIX}${this.channelId}`
     const payload = {
       text: this.text,
