@@ -7,7 +7,7 @@ import {
   TextMessageContent,
   MessageActionType,
 } from "../types"
-import { INTERNAL_ADMIN_CHANNEL } from "../constants"
+import { INTERNAL_ADMIN_CHANNEL, INTERNAL_MODERATION_PREFIX } from "../constants"
 import { getErrorProxiedEntity } from "../error-logging"
 import { MessageElementsUtils } from "../message-elements-utils"
 import { defaultGetMessageResponseBody } from "../default-values"
@@ -369,7 +369,7 @@ export class Message {
   }
 
   async report(reason: string) {
-    const channel = INTERNAL_ADMIN_CHANNEL
+    const channel = `${INTERNAL_MODERATION_PREFIX}${this.channelId}`
     const payload = {
       text: this.text,
       reason,

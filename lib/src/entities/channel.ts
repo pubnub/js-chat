@@ -318,10 +318,10 @@ export class Channel {
   /*
    * Streaming messages
    */
-  connect(callback: (message: Message) => void) {
+  private INTERNAL_connect(callback: (message: Message) => void, channelId: string) {
     const listener = {
       message: (event: MessageEvent) => {
-        if (event.channel !== this.id) return
+        if (event.channel !== channelId) return
         const getMessageResponseBody =
           this.chat.config.customPayloads.getMessageResponseBody || defaultGetMessageResponseBody
         if (getMessageResponseBody(event).type !== "text") return
@@ -330,12 +330,16 @@ export class Channel {
     }
 
     const removeListener = this.chat.addListener(listener)
-    const unsubscribe = this.chat.subscribe(this.id)
+    const unsubscribe = this.chat.subscribe(channelId)
 
     return () => {
       removeListener()
       unsubscribe()
     }
+  }
+
+  connect(callback: (message: Message) => void) {
+    return this.INTERNAL_connect(callback, this.id)
   }
 
   /*
@@ -374,12 +378,15 @@ export class Channel {
   /*
    * Messages
    */
-  async getHistory(
-    params: { startTimetoken?: string; endTimetoken?: string; count?: number } = {}
-  ) {
+  private async INTERNAL_getHistory(params: {
+    startTimetoken?: string
+    endTimetoken?: string
+    count?: number
+    channelId: string
+  }) {
     try {
       const options = {
-        channels: [this.id],
+        channels: [params.channelId],
         count: params.count || 25,
         start: params.startTimetoken,
         end: params.endTimetoken,
@@ -391,14 +398,18 @@ export class Channel {
 
       return {
         messages:
-          response.channels[this.id]?.map((messageObject) =>
+          response.channels[params.channelId]?.map((messageObject) =>
             Message.fromDTO(this.chat, messageObject)
           ) || [],
-        isMore: response.channels[this.id]?.length === (params.count || 25),
+        isMore: response.channels[params.channelId]?.length === (params.count || 25),
       }
     } catch (error) {
       throw error
     }
+  }
+
+  getHistory(params: { startTimetoken?: string; endTimetoken?: string; count?: number } = {}) {
+    return this.INTERNAL_getHistory({ ...params, channelId: this.id })
   }
 
   async getMessage(timetoken: string) {
@@ -747,5 +758,21 @@ export class Channel {
         userId: uuid.id,
       })),
     }
+  }
+
+  /**
+   * Flagged messages
+   */
+
+  async getFlaggedMessages(
+    params: { startTimetoken?: string; endTimetoken?: string; count?: number } = {}
+  ) {
+    const channel = `${INTERNAL_MODERATION_PREFIX}${this.id}`
+    return this.INTERNAL_getHistory({ ...params, channelId: channel })
+  }
+
+  streamFlaggedMessages(callback: (message: Message) => void) {
+    const channel = `${INTERNAL_MODERATION_PREFIX}${this.id}`
+    return this.INTERNAL_connect(callback, channel)
   }
 }
