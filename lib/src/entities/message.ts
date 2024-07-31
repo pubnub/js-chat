@@ -7,7 +7,7 @@ import {
   TextMessageContent,
   MessageActionType,
 } from "../types"
-import { INTERNAL_ADMIN_CHANNEL } from "../constants"
+import { INTERNAL_ADMIN_CHANNEL, INTERNAL_MODERATION_PREFIX } from "../constants"
 import { getErrorProxiedEntity } from "../error-logging"
 import { MessageElementsUtils } from "../message-elements-utils"
 import { defaultGetMessageResponseBody } from "../default-values"
@@ -368,8 +368,21 @@ export class Message {
     await this.chat.pinMessageToChannel(this, channel!)
   }
 
-  async report(reason: string) {
+  /** @deprecated */
+  async DEPRECATED_report(reason: string) {
     const channel = INTERNAL_ADMIN_CHANNEL
+    const payload = {
+      text: this.text,
+      reason,
+      reportedMessageChannelId: this.channelId,
+      reportedMessageTimetoken: this.timetoken,
+      reportedUserId: this.userId,
+    }
+    return await this.chat.emitEvent({ channel, type: "report", payload })
+  }
+
+  async report(reason: string) {
+    const channel = `${INTERNAL_MODERATION_PREFIX}${this.channelId}`
     const payload = {
       text: this.text,
       reason,

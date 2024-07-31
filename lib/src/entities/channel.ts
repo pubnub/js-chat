@@ -748,4 +748,27 @@ export class Channel {
       })),
     }
   }
+
+  /**
+   * Reported messages
+   */
+
+  async getMessageReportsHistory(
+    params: { startTimetoken?: string; endTimetoken?: string; count?: number } = {}
+  ): Promise<{ events: Event<"report">[]; isMore: boolean }> {
+    const channel = `${INTERNAL_MODERATION_PREFIX}${this.id}`
+    return this.chat.getEventsHistory({
+      ...params,
+      channel,
+    })
+  }
+
+  streamMessageReports(callback: (event: Event<"report">) => void) {
+    const channel = `${INTERNAL_MODERATION_PREFIX}${this.id}`
+    return this.chat.listenForEvents({
+      channel,
+      callback,
+      type: "report",
+    })
+  }
 }
