@@ -218,7 +218,8 @@ export class User {
   /*
    * Other
    */
-  async report(reason: string) {
+  /** @deprecated */
+  async DEPRECATED_report(reason: string) {
     const channel = INTERNAL_ADMIN_CHANNEL
     const payload = {
       reason,

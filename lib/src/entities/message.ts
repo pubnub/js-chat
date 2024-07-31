@@ -368,7 +368,8 @@ export class Message {
     await this.chat.pinMessageToChannel(this, channel!)
   }
 
-  async report(reason: string) {
+  /** @deprecated */
+  async DEPRECATED_report(reason: string) {
     const channel = INTERNAL_ADMIN_CHANNEL
     const payload = {
       text: this.text,
@@ -380,7 +381,7 @@ export class Message {
     return await this.chat.emitEvent({ channel, type: "report", payload })
   }
 
-  async reportOnChannel(reason: string) {
+  async report(reason: string) {
     const channel = `${INTERNAL_MODERATION_PREFIX}${this.channelId}`
     const payload = {
       text: this.text,

@@ -750,12 +750,12 @@ export class Channel {
   }
 
   /**
-   * Flagged messages
+   * Reported messages
    */
 
-  async getFlaggedMessagesHistory(
+  async getMessageReportsHistory(
     params: { startTimetoken?: string; endTimetoken?: string; count?: number } = {}
-  ) {
+  ): Promise<{ events: Event<"report">[]; isMore: boolean }> {
     const channel = `${INTERNAL_MODERATION_PREFIX}${this.id}`
     return this.chat.getEventsHistory({
       ...params,
@@ -763,7 +763,7 @@ export class Channel {
     })
   }
 
-  listenForFlaggedMessages(callback: (event: Event<"report">) => void) {
+  streamMessageReports(callback: (event: Event<"report">) => void) {
     const channel = `${INTERNAL_MODERATION_PREFIX}${this.id}`
     return this.chat.listenForEvents({
       channel,
