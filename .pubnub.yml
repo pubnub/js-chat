@@ -1,11 +1,16 @@
 ---
 name: pubnub-js-chat
-version: v0.7.3
+version: v0.8.0
 scm: github.com/pubnub/js-chat
 schema: 1
 files:
   - lib/dist/index.js
 changelog:
+  - date: 2024-07-31
+    version: v0.8.0
+    changes:
+      - type: feature
+        text: "Message report events are now sent to a moderation sub-channel. Methods for user reporting and message reporting to a global admin channel are now deprecated and renamed with a DEPRECATED_ prefix."
   - date: 2024-06-18
     version: v0.7.3
     changes:
