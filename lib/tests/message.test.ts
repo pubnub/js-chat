@@ -474,6 +474,28 @@ describe("Send message test", () => {
     await reportedMessage.report(reportReason)
     await sleep(150) // history calls have around 130ms of cache time
 
+    const { events } = await channel.getMessageReportsHistory()
+    const reportMessage = events[0]
+
+    expect(reportMessage?.type).toBe("report")
+    expect(reportMessage?.payload.reason).toBe(reportReason)
+    expect(reportMessage?.payload.reportedMessageChannelId).toBe(reportedMessage.channelId)
+    expect(reportMessage?.payload.reportedMessageTimetoken).toBe(reportedMessage.timetoken)
+    expect(reportMessage?.payload.reportedUserId).toBe(reportedMessage.userId)
+  })
+
+  test("should report a message (deprecated)", async () => {
+    const messageText = "Test message to be reported"
+    const reportReason = "Inappropriate content"
+
+    await channel.sendText(messageText)
+    await sleep(150) // history calls have around 130ms of cache time
+
+    const history = await channel.getHistory({ count: 1 })
+    const reportedMessage = history.messages[0]
+    await reportedMessage.DEPRECATED_report(reportReason)
+    await sleep(150) // history calls have around 130ms of cache time
+
     const adminChannel = await chat.getChannel(INTERNAL_ADMIN_CHANNEL)
     expect(adminChannel).toBeDefined()
 
