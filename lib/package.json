@@ -1,6 +1,6 @@
 {
   "name": "@pubnub/chat",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "PubNub JavaScript Chat SDK",
   "author": "PubNub <support@pubnub.com>",
   "license": "SEE LICENSE IN LICENSE",
@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/pubnub/js-chat#readme",
   "dependencies": {
-    "pubnub": "8.2.3"
+    "pubnub": "8.2.7"
   },
   "devDependencies": {
     "@babel/core": "7.22.15",
