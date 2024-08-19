@@ -1,12 +1,6 @@
 import { Chat } from "./chat"
 import PubNub from "pubnub"
-import {
-  DeleteParameters,
-  MessageActions,
-  MessageDTOParams,
-  TextMessageContent,
-  MessageActionType,
-} from "../types"
+import { DeleteParameters, MessageActions, MessageDTOParams, TextMessageContent } from "../types"
 import { INTERNAL_ADMIN_CHANNEL, INTERNAL_MODERATION_PREFIX } from "../constants"
 import { getErrorProxiedEntity } from "../error-logging"
 import { MessageElementsUtils } from "../message-elements-utils"
@@ -319,7 +313,7 @@ export class Message {
    * Reactions
    */
   get reactions() {
-    const type = MessageActionType.REACTIONS
+    const type = this.chat.reactionsActionName
     return this.actions?.[type] || {}
   }
 
@@ -328,7 +322,7 @@ export class Message {
   }
 
   async toggleReaction(reaction: string) {
-    const type = MessageActionType.REACTIONS
+    const type = this.chat.reactionsActionName
     const uuid = this.chat.sdk.getUUID()
     const messageTimetoken = this.timetoken
     const channel = this.channelId

@@ -22,7 +22,11 @@ import { MessageElementsUtils } from "../message-elements-utils"
 import { getErrorProxiedEntity, ErrorLogger } from "../error-logging"
 import { cyrb53a } from "../hash"
 import { uuidv4 } from "../uuidv4"
-import { defaultEditActionName, defaultDeleteActionName } from "../default-values"
+import {
+  defaultEditActionName,
+  defaultDeleteActionName,
+  defaultReactionsName,
+} from "../default-values"
 import { AccessManager } from "../access-manager"
 
 export type ChatConfig = {
@@ -47,6 +51,7 @@ export type ChatConfig = {
     getMessageResponseBody?: (m: MessageDTOParams) => TextMessageContent
     editMessageActionName?: string
     deleteMessageActionName?: string
+    reactionsActionName?: string
   }
   authKey?: string
 }
@@ -72,6 +77,8 @@ export class Chat {
   /** @internal */
   readonly deleteMessageActionName: string
   /** @internal */
+  readonly reactionsActionName: string
+  /** @internal */
   readonly accessManager: AccessManager
 
   /** @internal */
@@ -93,6 +100,7 @@ export class Chat {
     this.editMessageActionName = customPayloads?.editMessageActionName || defaultEditActionName
     this.deleteMessageActionName =
       customPayloads?.deleteMessageActionName || defaultDeleteActionName
+    this.reactionsActionName = customPayloads?.reactionsActionName || defaultReactionsName
 
     try {
       if (storeUserActivityInterval && storeUserActivityInterval < 60000) {
