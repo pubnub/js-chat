@@ -21,3 +21,5 @@ export function defaultGetMessageResponseBody(messageParams: MessageDTOParams) {
 
 export const defaultEditActionName = MessageActionType.EDITED
 export const defaultDeleteActionName = MessageActionType.DELETED
+
+export const defaultReactionsName = MessageActionType.REACTIONS
