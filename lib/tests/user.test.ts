@@ -1,4 +1,4 @@
-import { Chat, INTERNAL_MODERATION_PREFIX, User } from "../src"
+import { Chat, INTERNAL_MODERATION_PREFIX, User } from "@pubnub/chat_internal"
 import { createChatInstance, createRandomUser, sleep } from "./utils"
 import { INTERNAL_ADMIN_CHANNEL } from "../src"
 

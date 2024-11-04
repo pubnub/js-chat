@@ -5,7 +5,7 @@ import {
   MessageDraft,
   INTERNAL_MODERATION_PREFIX,
   Membership,
-} from "../src"
+} from "@pubnub/chat_internal"
 import {
   sleep,
   extractMentionedUserIds,
@@ -19,7 +19,7 @@ import {
 import { jest } from "@jest/globals"
 
 describe("Channel test", () => {
-  jest.retryTimes(3)
+
 
   let chat: Chat
   let channel: Channel
@@ -200,7 +200,7 @@ describe("Channel test", () => {
         channelData: {},
       }),
     ])
-
+    console.log(newChannels[0].channel.id)
     expect(newChannels[0].channel.id.startsWith("direct.")).toBeTruthy()
     expect(newChannels[1].channel.id).toBeDefined()
     expect(newChannels[2].id).toBeDefined()
@@ -241,6 +241,7 @@ describe("Channel test", () => {
         payload: {
           channelType: "direct",
           channelId: directConversation.channel.id,
+          type: expect.anything()
         },
       })
     )
@@ -450,7 +451,7 @@ describe("Channel test", () => {
   })
 
   test("should mention users with multi-word names in a message and validate mentioned users", async () => {
-    jest.retryTimes(3)
+
 
     const user1Id = `user1_${Date.now()}`
     const user1 = await chat.createUser(user1Id, { name: "User One" })
@@ -488,7 +489,7 @@ describe("Channel test", () => {
   })
 
   test("should send a message with words that start with @ but are not user mentions", async () => {
-    jest.retryTimes(3)
+
 
     const messageText =
       "Hello, this is a test message with words that start with @ but are not user mentions: @test, @example, @check."
@@ -504,7 +505,7 @@ describe("Channel test", () => {
   })
 
   test("should try to mention users with incorrect usernames and validate no users are mentioned", async () => {
-    jest.retryTimes(3)
+
 
     const user1Id = `user1_${Date.now()}`
     const user1 = await chat.createUser(user1Id, { name: "User One" })
@@ -527,7 +528,7 @@ describe("Channel test", () => {
   })
 
   test("should suggest global users who are not members of the channel", async () => {
-    jest.retryTimes(3)
+
 
     const user1Id = `user1_${Date.now()}`
     const user1 = await chat.createUser(user1Id, { name: "User 1" })
@@ -568,7 +569,7 @@ describe("Channel test", () => {
   })
 
   test("should mention the same user multiple times in a message and validate mentioned users", async () => {
-    jest.retryTimes(3)
+
 
     const user1Id = `user1_${Date.now()}`
     const user1 = await chat.createUser(user1Id, { name: "User 1" })
@@ -593,7 +594,7 @@ describe("Channel test", () => {
   })
 
   test("should correctly add and remove mentioned user", async () => {
-    jest.retryTimes(3)
+
 
     const user1Id = `user1_${Date.now()}`
     const user1 = await chat.createUser(user1Id, { name: "User 1" })
@@ -626,7 +627,7 @@ describe("Channel test", () => {
   })
 
   test("should correctly add and remove the middle mentioned user", async () => {
-    jest.retryTimes(3)
+
 
     const user1Id = `user1_${Date.now()}`
     const user1 = await chat.createUser(user1Id, { name: "User 1" })
@@ -667,7 +668,7 @@ describe("Channel test", () => {
   })
 
   test.skip("should mention user in a message and validate cache", async () => {
-    jest.retryTimes(3)
+
 
     const user1Id = `user1_${Date.now()}`
     const user1 = await chat.createUser(user1Id, { name: "User 1" })
@@ -688,7 +689,7 @@ describe("Channel test", () => {
   })
 
   test("should add and remove a quote", async () => {
-    jest.retryTimes(3)
+
 
     const messageText = "Test message"
     await channel.sendText(messageText)
@@ -706,7 +707,7 @@ describe("Channel test", () => {
   })
 
   test("should throw an error when trying to quote a message from another channel", async () => {
-    jest.retryTimes(3)
+
 
     const otherChannel = await createRandomChannel()
 
@@ -806,9 +807,15 @@ describe("Channel test", () => {
     const user = await createRandomUser()
     const channel = await createRandomChannel()
 
+console.log("Aaa")
     const membership = await channel.invite(user)
-
+    console.log("bbb")
+    await sleep(200)
+    console.log("ccc")
+    console.log(membership)
+    console.log("ddd")
     const membersData = await channel.getMembers()
+    console.log(membersData)
 
     expect(membership).toBeDefined()
     expect(membersData.members.find((member) => member.user.id === user.id)).toBeTruthy()
@@ -1198,7 +1205,7 @@ describe("Channel test", () => {
       next: "MTAw",
     }
 
-    jest.spyOn(chat.sdk.objects, "getMemberships").mockImplementation(() => membershipsDTOMock)
+    jest.spyOn(chat.sdk.objects, "getMemberships").mockImplementation(async () => membershipsDTOMock)
 
     const memberships = await chat.currentUser.getMemberships()
     expect(memberships.memberships[0].updated).toBe(membershipsDTOMock.data[0].updated)
@@ -1209,11 +1216,9 @@ describe("Channel test", () => {
     const groupConversation = await chat.createGroupConversation({ users: [chat.currentUser] })
     const hostMembership = groupConversation.hostMembership
     let updatedMembership: Membership | undefined
-
     const removeListener = hostMembership.streamUpdates((updatedMembershipData) => {
       updatedMembership = updatedMembershipData
     })
-
     await hostMembership.update({ custom: { hello: "world" } })
     await sleep(2000)
     expect(updatedMembership?.custom?.hello).toBe("world")

@@ -1,0 +1,567 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="105" failures="46" errors="0" time="406.275">
+  <testsuite name="User test" errors="0" failures="2" skipped="0" timestamp="2024-11-04T10:39:13" time="38.099" tests="12">
+    <testcase classname="User test Should automatically create chat user while initializing" name="User test Should automatically create chat user while initializing" time="0.819">
+    </testcase>
+    <testcase classname="User test Should be able to create and fetch user" name="User test Should be able to create and fetch user" time="1.252">
+    </testcase>
+    <testcase classname="User test Should be able to update user" name="User test Should be able to update user" time="1.576">
+    </testcase>
+    <testcase classname="User test Should be able to delete user" name="User test Should be able to delete user" time="2.468">
+    </testcase>
+    <testcase classname="User test Should stream user updates and invoke the callback" name="User test Should stream user updates and invoke the callback" time="1.877">
+    </testcase>
+    <testcase classname="User test should update the user even if they&apos;re a member of a particular channel" name="User test should update the user even if they&apos;re a member of a particular channel" time="6.586">
+    </testcase>
+    <testcase classname="User test should update the user even if they&apos;re not a member of a particular channel" name="User test should update the user even if they&apos;re not a member of a particular channel" time="6.405">
+    </testcase>
+    <testcase classname="User test should report a user" name="User test should report a user" time="1.131">
+      <failure>TypeError: user.DEPRECATED_report is not a function
+    at Object.DEPRECATED_report (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/user.test.ts:124:16)
+    at Promise.then.completed (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:252:3)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:121:9)
+    at run (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="User test Should be able to create, fetch, and validate multiple users" name="User test Should be able to create, fetch, and validate multiple users" time="6.961">
+    </testcase>
+    <testcase classname="User test Should fail to update a non-existent user" name="User test Should fail to update a non-existent user" time="1.208">
+    </testcase>
+    <testcase classname="User test Should fail to delete a non-existent user" name="User test Should fail to delete a non-existent user" time="1.228">
+    </testcase>
+    <testcase classname="User test Should apply filter to &apos;getMemberships&apos;" name="User test Should apply filter to &apos;getMemberships&apos;" time="1.548">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+- Expected
++ Received
+
+  Object {
+-   &quot;filter&quot;: &quot;!(channel.id LIKE &apos;undefined*&apos;) &amp;&amp; (channel.id like &apos;hello*&apos;)&quot;,
++   &quot;filter&quot;: &quot;!(channel.id LIKE &apos;PUBNUB_INTERNAL_MODERATION_*&apos;) &amp;&amp; (channel.id like &apos;hello*&apos;)&quot;,
+    &quot;include&quot;: Object {
+      &quot;channelFields&quot;: true,
+      &quot;channelStatusField&quot;: true,
+      &quot;channelTypeField&quot;: true,
+      &quot;customChannelFields&quot;: true,
+      &quot;customFields&quot;: true,
+-     &quot;statusField&quot;: true,
++     &quot;statusField&quot;: false,
+      &quot;totalCount&quot;: true,
+    },
++   &quot;page&quot;: null,
++   &quot;sort&quot;: Object {},
+    &quot;uuid&quot;: &quot;test-user&quot;,
+  },
+
+Number of calls: 1
+    at Object.toHaveBeenCalledWith (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/user.test.ts:198:45)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Send message test" errors="0" failures="19" skipped="1" timestamp="2024-11-04T10:39:51" time="189.122" tests="47">
+    <testcase classname="Send message test should send and receive unicode messages correctly" name="Send message test should send and receive unicode messages correctly" time="12.354">
+    </testcase>
+    <testcase classname="Send message test should send and receive regular text messages correctly" name="Send message test should send and receive regular text messages correctly" time="4.507">
+    </testcase>
+    <testcase classname="Send message test should delete the message" name="Send message test should delete the message" time="2.382">
+    </testcase>
+    <testcase classname="Send message test should restore a soft deleted message" name="Send message test should restore a soft deleted message" time="2.733">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: false
+Received: true
+    at Object.toBe (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:150:45)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should restore a soft deleted message together with its thread" name="Send message test should restore a soft deleted message together with its thread" time="8.272">
+    </testcase>
+    <testcase classname="Send message test should only log a warning if you try to restore an undeleted message" name="Send message test should only log a warning if you try to restore an undeleted message" time="1.332">
+      <failure>PubNubException: This message has not been deleted
+    at MessageImpl.protoOf.x21 (/Users/wojciech.kalicinski/pubnub-chat-impl/build/src/commonMain/kotlin/com/pubnub/chat/internal/util/Utils.kt:47:7930)
+    at Message_0.protoOf.restore (/Users/wojciech.kalicinski/pubnub-chat-impl/build/src/jsMain/kotlin/MessageJs.kt:67:24)
+    at Object.restore (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:210:23)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should throw an error if you try to create a thread on a deleted message" name="Send message test should throw an error if you try to create a thread on a deleted message" time="2.146">
+      <failure>Error: expect(received).toContain(expected) // indexOf
+
+Expected value:  &quot;You cannot create threads on deleted messages&quot;
+Received object: [PubNubException: You cannot create threads on deleted messages.]
+    at Object.toContain (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:238:35)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should edit the message" name="Send message test should edit the message" time="1.478">
+    </testcase>
+    <testcase classname="Send message test should toggle the message reaction" name="Send message test should toggle the message reaction" time="1.619">
+    </testcase>
+    <testcase classname="Send message test should pin the message" name="Send message test should pin the message" time="1.782">
+    </testcase>
+    <testcase classname="Send message test should unpin the message" name="Send message test should unpin the message" time="2.16">
+    </testcase>
+    <testcase classname="Send message test should stream message updates and invoke the callback" name="Send message test should stream message updates and invoke the callback" time="3.406">
+    </testcase>
+    <testcase classname="Send message test should render URLs correctly" name="Send message test should render URLs correctly" time="4.084">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/utils.ts:185:22)
+    at Object.&lt;anonymous&gt; (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:349:58)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should add linked text correctly" name="Send message test should add linked text correctly" time="0.797">
+      <failure>TypeError: this.m2m_1.h2f is not a function
+    at MessageDraft.protoOf.onChange (/Users/wojciech.kalicinski/pubnub-chat-impl/build/src/jsMain/kotlin/MessageDraftJs.kt:24:22)
+    at Object.onChange (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:360:18)
+    at Promise.then.completed (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:252:3)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:121:9)
+    at run (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Send message test should throw an error for invalid link format" name="Send message test should throw an error for invalid link format" time="0.937">
+      <failure>TypeError: this.m2m_1.h2f is not a function
+    at MessageDraft.protoOf.onChange (/Users/wojciech.kalicinski/pubnub-chat-impl/build/src/jsMain/kotlin/MessageDraftJs.kt:24:22)
+    at Object.onChange (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:383:18)
+    at Promise.then.completed (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:252:3)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:121:9)
+    at run (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Send message test should throw an error if adding a link inside another link" name="Send message test should throw an error if adding a link inside another link" time="0.794">
+      <failure>TypeError: this.m2m_1.h2f is not a function
+    at MessageDraft.protoOf.onChange (/Users/wojciech.kalicinski/pubnub-chat-impl/build/src/jsMain/kotlin/MessageDraftJs.kt:24:22)
+    at Object.onChange (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:401:18)
+    at Promise.then.completed (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:252:3)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:121:9)
+    at run (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Send message test should remove a linked URL correctly" name="Send message test should remove a linked URL correctly" time="0.893">
+      <failure>TypeError: this.m2m_1.h2f is not a function
+    at MessageDraft.protoOf.onChange (/Users/wojciech.kalicinski/pubnub-chat-impl/build/src/jsMain/kotlin/MessageDraftJs.kt:24:22)
+    at Object.onChange (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:433:18)
+    at Promise.then.completed (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:252:3)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:121:9)
+    at run (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Send message test should report a message" name="Send message test should report a message" time="1.843">
+      <failure>TypeError: channel.getMessageReportsHistory is not a function
+    at Object.getMessageReportsHistory (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:479:38)</failure>
+    </testcase>
+    <testcase classname="Send message test should report a message (deprecated)" name="Send message test should report a message (deprecated)" time="1.491">
+      <failure>TypeError: reportedMessage.DEPRECATED_report is not a function
+    at Object.DEPRECATED_report (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:498:27)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should send multiple image files along with a text message correctly" name="Send message test should send multiple image files along with a text message correctly" time="4.341">
+    </testcase>
+    <testcase classname="Send message test should send image file along with a text message correctly" name="Send message test should send image file along with a text message correctly" time="4.152">
+    </testcase>
+    <testcase classname="Send message test should send pdf file along with a text message correctly" name="Send message test should send pdf file along with a text message correctly" time="4.309">
+    </testcase>
+    <testcase classname="Send message test should send txt file along with a text message correctly" name="Send message test should send txt file along with a text message correctly" time="3.904">
+    </testcase>
+    <testcase classname="Send message test should send mp4 file along with a text message correctly" name="Send message test should send mp4 file along with a text message correctly" time="6.767">
+    </testcase>
+    <testcase classname="Send message test should send multiple different types of files along with a text message correctly" name="Send message test should send multiple different types of files along with a text message correctly" time="6.374">
+    </testcase>
+    <testcase classname="Send message test shouldn&apos;t allow to send image file over 5 mb along with a text message" name="Send message test shouldn&apos;t allow to send image file over 5 mb along with a text message" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Send message test should send 3 messages with proper delays and verify rate limiter" name="Send message test should send 3 messages with proper delays and verify rate limiter" time="5.255">
+    </testcase>
+    <testcase classname="Send message test should send long messages and validate correct rendering" name="Send message test should send long messages and validate correct rendering" time="9.774">
+    </testcase>
+    <testcase classname="Send message test should fail to send an empty or whitespace-only message" name="Send message test should fail to send an empty or whitespace-only message" time="0.972">
+    </testcase>
+    <testcase classname="Send message test should send and receive messages in various languages correctly" name="Send message test should send and receive messages in various languages correctly" time="16.428">
+    </testcase>
+    <testcase classname="Send message test should toggle the message reaction and then delete the message reaction" name="Send message test should toggle the message reaction and then delete the message reaction" time="1.869">
+    </testcase>
+    <testcase classname="Send message test should be unable to pin multiple messages" name="Send message test should be unable to pin multiple messages" time="2.758">
+    </testcase>
+    <testcase classname="Send message test should not allow inserting a link inside another link" name="Send message test should not allow inserting a link inside another link" time="0.762">
+      <failure>TypeError: this.m2m_1.h2f is not a function
+    at MessageDraft.protoOf.onChange (/Users/wojciech.kalicinski/pubnub-chat-impl/build/src/jsMain/kotlin/MessageDraftJs.kt:24:22)
+    at Object.onChange (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:986:18)
+    at Promise.then.completed (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:252:3)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:121:9)
+    at run (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Send message test should send quote message in a Thread" name="Send message test should send quote message in a Thread" time="3.734">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;content&apos;)
+    at Object.content (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:1052:61)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should pin the message inside the Thread" name="Send message test should pin the message inside the Thread" time="4.255">
+    </testcase>
+    <testcase classname="Send message test should encrypt and decrypt a message" name="Send message test should encrypt and decrypt a message" time="6.767">
+      <failure>Error: expect(received).toBeDefined()
+
+Received: undefined
+    at Object.toBeDefined (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:1119:30)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should encrypt and decrypt a file" name="Send message test should encrypt and decrypt a file" time="7.587">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 3
+Received: undefined
+    at Object.toBe (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:1174:55)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should still view text messages sent before enabling encryption" name="Send message test should still view text messages sent before enabling encryption" time="6.659">
+      <failure>Error: expect(received).toBeDefined()
+
+Received: undefined
+    at Object.toBeDefined (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:1214:29)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should still view files sent before enabling encryption" name="Send message test should still view files sent before enabling encryption" time="7.637">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 3
+Received: undefined
+    at Object.toBe (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:1272:51)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should be able to decrypt text and file messages sent using a previous encryption key" name="Send message test should be able to decrypt text and file messages sent using a previous encryption key" time="7.537">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 3
+Received: undefined
+    at Object.toBe (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:1316:60)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should send a message with custom body and transform it to TextMessageContent when received" name="Send message test should send a message with custom body and transform it to TextMessageContent when received" time="2.779">
+    </testcase>
+    <testcase classname="Send message test should send a message with custom body and crash if getMessageResponseBody is incorrect" name="Send message test should send a message with custom body and crash if getMessageResponseBody is incorrect" time="2.493">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: &quot;Cannot read properties of undefined (reading &apos;does&apos;)&quot;
+Received: &quot;Failed to retrieve getHistory data.&quot;
+    at Object.toBe (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:1432:32)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should be able to pass custom edit and delete action names" name="Send message test should be able to pass custom edit and delete action names" time="3.513">
+    </testcase>
+    <testcase classname="Send message test should work fine even for multiple schemas on different channels" name="Send message test should work fine even for multiple schemas on different channels" time="3.131">
+    </testcase>
+    <testcase classname="Send message test should be able to read live messages with custom payloads as well" name="Send message test should be able to read live messages with custom payloads as well" time="4.097">
+    </testcase>
+    <testcase classname="Send message test should be able to read live encrypted messages with custom payloads" name="Send message test should be able to read live encrypted messages with custom payloads" time="2.315">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: &quot;Hello encrypted world!&quot;
+Received: &quot;&quot;
+    at Object.toBe (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:1636:29)</failure>
+    </testcase>
+    <testcase classname="Send message test should be able to read historic encrypted messages with custom payloads" name="Send message test should be able to read historic encrypted messages with custom payloads" time="2.922">
+    </testcase>
+  </testsuite>
+  <testsuite name="Channel test" errors="0" failures="25" skipped="1" timestamp="2024-11-04T10:43:01" time="178.3" tests="46">
+    <testcase classname="Channel test should create a channel" name="Channel test should create a channel" time="1.649">
+    </testcase>
+    <testcase classname="Channel test Should be able to delete channel" name="Channel test Should be able to delete channel" time="2.836">
+    </testcase>
+    <testcase classname="Channel test should get channel history" name="Channel test should get channel history" time="3.184">
+    </testcase>
+    <testcase classname="Channel test should get channel history with pagination" name="Channel test should get channel history with pagination" time="2.549">
+    </testcase>
+    <testcase classname="Channel test should fail when trying to send a message to a non-existent channel" name="Channel test should fail when trying to send a message to a non-existent channel" time="1.505">
+    </testcase>
+    <testcase classname="Channel test should fail when trying to send a message to a deleted channel" name="Channel test should fail when trying to send a message to a deleted channel" time="1.878">
+    </testcase>
+    <testcase classname="Channel test should fail when trying to get history of a deleted channel" name="Channel test should fail when trying to get history of a deleted channel" time="1.695">
+    </testcase>
+    <testcase classname="Channel test should edit membership metadata" name="Channel test should edit membership metadata" time="5.06">
+    </testcase>
+    <testcase classname="Channel test should create a direct, group and public chats with a predefined ID" name="Channel test should create a direct, group and public chats with a predefined ID" time="6.819">
+    </testcase>
+    <testcase classname="Channel test should create a direct, group and public chats with default IDs" name="Channel test should create a direct, group and public chats with default IDs" time="7.42">
+      <failure>Error: expect(received).toBeTruthy()
+
+Received: false
+    at Object.toBeTruthy (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:204:61)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should create direct conversation and send message" name="Channel test should create direct conversation and send message" time="5.93">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+Expected: ObjectContaining {&quot;payload&quot;: {&quot;channelId&quot;: &quot;direct7695936099361484&quot;, &quot;channelType&quot;: &quot;direct&quot;}}
+Received: {&quot;channelId&quot;: &quot;user_0Y5CKlxB&quot;, &quot;chat&quot;: {&quot;chat&quot;: {&quot;j2a_1&quot;: {&quot;h22_1&quot;: {&quot;n2_1&quot;: &quot;OFF&quot;, &quot;o2_1&quot;: 0}, &quot;i22_1&quot;: {&quot;y_1&quot;: 1410065408, &quot;z_1&quot;: 2}, &quot;j22_1&quot;: {&quot;y_1&quot;: 1704124416, &quot;z_1&quot;: 279}, &quot;k22_1&quot;: false, &quot;l22_1&quot;: {&quot;c23_1&quot;: false, &quot;d23_1&quot;: &quot;&quot;, &quot;e23_1&quot;: [PNPushType], &quot;f23_1&quot;: null, &quot;g23_1&quot;: [PNPushEnvironment]}, &quot;m22_1&quot;: 2, &quot;n22_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: [InternalHashMap], &quot;z5_1&quot;: null}, &quot;o22_1&quot;: {&quot;a23_1&quot;: null, &quot;b23_1&quot;: null, &quot;x22_1&quot;: null, &quot;y22_1&quot;: null, &quot;z22_1&quot;: null}}, &quot;k2a_1&quot;: {&quot;p1v_1&quot;: {&quot;File&quot;: [Function PubNubFile], &quot;_channelGroups&quot;: [PubnubChannelGroups], &quot;_configuration&quot;: [Object], &quot;_objects&quot;: [PubNubObjects], &quot;_push&quot;: [PubNubPushNotifications], &quot;crypto&quot;: [default_1], &quot;cryptography&quot;: [NodeCryptography], &quot;eventEmitter&quot;: [EventEmitter], &quot;listenerManager&quot;: [ListenerManager], &quot;nodeTransport&quot;: [NodeTransport], &quot;subscriptionManager&quot;: [SubscriptionManager], &quot;tokenManager&quot;: [TokenManager], &quot;transport&quot;: [PubNubMiddleware]}}, &quot;l2a_1&quot;: &quot;edited&quot;, &quot;m2a_1&quot;: &quot;deleted&quot;, &quot;n2a_1&quot;: &quot;reactions&quot;, &quot;o2a_1&quot;: {&quot;j2n_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: [InternalHashMap], &quot;z5_1&quot;: null}, &quot;k2n_1&quot;: 0}, &quot;p2a_1&quot;: {&quot;a2b_1&quot;: null, &quot;b2b_1&quot;: null, &quot;c2b_1&quot;: null, &quot;d2b_1&quot;: &quot;2024-10-18T10:00:50.193724Z&quot;, &quot;e2b_1&quot;: null, &quot;u2a_1&quot;: [Circular], &quot;v2a_1&quot;: &quot;test-user&quot;, &quot;w2a_1&quot;: &quot;test-user&quot;, &quot;x2a_1&quot;: null, &quot;y2a_1&quot;: null, &quot;z2a_1&quot;: null}, &quot;q2a_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: {&quot;a7_1&quot;: null, &quot;b7_1&quot;: [Int32Array], &quot;c7_1&quot;: [Int32Array], &quot;d7_1&quot;: 2, &quot;e7_1&quot;: 0, &quot;f7_1&quot;: 28, &quot;g7_1&quot;: 0, &quot;h7_1&quot;: 0, &quot;i7_1&quot;: false, &quot;z6_1&quot;: [Array]}, &quot;z5_1&quot;: null}, &quot;r2a_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: {&quot;a7_1&quot;: null, &quot;b7_1&quot;: [Int32Array], &quot;c7_1&quot;: [Int32Array], &quot;d7_1&quot;: 2, &quot;e7_1&quot;: 0, &quot;f7_1&quot;: 28, &quot;g7_1&quot;: 0, &quot;h7_1&quot;: 0, &quot;i7_1&quot;: false, &quot;z6_1&quot;: [Array]}, &quot;z5_1&quot;: null}, &quot;s2a_1&quot;: null, &quot;t2a_1&quot;: null}, &quot;config&quot;: {&quot;logVerbosity&quot;: true, &quot;publishKey&quot;: &quot;pub-c-92e62c76-408a-4ac4-aefc-a1d20a83b2a6&quot;, &quot;subscribeKey&quot;: &quot;sub-c-d0b8e542-12a0-41c4-999f-a2d569dc4255&quot;, &quot;userId&quot;: &quot;test-user&quot;}}, &quot;payload&quot;: {&quot;channelId&quot;: &quot;direct7695936099361484&quot;, &quot;channelType&quot;: &quot;direct&quot;, &quot;type&quot;: &quot;invite&quot;}, &quot;timetoken&quot;: &quot;17307170216641328&quot;, &quot;type&quot;: &quot;invite&quot;, &quot;userId&quot;: &quot;test-user&quot;}
+
+Number of calls: 1
+    at Object.toHaveBeenCalledWith (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:239:28)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should create group conversation" name="Channel test should create group conversation" time="4.445">
+      <failure>TypeError: Cannot read properties of null (reading &apos;groupInfo&apos;)
+    at Object.groupInfo (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:294:27)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should create a thread" name="Channel test should create a thread" time="4.044">
+    </testcase>
+    <testcase classname="Channel test should not be able to create an empty Thread without any message" name="Channel test should not be able to create an empty Thread without any message" time="1.199">
+    </testcase>
+    <testcase classname="Channel test should stream channel updates and invoke the callback" name="Channel test should stream channel updates and invoke the callback" time="2.138">
+    </testcase>
+    <testcase classname="Channel test should stream membership updates and invoke the callback" name="Channel test should stream membership updates and invoke the callback" time="4.576">
+    </testcase>
+    <testcase classname="Channel test should get unread messages count" name="Channel test should get unread messages count" time="6.342">
+    </testcase>
+    <testcase classname="Channel test should mention users in a message and validate mentioned users" name="Channel test should mention users in a message and validate mentioned users" time="2.792">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:422:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should mention users with multi-word names in a message and validate mentioned users" name="Channel test should mention users with multi-word names in a message and validate mentioned users" time="3.032">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:464:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should send a message with words that start with @ but are not user mentions" name="Channel test should send a message with words that start with @ but are not user mentions" time="2.084">
+      <failure>TypeError: Cannot convert undefined or null to object
+    at Function.keys (&lt;anonymous&gt;)
+    at Object.keys (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:503:19)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should try to mention users with incorrect usernames and validate no users are mentioned" name="Channel test should try to mention users with incorrect usernames and validate no users are mentioned" time="2.23">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:515:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should suggest global users who are not members of the channel" name="Channel test should suggest global users who are not members of the channel" time="5.173">
+      <failure>PubNubException: No such membership exists
+    at /Users/wojciech.kalicinski/pubnub-chat-impl/build/src/commonMain/kotlin/com/pubnub/chat/internal/util/Utils.kt:42:60
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_1.i1v_1 (/Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-core-api/src/commonMain/kotlin/com/pubnub/api/v2/callbacks/Result.kt:234:36)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_1.protoOf.a1q (/Users/wojciech.kalicinski/projects/js-chat/node_modules/@pubnub/chat_internal/pubnub-pubnub-kotlin-pubnub-kotlin-api.js:1830:17)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_0.h1v_1 (/Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-api/src/commonMain/kotlin/com/pubnub/kmp/futures.kt:59:18)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_0.protoOf.a1q (/Users/wojciech.kalicinski/projects/js-chat/node_modules/@pubnub/chat_internal/pubnub-pubnub-kotlin-pubnub-kotlin-api.js:1764:17)
+    at /Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-api/src/jsMain/kotlin/com/pubnub/api/EndpointImpl.kt:15:34
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should mention the same user multiple times in a message and validate mentioned users" name="Channel test should mention the same user multiple times in a message and validate mentioned users" time="3.201">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:579:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should correctly add and remove mentioned user" name="Channel test should correctly add and remove mentioned user" time="3.398">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:607:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should correctly add and remove the middle mentioned user" name="Channel test should correctly add and remove the middle mentioned user" time="3.889">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:641:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should mention user in a message and validate cache" name="Channel test should mention user in a message and validate cache" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Channel test should add and remove a quote" name="Channel test should add and remove a quote" time="1.868">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: {&quot;a2m_1&quot;: [Function anonymous], &quot;b2m_1&quot;: [Function anonymous], &quot;c2m_1&quot;: [Function anonymous], &quot;d2m_1&quot;: [Function anonymous], &quot;e2m_1&quot;: [Function anonymous], &quot;x2l_1&quot;: {&quot;b2k_1&quot;: {&quot;j2a_1&quot;: {&quot;h22_1&quot;: {&quot;n2_1&quot;: &quot;OFF&quot;, &quot;o2_1&quot;: 0}, &quot;i22_1&quot;: {&quot;y_1&quot;: 1410065408, &quot;z_1&quot;: 2}, &quot;j22_1&quot;: {&quot;y_1&quot;: 1704124416, &quot;z_1&quot;: 279}, &quot;k22_1&quot;: false, &quot;l22_1&quot;: {&quot;c23_1&quot;: false, &quot;d23_1&quot;: &quot;&quot;, &quot;e23_1&quot;: [PNPushType], &quot;f23_1&quot;: null, &quot;g23_1&quot;: [PNPushEnvironment]}, &quot;m22_1&quot;: 2, &quot;n22_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: [InternalHashMap], &quot;z5_1&quot;: null}, &quot;o22_1&quot;: {&quot;a23_1&quot;: null, &quot;b23_1&quot;: null, &quot;x22_1&quot;: null, &quot;y22_1&quot;: null, &quot;z22_1&quot;: null}}, &quot;k2a_1&quot;: {&quot;p1v_1&quot;: {&quot;File&quot;: [Function PubNubFile], &quot;_channelGroups&quot;: [PubnubChannelGroups], &quot;_configuration&quot;: [Object], &quot;_objects&quot;: [PubNubObjects], &quot;_push&quot;: [PubNubPushNotifications], &quot;crypto&quot;: [default_1], &quot;cryptography&quot;: [NodeCryptography], &quot;eventEmitter&quot;: [EventEmitter], &quot;listenerManager&quot;: [ListenerManager], &quot;nodeTransport&quot;: [NodeTransport], &quot;subscriptionManager&quot;: [SubscriptionManager], &quot;tokenManager&quot;: [TokenManager], &quot;transport&quot;: [PubNubMiddleware]}}, &quot;l2a_1&quot;: &quot;edited&quot;, &quot;m2a_1&quot;: &quot;deleted&quot;, &quot;n2a_1&quot;: &quot;reactions&quot;, &quot;o2a_1&quot;: {&quot;j2n_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: [InternalHashMap], &quot;z5_1&quot;: null}, &quot;k2n_1&quot;: 0}, &quot;p2a_1&quot;: {&quot;a2b_1&quot;: null, &quot;b2b_1&quot;: null, &quot;c2b_1&quot;: null, &quot;d2b_1&quot;: &quot;2024-10-18T10:00:50.193724Z&quot;, &quot;e2b_1&quot;: null, &quot;u2a_1&quot;: [Circular], &quot;v2a_1&quot;: &quot;test-user&quot;, &quot;w2a_1&quot;: &quot;test-user&quot;, &quot;x2a_1&quot;: null, &quot;y2a_1&quot;: null, &quot;z2a_1&quot;: null}, &quot;q2a_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: {&quot;a7_1&quot;: null, &quot;b7_1&quot;: [Int32Array], &quot;c7_1&quot;: [Int32Array], &quot;d7_1&quot;: 2, &quot;e7_1&quot;: 0, &quot;f7_1&quot;: 28, &quot;g7_1&quot;: 0, &quot;h7_1&quot;: 0, &quot;i7_1&quot;: false, &quot;z6_1&quot;: [Array]}, &quot;z5_1&quot;: null}, &quot;r2a_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: {&quot;a7_1&quot;: null, &quot;b7_1&quot;: [Int32Array], &quot;c7_1&quot;: [Int32Array], &quot;d7_1&quot;: 2, &quot;e7_1&quot;: 0, &quot;f7_1&quot;: 28, &quot;g7_1&quot;: 0, &quot;h7_1&quot;: 0, &quot;i7_1&quot;: false, &quot;z6_1&quot;: [Array]}, &quot;z5_1&quot;: null}, &quot;s2a_1&quot;: null, &quot;t2a_1&quot;: null}, &quot;c2k_1&quot;: {&quot;y_1&quot;: -1290591890, &quot;z_1&quot;: 4029639}, &quot;d2k_1&quot;: {&quot;n27_1&quot;: &quot;Test message&quot;, &quot;o27_1&quot;: []}, &quot;e2k_1&quot;: &quot;channel_Knv34HyK&quot;, &quot;f2g_1&quot;: {&quot;j2a_1&quot;: {&quot;h22_1&quot;: {&quot;n2_1&quot;: &quot;OFF&quot;, &quot;o2_1&quot;: 0}, &quot;i22_1&quot;: {&quot;y_1&quot;: 1410065408, &quot;z_1&quot;: 2}, &quot;j22_1&quot;: {&quot;y_1&quot;: 1704124416, &quot;z_1&quot;: 279}, &quot;k22_1&quot;: false, &quot;l22_1&quot;: {&quot;c23_1&quot;: false, &quot;d23_1&quot;: &quot;&quot;, &quot;e23_1&quot;: [PNPushType], &quot;f23_1&quot;: null, &quot;g23_1&quot;: [PNPushEnvironment]}, &quot;m22_1&quot;: 2, &quot;n22_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: [InternalHashMap], &quot;z5_1&quot;: null}, &quot;o22_1&quot;: {&quot;a23_1&quot;: null, &quot;b23_1&quot;: null, &quot;x22_1&quot;: null, &quot;y22_1&quot;: null, &quot;z22_1&quot;: null}}, &quot;k2a_1&quot;: {&quot;p1v_1&quot;: {&quot;File&quot;: [Function PubNubFile], &quot;_channelGroups&quot;: [PubnubChannelGroups], &quot;_configuration&quot;: [Object], &quot;_objects&quot;: [PubNubObjects], &quot;_push&quot;: [PubNubPushNotifications], &quot;crypto&quot;: [default_1], &quot;cryptography&quot;: [NodeCryptography], &quot;eventEmitter&quot;: [EventEmitter], &quot;listenerManager&quot;: [ListenerManager], &quot;nodeTransport&quot;: [NodeTransport], &quot;subscriptionManager&quot;: [SubscriptionManager], &quot;tokenManager&quot;: [TokenManager], &quot;transport&quot;: [PubNubMiddleware]}}, &quot;l2a_1&quot;: &quot;edited&quot;, &quot;m2a_1&quot;: &quot;deleted&quot;, &quot;n2a_1&quot;: &quot;reactions&quot;, &quot;o2a_1&quot;: {&quot;j2n_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: [InternalHashMap], &quot;z5_1&quot;: null}, &quot;k2n_1&quot;: 0}, &quot;p2a_1&quot;: {&quot;a2b_1&quot;: null, &quot;b2b_1&quot;: null, &quot;c2b_1&quot;: null, &quot;d2b_1&quot;: &quot;2024-10-18T10:00:50.193724Z&quot;, &quot;e2b_1&quot;: null, &quot;u2a_1&quot;: [Circular], &quot;v2a_1&quot;: &quot;test-user&quot;, &quot;w2a_1&quot;: &quot;test-user&quot;, &quot;x2a_1&quot;: null, &quot;y2a_1&quot;: null, &quot;z2a_1&quot;: null}, &quot;q2a_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: {&quot;a7_1&quot;: null, &quot;b7_1&quot;: [Int32Array], &quot;c7_1&quot;: [Int32Array], &quot;d7_1&quot;: 2, &quot;e7_1&quot;: 0, &quot;f7_1&quot;: 28, &quot;g7_1&quot;: 0, &quot;h7_1&quot;: 0, &quot;i7_1&quot;: false, &quot;z6_1&quot;: [Array]}, &quot;z5_1&quot;: null}, &quot;r2a_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: {&quot;a7_1&quot;: null, &quot;b7_1&quot;: [Int32Array], &quot;c7_1&quot;: [Int32Array], &quot;d7_1&quot;: 2, &quot;e7_1&quot;: 0, &quot;f7_1&quot;: 28, &quot;g7_1&quot;: 0, &quot;h7_1&quot;: 0, &quot;i7_1&quot;: false, &quot;z6_1&quot;: [Array]}, &quot;z5_1&quot;: null}, &quot;s2a_1&quot;: null, &quot;t2a_1&quot;: null}, &quot;f2k_1&quot;: &quot;test-user&quot;, &quot;g2g_1&quot;: {&quot;y_1&quot;: -1290591890, &quot;z_1&quot;: 4029639}, &quot;g2k_1&quot;: null, &quot;h2g_1&quot;: {&quot;n27_1&quot;: &quot;Test message&quot;, &quot;o27_1&quot;: []}, &quot;h2k_1&quot;: {&quot;q1p_1&quot;: {}}, &quot;i2g_1&quot;: &quot;channel_Knv34HyK&quot;, &quot;j2g_1&quot;: &quot;test-user&quot;, &quot;k2g_1&quot;: null, &quot;l2g_1&quot;: {&quot;q1p_1&quot;: {}}, &quot;m2g_1&quot;: &quot;text&quot;}, &quot;y2l_1&quot;: [Function anonymous], &quot;z2l_1&quot;: [Function anonymous]}
+Received: serializes to the same string
+    at Object.toEqual (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:701:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should throw an error when trying to quote a message from another channel" name="Channel test should throw an error when trying to quote a message from another channel" time="3.148">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: &quot;You cannot quote messages from other channels&quot;
+Received: [ReferenceError: fail is not defined]
+    at Object.toEqual (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:724:21)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should quote multiple messages" name="Channel test should quote multiple messages" time="2.239">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: {&quot;a2m_1&quot;: [Function anonymous], &quot;b2m_1&quot;: [Function anonymous], &quot;c2m_1&quot;: [Function anonymous], &quot;d2m_1&quot;: [Function anonymous], &quot;e2m_1&quot;: [Function anonymous], &quot;x2l_1&quot;: {&quot;b2k_1&quot;: {&quot;j2a_1&quot;: {&quot;h22_1&quot;: {&quot;n2_1&quot;: &quot;OFF&quot;, &quot;o2_1&quot;: 0}, &quot;i22_1&quot;: {&quot;y_1&quot;: 1410065408, &quot;z_1&quot;: 2}, &quot;j22_1&quot;: {&quot;y_1&quot;: 1704124416, &quot;z_1&quot;: 279}, &quot;k22_1&quot;: false, &quot;l22_1&quot;: {&quot;c23_1&quot;: false, &quot;d23_1&quot;: &quot;&quot;, &quot;e23_1&quot;: [PNPushType], &quot;f23_1&quot;: null, &quot;g23_1&quot;: [PNPushEnvironment]}, &quot;m22_1&quot;: 2, &quot;n22_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: [InternalHashMap], &quot;z5_1&quot;: null}, &quot;o22_1&quot;: {&quot;a23_1&quot;: null, &quot;b23_1&quot;: null, &quot;x22_1&quot;: null, &quot;y22_1&quot;: null, &quot;z22_1&quot;: null}}, &quot;k2a_1&quot;: {&quot;p1v_1&quot;: {&quot;File&quot;: [Function PubNubFile], &quot;_channelGroups&quot;: [PubnubChannelGroups], &quot;_configuration&quot;: [Object], &quot;_objects&quot;: [PubNubObjects], &quot;_push&quot;: [PubNubPushNotifications], &quot;crypto&quot;: [default_1], &quot;cryptography&quot;: [NodeCryptography], &quot;eventEmitter&quot;: [EventEmitter], &quot;listenerManager&quot;: [ListenerManager], &quot;nodeTransport&quot;: [NodeTransport], &quot;subscriptionManager&quot;: [SubscriptionManager], &quot;tokenManager&quot;: [TokenManager], &quot;transport&quot;: [PubNubMiddleware]}}, &quot;l2a_1&quot;: &quot;edited&quot;, &quot;m2a_1&quot;: &quot;deleted&quot;, &quot;n2a_1&quot;: &quot;reactions&quot;, &quot;o2a_1&quot;: {&quot;j2n_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: [InternalHashMap], &quot;z5_1&quot;: null}, &quot;k2n_1&quot;: 0}, &quot;p2a_1&quot;: {&quot;a2b_1&quot;: null, &quot;b2b_1&quot;: null, &quot;c2b_1&quot;: null, &quot;d2b_1&quot;: &quot;2024-10-18T10:00:50.193724Z&quot;, &quot;e2b_1&quot;: null, &quot;u2a_1&quot;: [Circular], &quot;v2a_1&quot;: &quot;test-user&quot;, &quot;w2a_1&quot;: &quot;test-user&quot;, &quot;x2a_1&quot;: null, &quot;y2a_1&quot;: null, &quot;z2a_1&quot;: null}, &quot;q2a_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: {&quot;a7_1&quot;: null, &quot;b7_1&quot;: [Int32Array], &quot;c7_1&quot;: [Int32Array], &quot;d7_1&quot;: 2, &quot;e7_1&quot;: 0, &quot;f7_1&quot;: 28, &quot;g7_1&quot;: 0, &quot;h7_1&quot;: 0, &quot;i7_1&quot;: false, &quot;z6_1&quot;: [Array]}, &quot;z5_1&quot;: null}, &quot;r2a_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: {&quot;a7_1&quot;: null, &quot;b7_1&quot;: [Int32Array], &quot;c7_1&quot;: [Int32Array], &quot;d7_1&quot;: 2, &quot;e7_1&quot;: 0, &quot;f7_1&quot;: 28, &quot;g7_1&quot;: 0, &quot;h7_1&quot;: 0, &quot;i7_1&quot;: false, &quot;z6_1&quot;: [Array]}, &quot;z5_1&quot;: null}, &quot;s2a_1&quot;: null, &quot;t2a_1&quot;: null}, &quot;c2k_1&quot;: {&quot;y_1&quot;: -1236071820, &quot;z_1&quot;: 4029639}, &quot;d2k_1&quot;: {&quot;n27_1&quot;: &quot;Test message 3&quot;, &quot;o27_1&quot;: []}, &quot;e2k_1&quot;: &quot;channel_NxQNkp1S&quot;, &quot;f2g_1&quot;: {&quot;j2a_1&quot;: {&quot;h22_1&quot;: {&quot;n2_1&quot;: &quot;OFF&quot;, &quot;o2_1&quot;: 0}, &quot;i22_1&quot;: {&quot;y_1&quot;: 1410065408, &quot;z_1&quot;: 2}, &quot;j22_1&quot;: {&quot;y_1&quot;: 1704124416, &quot;z_1&quot;: 279}, &quot;k22_1&quot;: false, &quot;l22_1&quot;: {&quot;c23_1&quot;: false, &quot;d23_1&quot;: &quot;&quot;, &quot;e23_1&quot;: [PNPushType], &quot;f23_1&quot;: null, &quot;g23_1&quot;: [PNPushEnvironment]}, &quot;m22_1&quot;: 2, &quot;n22_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: [InternalHashMap], &quot;z5_1&quot;: null}, &quot;o22_1&quot;: {&quot;a23_1&quot;: null, &quot;b23_1&quot;: null, &quot;x22_1&quot;: null, &quot;y22_1&quot;: null, &quot;z22_1&quot;: null}}, &quot;k2a_1&quot;: {&quot;p1v_1&quot;: {&quot;File&quot;: [Function PubNubFile], &quot;_channelGroups&quot;: [PubnubChannelGroups], &quot;_configuration&quot;: [Object], &quot;_objects&quot;: [PubNubObjects], &quot;_push&quot;: [PubNubPushNotifications], &quot;crypto&quot;: [default_1], &quot;cryptography&quot;: [NodeCryptography], &quot;eventEmitter&quot;: [EventEmitter], &quot;listenerManager&quot;: [ListenerManager], &quot;nodeTransport&quot;: [NodeTransport], &quot;subscriptionManager&quot;: [SubscriptionManager], &quot;tokenManager&quot;: [TokenManager], &quot;transport&quot;: [PubNubMiddleware]}}, &quot;l2a_1&quot;: &quot;edited&quot;, &quot;m2a_1&quot;: &quot;deleted&quot;, &quot;n2a_1&quot;: &quot;reactions&quot;, &quot;o2a_1&quot;: {&quot;j2n_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: [InternalHashMap], &quot;z5_1&quot;: null}, &quot;k2n_1&quot;: 0}, &quot;p2a_1&quot;: {&quot;a2b_1&quot;: null, &quot;b2b_1&quot;: null, &quot;c2b_1&quot;: null, &quot;d2b_1&quot;: &quot;2024-10-18T10:00:50.193724Z&quot;, &quot;e2b_1&quot;: null, &quot;u2a_1&quot;: [Circular], &quot;v2a_1&quot;: &quot;test-user&quot;, &quot;w2a_1&quot;: &quot;test-user&quot;, &quot;x2a_1&quot;: null, &quot;y2a_1&quot;: null, &quot;z2a_1&quot;: null}, &quot;q2a_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: {&quot;a7_1&quot;: null, &quot;b7_1&quot;: [Int32Array], &quot;c7_1&quot;: [Int32Array], &quot;d7_1&quot;: 2, &quot;e7_1&quot;: 0, &quot;f7_1&quot;: 28, &quot;g7_1&quot;: 0, &quot;h7_1&quot;: 0, &quot;i7_1&quot;: false, &quot;z6_1&quot;: [Array]}, &quot;z5_1&quot;: null}, &quot;r2a_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: {&quot;a7_1&quot;: null, &quot;b7_1&quot;: [Int32Array], &quot;c7_1&quot;: [Int32Array], &quot;d7_1&quot;: 2, &quot;e7_1&quot;: 0, &quot;f7_1&quot;: 28, &quot;g7_1&quot;: 0, &quot;h7_1&quot;: 0, &quot;i7_1&quot;: false, &quot;z6_1&quot;: [Array]}, &quot;z5_1&quot;: null}, &quot;s2a_1&quot;: null, &quot;t2a_1&quot;: null}, &quot;f2k_1&quot;: &quot;test-user&quot;, &quot;g2g_1&quot;: {&quot;y_1&quot;: -1236071820, &quot;z_1&quot;: 4029639}, &quot;g2k_1&quot;: null, &quot;h2g_1&quot;: {&quot;n27_1&quot;: &quot;Test message 3&quot;, &quot;o27_1&quot;: []}, &quot;h2k_1&quot;: {&quot;q1p_1&quot;: {}}, &quot;i2g_1&quot;: &quot;channel_NxQNkp1S&quot;, &quot;j2g_1&quot;: &quot;test-user&quot;, &quot;k2g_1&quot;: null, &quot;l2g_1&quot;: {&quot;q1p_1&quot;: {}}, &quot;m2g_1&quot;: &quot;text&quot;}, &quot;y2l_1&quot;: [Function anonymous], &quot;z2l_1&quot;: [Function anonymous]}
+Received: serializes to the same string
+    at Object.toEqual (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:750:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should correctly stream read receipts" name="Channel test should correctly stream read receipts" time="2.987">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledTimes(expected)
+
+Expected number of calls: 1
+Received number of calls: 0
+    at Object.toHaveBeenCalledTimes (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:762:26)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should invite a user to the channel" name="Channel test should invite a user to the channel" time="3.353">
+      <failure>PubNubException: No such membership exists
+    at /Users/wojciech.kalicinski/pubnub-chat-impl/build/src/commonMain/kotlin/com/pubnub/chat/internal/util/Utils.kt:42:60
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_1.i1v_1 (/Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-core-api/src/commonMain/kotlin/com/pubnub/api/v2/callbacks/Result.kt:234:36)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_1.protoOf.a1q (/Users/wojciech.kalicinski/projects/js-chat/node_modules/@pubnub/chat_internal/pubnub-pubnub-kotlin-pubnub-kotlin-api.js:1830:17)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_0.h1v_1 (/Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-api/src/commonMain/kotlin/com/pubnub/kmp/futures.kt:59:18)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_0.protoOf.a1q (/Users/wojciech.kalicinski/projects/js-chat/node_modules/@pubnub/chat_internal/pubnub-pubnub-kotlin-pubnub-kotlin-api.js:1764:17)
+    at /Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-api/src/jsMain/kotlin/com/pubnub/api/EndpointImpl.kt:15:34
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should invite multiple users to the channel" name="Channel test should invite multiple users to the channel" time="2.819">
+      <failure>PubNubException: No such membership exists
+    at /Users/wojciech.kalicinski/pubnub-chat-impl/build/src/commonMain/kotlin/com/pubnub/chat/internal/util/Utils.kt:42:60
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_1.i1v_1 (/Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-core-api/src/commonMain/kotlin/com/pubnub/api/v2/callbacks/Result.kt:234:36)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_1.protoOf.a1q (/Users/wojciech.kalicinski/projects/js-chat/node_modules/@pubnub/chat_internal/pubnub-pubnub-kotlin-pubnub-kotlin-api.js:1830:17)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_0.h1v_1 (/Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-api/src/commonMain/kotlin/com/pubnub/kmp/futures.kt:59:18)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_0.protoOf.a1q (/Users/wojciech.kalicinski/projects/js-chat/node_modules/@pubnub/chat_internal/pubnub-pubnub-kotlin-pubnub-kotlin-api.js:1764:17)
+    at /Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-api/src/jsMain/kotlin/com/pubnub/api/EndpointImpl.kt:15:34
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should verify if user is a member of a channel" name="Channel test should verify if user is a member of a channel" time="4.205">
+      <failure>PubNubException: No such membership exists
+    at /Users/wojciech.kalicinski/pubnub-chat-impl/build/src/commonMain/kotlin/com/pubnub/chat/internal/util/Utils.kt:42:60
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_1.i1v_1 (/Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-core-api/src/commonMain/kotlin/com/pubnub/api/v2/callbacks/Result.kt:234:36)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_1.protoOf.a1q (/Users/wojciech.kalicinski/projects/js-chat/node_modules/@pubnub/chat_internal/pubnub-pubnub-kotlin-pubnub-kotlin-api.js:1830:17)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_0.h1v_1 (/Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-api/src/commonMain/kotlin/com/pubnub/kmp/futures.kt:59:18)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_0.protoOf.a1q (/Users/wojciech.kalicinski/projects/js-chat/node_modules/@pubnub/chat_internal/pubnub-pubnub-kotlin-pubnub-kotlin-api.js:1764:17)
+    at /Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-api/src/jsMain/kotlin/com/pubnub/api/EndpointImpl.kt:15:34
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should verify if user is online on a channel" name="Channel test should verify if user is online on a channel" time="8.593">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: false
+Received: true
+    at Object.toBe (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:846:61)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should verify all user-related mentions using getCurrentUserMentions()" name="Channel test should verify all user-related mentions using getCurrentUserMentions()" time="3.497">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:864:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test Should fail when trying to edit membership metadata of a non-existent channel" name="Channel test Should fail when trying to edit membership metadata of a non-existent channel" time="1.672">
+    </testcase>
+    <testcase classname="Channel test Should create direct conversation, edit, and delete a message" name="Channel test Should create direct conversation, edit, and delete a message" time="7.571">
+    </testcase>
+    <testcase classname="Channel test should create, reply to, and delete a thread" name="Channel test should create, reply to, and delete a thread" time="8.577">
+    </testcase>
+    <testcase classname="Channel test should create, reply to, delete a thread, and recreate the deleted thread" name="Channel test should create, reply to, delete a thread, and recreate the deleted thread" time="8.101">
+    </testcase>
+    <testcase classname="Channel test Should mention users with special characters in their names and validate mentioned users" name="Channel test Should mention users with special characters in their names and validate mentioned users" time="3.149">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:1003:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should create a group chat channel" name="Channel test should create a group chat channel" time="6.767">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: {&quot;key&quot;: &quot;value&quot;}
+Received: null
+    at Object.toEqual (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:1058:28)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should create a public chat channel" name="Channel test should create a public chat channel" time="1.948">
+      <failure>PubNubException: Channel with this ID already exists
+    at /Users/wojciech.kalicinski/pubnub-chat-impl/build/src/commonMain/kotlin/com/pubnub/chat/internal/util/Utils.kt:42:60
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_1.i1v_1 (/Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-core-api/src/commonMain/kotlin/com/pubnub/api/v2/callbacks/Result.kt:234:36)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_1.protoOf.a1q (/Users/wojciech.kalicinski/projects/js-chat/node_modules/@pubnub/chat_internal/pubnub-pubnub-kotlin-pubnub-kotlin-api.js:1830:17)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_2.j1v_1 (/Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-api/src/commonMain/kotlin/com/pubnub/kmp/futures.kt:96:22)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_2.protoOf.a1q (/Users/wojciech.kalicinski/projects/js-chat/node_modules/@pubnub/chat_internal/pubnub-pubnub-kotlin-pubnub-kotlin-api.js:1943:17)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_2.j1v_1 (/Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-core-api/src/commonMain/kotlin/com/pubnub/api/v2/callbacks/Result.kt:90:24)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_2.protoOf.a1q (/Users/wojciech.kalicinski/projects/js-chat/node_modules/@pubnub/chat_internal/pubnub-pubnub-kotlin-pubnub-kotlin-api.js:1943:17)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_0.h1v_1 (/Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-api/src/commonMain/kotlin/com/pubnub/kmp/futures.kt:59:18)
+    at sam$com_pubnub_api_v2_callbacks_Consumer$0_0.protoOf.a1q (/Users/wojciech.kalicinski/projects/js-chat/node_modules/@pubnub/chat_internal/pubnub-pubnub-kotlin-pubnub-kotlin-api.js:1764:17)
+    at /Users/pubnub-kotlin/pubnub-kotlin/pubnub-kotlin-api/src/jsMain/kotlin/com/pubnub/api/EndpointImpl.kt:15:34
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should set (or lift) restrictions on a user" name="Channel test should set (or lift) restrictions on a user" time="3.113">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+Expected: ObjectContaining {&quot;payload&quot;: {&quot;channelId&quot;: &quot;PUBNUB_INTERNAL_MODERATION_some-channel&quot;, &quot;restriction&quot;: &quot;muted&quot;}}
+Received: {&quot;channelId&quot;: &quot;test-user&quot;, &quot;chat&quot;: {&quot;chat&quot;: {&quot;j2a_1&quot;: {&quot;h22_1&quot;: {&quot;n2_1&quot;: &quot;OFF&quot;, &quot;o2_1&quot;: 0}, &quot;i22_1&quot;: {&quot;y_1&quot;: 1410065408, &quot;z_1&quot;: 2}, &quot;j22_1&quot;: {&quot;y_1&quot;: 1704124416, &quot;z_1&quot;: 279}, &quot;k22_1&quot;: false, &quot;l22_1&quot;: {&quot;c23_1&quot;: false, &quot;d23_1&quot;: &quot;&quot;, &quot;e23_1&quot;: [PNPushType], &quot;f23_1&quot;: null, &quot;g23_1&quot;: [PNPushEnvironment]}, &quot;m22_1&quot;: 2, &quot;n22_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: [InternalHashMap], &quot;z5_1&quot;: null}, &quot;o22_1&quot;: {&quot;a23_1&quot;: null, &quot;b23_1&quot;: null, &quot;x22_1&quot;: null, &quot;y22_1&quot;: null, &quot;z22_1&quot;: null}}, &quot;k2a_1&quot;: {&quot;p1v_1&quot;: {&quot;File&quot;: [Function PubNubFile], &quot;_channelGroups&quot;: [PubnubChannelGroups], &quot;_configuration&quot;: [Object], &quot;_objects&quot;: [PubNubObjects], &quot;_push&quot;: [PubNubPushNotifications], &quot;crypto&quot;: [default_1], &quot;cryptography&quot;: [NodeCryptography], &quot;eventEmitter&quot;: [EventEmitter], &quot;listenerManager&quot;: [ListenerManager], &quot;nodeTransport&quot;: [NodeTransport], &quot;subscriptionManager&quot;: [SubscriptionManager], &quot;tokenManager&quot;: [TokenManager], &quot;transport&quot;: [PubNubMiddleware]}}, &quot;l2a_1&quot;: &quot;edited&quot;, &quot;m2a_1&quot;: &quot;deleted&quot;, &quot;n2a_1&quot;: &quot;reactions&quot;, &quot;o2a_1&quot;: {&quot;j2n_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: [InternalHashMap], &quot;z5_1&quot;: null}, &quot;k2n_1&quot;: 0}, &quot;p2a_1&quot;: {&quot;a2b_1&quot;: null, &quot;b2b_1&quot;: null, &quot;c2b_1&quot;: null, &quot;d2b_1&quot;: &quot;2024-10-18T10:00:50.193724Z&quot;, &quot;e2b_1&quot;: null, &quot;u2a_1&quot;: [Circular], &quot;v2a_1&quot;: &quot;test-user&quot;, &quot;w2a_1&quot;: &quot;test-user&quot;, &quot;x2a_1&quot;: null, &quot;y2a_1&quot;: null, &quot;z2a_1&quot;: null}, &quot;q2a_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: {&quot;a7_1&quot;: null, &quot;b7_1&quot;: [Int32Array], &quot;c7_1&quot;: [Int32Array], &quot;d7_1&quot;: 2, &quot;e7_1&quot;: 0, &quot;f7_1&quot;: 28, &quot;g7_1&quot;: 0, &quot;h7_1&quot;: 0, &quot;i7_1&quot;: false, &quot;z6_1&quot;: [Array]}, &quot;z5_1&quot;: null}, &quot;r2a_1&quot;: {&quot;i5_1&quot;: null, &quot;j5_1&quot;: null, &quot;m5_1&quot;: null, &quot;n5_1&quot;: null, &quot;y5_1&quot;: {&quot;a7_1&quot;: null, &quot;b7_1&quot;: [Int32Array], &quot;c7_1&quot;: [Int32Array], &quot;d7_1&quot;: 2, &quot;e7_1&quot;: 0, &quot;f7_1&quot;: 28, &quot;g7_1&quot;: 0, &quot;h7_1&quot;: 0, &quot;i7_1&quot;: false, &quot;z6_1&quot;: [Array]}, &quot;z5_1&quot;: null}, &quot;s2a_1&quot;: null, &quot;t2a_1&quot;: null}, &quot;config&quot;: {&quot;logVerbosity&quot;: true, &quot;publishKey&quot;: &quot;pub-c-92e62c76-408a-4ac4-aefc-a1d20a83b2a6&quot;, &quot;subscribeKey&quot;: &quot;sub-c-d0b8e542-12a0-41c4-999f-a2d569dc4255&quot;, &quot;userId&quot;: &quot;test-user&quot;}}, &quot;payload&quot;: {&quot;channelId&quot;: &quot;PUBNUB_INTERNAL_MODERATION_some-channel&quot;, &quot;reason&quot;: null, &quot;restriction&quot;: &quot;muted&quot;, &quot;type&quot;: &quot;moderation&quot;}, &quot;timetoken&quot;: &quot;17307171444370706&quot;, &quot;type&quot;: &quot;moderation&quot;, &quot;userId&quot;: &quot;test-user&quot;}
+
+Number of calls: 1
+    at Object.toHaveBeenCalledWith (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:1100:37)</failure>
+    </testcase>
+    <testcase classname="Channel test Should get the number of unread messages on channels" name="Channel test Should get the number of unread messages on channels" time="1.933">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+- Expected
++ Received
+
+  Object {
+-   &quot;filter&quot;: &quot;!(channel.id LIKE &apos;undefined*&apos;) &amp;&amp; (channel.id like &apos;hello*&apos;)&quot;,
++   &quot;filter&quot;: &quot;!(channel.id LIKE &apos;PUBNUB_INTERNAL_MODERATION_*&apos;) &amp;&amp; (channel.id like &apos;hello*&apos;)&quot;,
+    &quot;include&quot;: Object {
+      &quot;channelFields&quot;: true,
+      &quot;channelStatusField&quot;: true,
+      &quot;channelTypeField&quot;: true,
+      &quot;customChannelFields&quot;: true,
+      &quot;customFields&quot;: true,
+-     &quot;statusField&quot;: true,
++     &quot;statusField&quot;: false,
+      &quot;totalCount&quot;: true,
+    },
++   &quot;page&quot;: null,
++   &quot;sort&quot;: Object {},
+    &quot;uuid&quot;: &quot;test-user&quot;,
+  },
+
+Number of calls: 1
+    at Object.toHaveBeenCalledWith (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:1164:45)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should set &apos;eTag&apos; and &apos;updated&apos; on the Membership object" name="Channel test should set &apos;eTag&apos; and &apos;updated&apos; on the Membership object" time="2.478">
+    </testcase>
+    <testcase classname="Channel test should set &apos;eTag&apos; and &apos;updated&apos; on the Membership object in real time" name="Channel test should set &apos;eTag&apos; and &apos;updated&apos; on the Membership object in real time" time="10.081">
+    </testcase>
+  </testsuite>
+</testsuites>

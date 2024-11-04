@@ -1,9 +1,9 @@
 // lib/tests/testUtils.ts
-import { Chat } from "../src"
-import { Channel } from "../src"
+import { Chat } from "@pubnub/chat_internal"
+import { Channel } from "@pubnub/chat_internal"
 import * as dotenv from "dotenv"
 import { nanoid } from "nanoid"
-import { User } from "../src"
+import { User } from "@pubnub/chat_internal"
 
 dotenv.config()
 

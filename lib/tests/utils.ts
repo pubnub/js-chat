@@ -1,7 +1,7 @@
 // lib/tests/testUtils.ts
-import { Chat, MessageDraft, Channel, Message, ChatConfig } from "../src"
+import { Chat, MessageDraft, Channel, Message, ChatConfig } from "@pubnub/chat_internal"
 import * as dotenv from "dotenv"
-import { User } from "../src"
+import { User } from "@pubnub/chat_internal"
 import { MixedTextTypedElement } from "../dist"
 import PubNub from "pubnub"
 
@@ -46,6 +46,7 @@ export async function createChatInstance(
       publishKey: process.env.PUBLISH_KEY,
       subscribeKey: process.env.SUBSCRIBE_KEY,
       userId: options.userId || process.env.USER_ID,
+      logVerbosity: true,
       ...options.config,
     })
   }
@@ -55,6 +56,7 @@ export async function createChatInstance(
       publishKey: process.env.PUBLISH_KEY,
       subscribeKey: process.env.SUBSCRIBE_KEY,
       userId: options.userId || process.env.USER_ID,
+      logVerbosity: true,
       ...options.config,
     })
   }

@@ -43,5 +43,8 @@
   },
   "resolutions": {
     "webpack": "5.88.2"
+  },
+  "dependencies": {
+    "@pubnub/chat_internal": "file:../pubnub-chat/pubnub-chat-impl/build/dist/js/productionLibrary"
   }
 }

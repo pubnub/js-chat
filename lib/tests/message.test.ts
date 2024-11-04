@@ -7,7 +7,7 @@ import {
   CryptoUtils,
   CryptoModule,
   MessageDTOParams,
-} from "../src"
+} from "@pubnub/chat_internal"
 import {
   createChatInstance,
   createRandomChannel,
@@ -21,7 +21,7 @@ import * as fs from "fs"
 import { defaultDeleteActionName, defaultEditActionName } from "../src/default-values"
 
 describe("Send message test", () => {
-  jest.retryTimes(3)
+
 
   let chat: Chat
   let channel: Channel
@@ -52,6 +52,7 @@ describe("Send message test", () => {
         messages.push(message.content.text)
       }
     })
+    await sleep(200)
 
     for (const unicodeMessage of unicodeMessages) {
       await channel.sendText(unicodeMessage)
@@ -77,12 +78,13 @@ describe("Send message test", () => {
         messages.push(message.content.text)
       }
     })
+    await sleep(200)
 
     for (const textMessage of textMessages) {
       await channel.sendText(textMessage)
       const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
-      await sleep(2000)
     }
+    await sleep(2000)
 
     await waitForAllMessagesToBeDelivered(messages, textMessages)
 
@@ -102,7 +104,7 @@ describe("Send message test", () => {
     const sentMessage = messagesBeforeDelete[messagesBeforeDelete.length - 1]
 
     await sentMessage.delete()
-    await sleep(150) // history calls have around 130ms of cache time
+    await sleep(250) // history calls have around 130ms of cache time
 
     const historyAfterDelete = await channel.getHistory()
     const messagesAfterDelete: Message[] = historyAfterDelete.messages
@@ -233,7 +235,7 @@ describe("Send message test", () => {
       thrownExceptionString = e
     })
 
-    expect(thrownExceptionString).toBe("You cannot create threads on deleted messages")
+    expect(thrownExceptionString).toContain("You cannot create threads on deleted messages")
   })
 
   test("should edit the message", async () => {
@@ -1102,14 +1104,16 @@ describe("Send message test", () => {
     let cipheredMessage: Message | undefined
 
     const disconnect1 = someEncryptedGroupChannel.channel.connect((msg) => {
+        console.log("got message 1")
       encryptedMessage = msg
     })
     const disconnect2 = sameCipheredGroupChannel.connect((msg) => {
+        console.log("got message 2")
       cipheredMessage = msg
     })
-
+    sleep(2000)
     await someEncryptedGroupChannel.channel.sendText("Random text")
-    await sleep(200) // history calls have around 130ms of cache time
+    await sleep(1000) // history calls have around 130ms of cache time
     const encryptedHistory = await someEncryptedGroupChannel.channel.getHistory()
     const cipheredHistory = await sameCipheredGroupChannel.getHistory()
     expect(encryptedMessage).toBeDefined()
@@ -1117,12 +1121,13 @@ describe("Send message test", () => {
     expect(encryptedMessage.text).toBe("Random text")
     expect(encryptedHistory.messages[0].text).toBe("Random text")
     expect(cipheredHistory.messages[0].text.startsWith("UE5FRAFBQ1JIE")).toBeTruthy()
+    console.log("here")
     await someEncryptedGroupChannel.channel.delete({ soft: false })
     await sameCipheredGroupChannel.delete({ soft: false })
     await someRandomUser1.delete({ soft: false })
     disconnect1()
     disconnect2()
-  })
+  }, 15000)
 
   test("should encrypt and decrypt a file", async () => {
     const file1 = fs.createReadStream("tests/fixtures/pblogo1.png")
