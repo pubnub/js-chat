@@ -10,3 +10,4 @@ junit.xml
 yarn-error.log
 package-lock.json
 samples/astro
+.yarn/install-state.gz
