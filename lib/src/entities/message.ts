@@ -359,6 +359,7 @@ export class Message {
   async pin() {
     const channel = await this.chat.getChannel(this.channelId)
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     await this.chat.pinMessageToChannel(this, channel!)
   }
 

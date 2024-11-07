@@ -1,5 +1,10 @@
 import { Chat } from "./chat"
-import PubNub, { ChannelMembershipObject, ObjectCustom, UUIDMembershipObject } from "pubnub"
+import {
+  ChannelMembershipObject,
+  ObjectCustom,
+  UUIDMembershipObject,
+  SetMembershipEvent,
+} from "pubnub"
 import { Channel } from "./channel"
 import { Message } from "./message"
 import { User } from "./user"
@@ -102,7 +107,7 @@ export class Membership {
   ) {
     if (!memberships.length) throw "Cannot stream membership updates on an empty list"
     const listener = {
-      objects: (event: PubNub.SetMembershipEvent<PubNub.ObjectCustom>) => {
+      objects: (event: SetMembershipEvent<ObjectCustom>) => {
         if (event.message.type !== "membership") return
         const membership = memberships.find(
           (m) => m.channel.id === event.channel && m.user.id === event.message.data.uuid.id
