@@ -1,5 +1,5 @@
 import { Chat } from "./chat"
-import PubNub, {
+import {
   ChannelMembershipObject,
   ObjectCustom,
   UUIDMembershipObject,

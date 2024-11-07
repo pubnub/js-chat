@@ -278,10 +278,10 @@ export class MessageDraft {
     if (previousWordsStartingWithSymbol.length > currentWordsStartingWithSymbol.length) {
       // a mention was removed
       const firstRemovalIndex = previousWordsStartingWithSymbol.findIndex(
-        (e, i) => !currentWordsStartingWithSymbol.includes(e)
+        (e) => !currentWordsStartingWithSymbol.includes(e)
       )
       const lastRemovalIndex = previousWordsStartingWithSymbol.findLastIndex(
-        (e, i) => !currentWordsStartingWithSymbol.includes(e)
+        (e) => !currentWordsStartingWithSymbol.includes(e)
       )
 
       if (lastRemovalIndex !== -1) {
