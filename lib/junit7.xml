@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="47" failures="14" errors="0" time="196.57">
+  <testsuite name="Send message test" errors="0" failures="14" skipped="1" timestamp="2024-11-07T16:05:59" time="196.49" tests="47">
+    <testcase classname="Send message test should send and receive unicode messages correctly" name="Send message test should send and receive unicode messages correctly" time="12.084">
+    </testcase>
+    <testcase classname="Send message test should send and receive regular text messages correctly" name="Send message test should send and receive regular text messages correctly" time="4.222">
+    </testcase>
+    <testcase classname="Send message test should delete the message" name="Send message test should delete the message" time="2.177">
+    </testcase>
+    <testcase classname="Send message test should restore a soft deleted message" name="Send message test should restore a soft deleted message" time="2.856">
+    </testcase>
+    <testcase classname="Send message test should restore a soft deleted message together with its thread" name="Send message test should restore a soft deleted message together with its thread" time="8.353">
+    </testcase>
+    <testcase classname="Send message test should only log a warning if you try to restore an undeleted message" name="Send message test should only log a warning if you try to restore an undeleted message" time="1.529">
+    </testcase>
+    <testcase classname="Send message test should throw an error if you try to create a thread on a deleted message" name="Send message test should throw an error if you try to create a thread on a deleted message" time="3.486">
+      <failure>Error: expect(received).toContain(expected) // indexOf
+
+Expected substring: &quot;[PubNubException: You cannot create threads on deleted messages.]&quot;
+Received string:    &quot;&quot;
+    at Object.toContain (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:238:35)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should edit the message" name="Send message test should edit the message" time="1.785">
+    </testcase>
+    <testcase classname="Send message test should toggle the message reaction" name="Send message test should toggle the message reaction" time="2.012">
+    </testcase>
+    <testcase classname="Send message test should pin the message" name="Send message test should pin the message" time="2.36">
+    </testcase>
+    <testcase classname="Send message test should unpin the message" name="Send message test should unpin the message" time="2.556">
+    </testcase>
+    <testcase classname="Send message test should stream message updates and invoke the callback" name="Send message test should stream message updates and invoke the callback" time="3.646">
+    </testcase>
+    <testcase classname="Send message test should render URLs correctly" name="Send message test should render URLs correctly" time="5.177">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: ArrayContaining [{&quot;content&quot;: {&quot;text&quot;: &quot; and this is a &quot;}, &quot;type&quot;: &quot;text&quot;}]
+Received: [{&quot;content&quot;: {&quot;text&quot;: &quot;Hello world!! This is a mention to &quot;}, &quot;type&quot;: &quot;text&quot;}, {&quot;content&quot;: {&quot;id&quot;: &quot;Przemek&quot;, &quot;name&quot;: &quot;Lukasz&quot;}, &quot;type&quot;: &quot;mention&quot;}, {&quot;content&quot;: {&quot;text&quot;: &quot; and this is a text link that leads to https://pubnub.com. Isn&apos;t it great? &quot;}, &quot;type&quot;: &quot;text&quot;}, {&quot;content&quot;: {&quot;id&quot;: &quot;whatever&quot;, &quot;name&quot;: &quot;Anton&quot;}, &quot;type&quot;: &quot;mention&quot;}]
+    at toEqual (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:354:30)
+    at Array.forEach (&lt;anonymous&gt;)
+    at Object.forEach (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:353:24)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should add linked text correctly" name="Send message test should add linked text correctly" time="0.922">
+      <failure>TypeError: this.a2n_1.r2f is not a function
+    at MessageDraft.r2f [as onChange] (/Users/wojciech.kalicinski/projects/pubnub-chat/pubnub-chat-impl/build/src/jsMain/kotlin/MessageDraftJs.kt:44:22)
+    at Object.onChange (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:360:18)
+    at Promise.then.completed (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:252:3)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:121:9)
+    at run (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Send message test should throw an error for invalid link format" name="Send message test should throw an error for invalid link format" time="0.86">
+      <failure>TypeError: this.a2n_1.r2f is not a function
+    at MessageDraft.r2f [as onChange] (/Users/wojciech.kalicinski/projects/pubnub-chat/pubnub-chat-impl/build/src/jsMain/kotlin/MessageDraftJs.kt:44:22)
+    at Object.onChange (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:383:18)
+    at Promise.then.completed (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:252:3)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:121:9)
+    at run (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Send message test should throw an error if adding a link inside another link" name="Send message test should throw an error if adding a link inside another link" time="1.004">
+      <failure>TypeError: this.a2n_1.r2f is not a function
+    at MessageDraft.r2f [as onChange] (/Users/wojciech.kalicinski/projects/pubnub-chat/pubnub-chat-impl/build/src/jsMain/kotlin/MessageDraftJs.kt:44:22)
+    at Object.onChange (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:401:18)
+    at Promise.then.completed (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:252:3)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:121:9)
+    at run (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Send message test should remove a linked URL correctly" name="Send message test should remove a linked URL correctly" time="0.91">
+      <failure>TypeError: this.a2n_1.r2f is not a function
+    at MessageDraft.r2f [as onChange] (/Users/wojciech.kalicinski/projects/pubnub-chat/pubnub-chat-impl/build/src/jsMain/kotlin/MessageDraftJs.kt:44:22)
+    at Object.onChange (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:433:18)
+    at Promise.then.completed (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:252:3)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:121:9)
+    at run (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Send message test should report a message" name="Send message test should report a message" time="2.054">
+      <failure>TypeError: channel.getMessageReportsHistory is not a function
+    at Object.getMessageReportsHistory (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:479:38)</failure>
+    </testcase>
+    <testcase classname="Send message test should report a message (deprecated)" name="Send message test should report a message (deprecated)" time="1.647">
+      <failure>TypeError: reportedMessage.DEPRECATED_report is not a function
+    at Object.DEPRECATED_report (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:498:27)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should send multiple image files along with a text message correctly" name="Send message test should send multiple image files along with a text message correctly" time="5.039">
+    </testcase>
+    <testcase classname="Send message test should send image file along with a text message correctly" name="Send message test should send image file along with a text message correctly" time="5.442">
+    </testcase>
+    <testcase classname="Send message test should send pdf file along with a text message correctly" name="Send message test should send pdf file along with a text message correctly" time="4.413">
+    </testcase>
+    <testcase classname="Send message test should send txt file along with a text message correctly" name="Send message test should send txt file along with a text message correctly" time="3.912">
+    </testcase>
+    <testcase classname="Send message test should send mp4 file along with a text message correctly" name="Send message test should send mp4 file along with a text message correctly" time="9.118">
+    </testcase>
+    <testcase classname="Send message test should send multiple different types of files along with a text message correctly" name="Send message test should send multiple different types of files along with a text message correctly" time="4.134">
+    </testcase>
+    <testcase classname="Send message test shouldn&apos;t allow to send image file over 5 mb along with a text message" name="Send message test shouldn&apos;t allow to send image file over 5 mb along with a text message" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Send message test should send 3 messages with proper delays and verify rate limiter" name="Send message test should send 3 messages with proper delays and verify rate limiter" time="4.953">
+    </testcase>
+    <testcase classname="Send message test should send long messages and validate correct rendering" name="Send message test should send long messages and validate correct rendering" time="9.466">
+    </testcase>
+    <testcase classname="Send message test should fail to send an empty or whitespace-only message" name="Send message test should fail to send an empty or whitespace-only message" time="1.025">
+    </testcase>
+    <testcase classname="Send message test should send and receive messages in various languages correctly" name="Send message test should send and receive messages in various languages correctly" time="16.252">
+    </testcase>
+    <testcase classname="Send message test should toggle the message reaction and then delete the message reaction" name="Send message test should toggle the message reaction and then delete the message reaction" time="1.867">
+    </testcase>
+    <testcase classname="Send message test should be unable to pin multiple messages" name="Send message test should be unable to pin multiple messages" time="2.561">
+    </testcase>
+    <testcase classname="Send message test should not allow inserting a link inside another link" name="Send message test should not allow inserting a link inside another link" time="0.792">
+      <failure>TypeError: this.a2n_1.r2f is not a function
+    at MessageDraft.r2f [as onChange] (/Users/wojciech.kalicinski/projects/pubnub-chat/pubnub-chat-impl/build/src/jsMain/kotlin/MessageDraftJs.kt:44:22)
+    at Object.onChange (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:986:18)
+    at Promise.then.completed (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:252:3)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:121:9)
+    at run (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Send message test should send quote message in a Thread" name="Send message test should send quote message in a Thread" time="3.921">
+    </testcase>
+    <testcase classname="Send message test should pin the message inside the Thread" name="Send message test should pin the message inside the Thread" time="3.735">
+    </testcase>
+    <testcase classname="Send message test should encrypt and decrypt a message" name="Send message test should encrypt and decrypt a message" time="6.918">
+      <failure>Error: expect(received).toBeDefined()
+
+Received: undefined
+    at Object.toBeDefined (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:1119:30)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should encrypt and decrypt a file" name="Send message test should encrypt and decrypt a file" time="8.401">
+    </testcase>
+    <testcase classname="Send message test should still view text messages sent before enabling encryption" name="Send message test should still view text messages sent before enabling encryption" time="5.701">
+      <failure>Error: expect(received).toBeDefined()
+
+Received: undefined
+    at Object.toBeDefined (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:1214:29)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should still view files sent before enabling encryption" name="Send message test should still view files sent before enabling encryption" time="8.167">
+    </testcase>
+    <testcase classname="Send message test should be able to decrypt text and file messages sent using a previous encryption key" name="Send message test should be able to decrypt text and file messages sent using a previous encryption key" time="7.416">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: &quot;Random text&quot;
+Received: &quot;UE5FRAFBQ1JIEMODqaYiW1hr67+baixvAUPZZbRAziREkzLM7uPzgX2MGT8g4flAdEo/POd+7yAjD0lOVVcNEC7hBvQaPt3rdiuUce92quYXlG1e8AVlMiHlQJK/zXG64HuzbTJJ+HBVXfTZa3cbrz+QVonCR7ujUlTInJabYGOeVIA/S1imNwiNtkGYNOqdt00iY9aOUsDo7kEqKJJwQxkA8CFCXUuinMSDgCOmAnKP8fmA3JenHJnXbX7k4BIPWNBJtmZz/5RicAERNBHpy2jNHYzCyX7mWAFviT/yPf0CLDSuray3BqXA41JS5vsg2jeUwngRzzgX7CRDVhBYKWTPpzx5P4ovnUsTPSnYI1v7WElX7aBbZ7jUsx7GzYm1oQ1khsH9AgAl6ZOwrni2YFqGoOpcJmS0oVYDvaQ5MWAFuMkOZ/uzyIVsdwzbhytSwEh6g9K0AtaPi2NsUC8trT1jGluwWssS9lTWmvqnDogmBV1NKezGpfNwa88ULMhK5xoT6a5dr4vd0W62fncefPgT6Zq+paR7y/phOPzpEml1ysgQdgIh8KRrXDEFEizhEh1rSwHoFZ4Z8/BCDRKev7ANIekz0XMqoACoXemNCFCxssuYCi8C1LwlbEbT+mYkrZQ7wZaEZSSF5kg+vAYWsuep+GQR+/EftvhvmJx3XdG+fxP686dNkPefKd9Al2ATKoqTbC7kyyeYMokt07eXtLR3L4k4v2oGPbw1FNIQpPopoMtZvH5cq9t+aaeShCykkHUZI97H4gt04+7docQniJ8IMwx4NamS3FfoAHAZlP5b7xqFHJnNg1Ql8WRtoYlmXJi9fPCu6fgaXe58r0w6eolNMbbcI1h/wmCC+AoJNRRRqbqIgKz2PQjpx71Edmkjeuy3/BDWUnyldvjEd/RZRNAng6B3otTKg7VXdq9so1TTAi9Zh5Y2KsdCTdWJ7LMZhk4jKjDRqbmOhIA9/G/hvPNv5lmLMcWNOpPigRYayIIJRXairfJeIXpy0ghJjbxlROtc5E6/GUL8Ez1GXc1o76l9AE2dE/qkn9lzYbXJrPH4m7/dltke0SzDjBsAk6nvonr+oe4k0TJO8gY2p0lSFc3xOiKYUBqnX/mBgRNvl9h2i7ek41/Py/vwprwEuT92hl42/jeVVB+/Q26tYcIbvBWnoQrPq5+GUI0jTvSnOYTF1fKyV543DySxD/+bTXM+5UTYwncdWOy3kkG7H+UTMhU54cFDuZVt/BGhgd52BKCgW8jj7szuwt/z3wOsuZ31G+CO4BXGkF8zcWoZkSpt3OHTqVZU0dcbdW0X0kBN9TOQEBJnPjmFKTIijDssbEgla5u6fO+7oCmxKv6ges0HQd8M4qyarXJk2CtCRBuzEAsYcUZwXRtoT14xAiLAhIj/5biFnY0DJSUXBkeMhl9cCmI9vwnM0/jXRYnxTp5MjunPNC2INwqexx3iJKoTY4Y+PCPLDM7BJplobxvyBspfYo7USnSNfklyr8gyNpTspUQSnjCHgIVUVaZzSgy+jBNcwZ9xpz8v9ejV+aumHNDUDAX0j24RbTSUD34=&quot;
+    at Object.toBe (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:1351:39)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should send a message with custom body and transform it to TextMessageContent when received" name="Send message test should send a message with custom body and transform it to TextMessageContent when received" time="2.025">
+    </testcase>
+    <testcase classname="Send message test should send a message with custom body and crash if getMessageResponseBody is incorrect" name="Send message test should send a message with custom body and crash if getMessageResponseBody is incorrect" time="2.172">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: &quot;Cannot read properties of undefined (reading &apos;does&apos;)&quot;
+Received: &quot;Failed to retrieve getHistory data.&quot;
+    at Object.toBe (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:1432:32)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Send message test should be able to pass custom edit and delete action names" name="Send message test should be able to pass custom edit and delete action names" time="3.567">
+    </testcase>
+    <testcase classname="Send message test should work fine even for multiple schemas on different channels" name="Send message test should work fine even for multiple schemas on different channels" time="2.957">
+    </testcase>
+    <testcase classname="Send message test should be able to read live messages with custom payloads as well" name="Send message test should be able to read live messages with custom payloads as well" time="3.991">
+    </testcase>
+    <testcase classname="Send message test should be able to read live encrypted messages with custom payloads" name="Send message test should be able to read live encrypted messages with custom payloads" time="4.206">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: &quot;Hello encrypted world!&quot;
+Received: &quot;&quot;
+    at Object.toBe (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/message.test.ts:1636:29)</failure>
+    </testcase>
+    <testcase classname="Send message test should be able to read historic encrypted messages with custom payloads" name="Send message test should be able to read historic encrypted messages with custom payloads" time="2.804">
+    </testcase>
+  </testsuite>
+</testsuites>

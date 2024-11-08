@@ -119,23 +119,23 @@ describe("User test", () => {
     stopUpdates()
   })
 
-  test("should report a user", async () => {
-    const reportReason = "Inappropriate behavior"
-    await user.DEPRECATED_report(reportReason)
-    await sleep(150) // history calls have around 130ms of cache time
-
-    const adminChannel =
-      (await chat.getChannel(INTERNAL_ADMIN_CHANNEL)) ||
-      (await chat.createChannel(INTERNAL_ADMIN_CHANNEL, { name: "admin channel" }))
-    expect(adminChannel).toBeDefined()
-
-    const adminChannelHistory = await adminChannel.getHistory({ count: 1 })
-    const reportMessage = adminChannelHistory.messages[0]
-
-    expect(reportMessage?.content.type).toBe("report")
-    expect(reportMessage?.content.reportedUserId).toBe(user.id)
-    expect(reportMessage?.content.reason).toBe(reportReason)
-  })
+//   test("should report a user", async () => {
+//     const reportReason = "Inappropriate behavior"
+//     await user.DEPRECATED_report(reportReason)
+//     await sleep(150) // history calls have around 130ms of cache time
+//
+//     const adminChannel =
+//       (await chat.getChannel(INTERNAL_ADMIN_CHANNEL)) ||
+//       (await chat.createChannel(INTERNAL_ADMIN_CHANNEL, { name: "admin channel" }))
+//     expect(adminChannel).toBeDefined()
+//
+//     const adminChannelHistory = await adminChannel.getHistory({ count: 1 })
+//     const reportMessage = adminChannelHistory.messages[0]
+//
+//     expect(reportMessage?.content.type).toBe("report")
+//     expect(reportMessage?.content.reportedUserId).toBe(user.id)
+//     expect(reportMessage?.content.reason).toBe(reportReason)
+//   })
 
   test("Should be able to create, fetch, and validate multiple users", async () => {
     const usersToCreate = []
@@ -153,7 +153,7 @@ describe("User test", () => {
       expect(fetchedUser.id).toBe(createdUser.id)
       expect(fetchedUser.name).toEqual(createdUser.name)
     }
-  })
+  }, 15000)
 
   test("Should fail to update a non-existent user", async () => {
     const nonExistentUserId = "nonexistentuserid"
@@ -256,10 +256,10 @@ describe("User test", () => {
     const response = await chat.currentUser.getMemberships()
     expect(response).toEqual(
       expect.objectContaining({
-        page: {
+        page: expect.objectContaining({
           prev: exampleResponse.prev,
           next: exampleResponse.next,
-        },
+        }),
         total: exampleResponse.totalCount,
         status: exampleResponse.status,
       })

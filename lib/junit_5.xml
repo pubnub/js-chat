@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="46" failures="19" errors="0" time="186.803">
+  <testsuite name="Channel test" errors="0" failures="19" skipped="1" timestamp="2024-11-05T17:31:36" time="186.487" tests="46">
+    <testcase classname="Channel test should create a channel" name="Channel test should create a channel" time="1.587">
+    </testcase>
+    <testcase classname="Channel test Should be able to delete channel" name="Channel test Should be able to delete channel" time="2.954">
+    </testcase>
+    <testcase classname="Channel test should get channel history" name="Channel test should get channel history" time="2.256">
+    </testcase>
+    <testcase classname="Channel test should get channel history with pagination" name="Channel test should get channel history with pagination" time="2.751">
+    </testcase>
+    <testcase classname="Channel test should fail when trying to send a message to a non-existent channel" name="Channel test should fail when trying to send a message to a non-existent channel" time="1.697">
+    </testcase>
+    <testcase classname="Channel test should fail when trying to send a message to a deleted channel" name="Channel test should fail when trying to send a message to a deleted channel" time="2.057">
+    </testcase>
+    <testcase classname="Channel test should fail when trying to get history of a deleted channel" name="Channel test should fail when trying to get history of a deleted channel" time="1.963">
+    </testcase>
+    <testcase classname="Channel test should edit membership metadata" name="Channel test should edit membership metadata" time="4.763">
+    </testcase>
+    <testcase classname="Channel test should create a direct, group and public chats with a predefined ID" name="Channel test should create a direct, group and public chats with a predefined ID" time="7.408">
+    </testcase>
+    <testcase classname="Channel test should create a direct, group and public chats with default IDs" name="Channel test should create a direct, group and public chats with default IDs" time="6.683">
+    </testcase>
+    <testcase classname="Channel test should create direct conversation and send message" name="Channel test should create direct conversation and send message" time="6.663">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+Expected: ObjectContaining {&quot;payload&quot;: {&quot;channelId&quot;: &quot;direct.2591334975204708&quot;, &quot;channelType&quot;: &quot;direct&quot;, &quot;type&quot;: Anything}}
+Received: {&quot;channelId&quot;: &quot;user_zW7oFgeI&quot;, &quot;chat&quot;: {&quot;chat&quot;: {&quot;a2a_1&quot;: &quot;edited&quot;, &quot;b2a_1&quot;: &quot;deleted&quot;, &quot;c2a_1&quot;: &quot;reactions&quot;, &quot;d2a_1&quot;: {&quot;a2n_1&quot;: 0, &quot;z2m_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: [InternalHashMap], &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}}, &quot;e2a_1&quot;: {&quot;j2a_1&quot;: [Circular], &quot;k2a_1&quot;: &quot;test-user&quot;, &quot;l2a_1&quot;: &quot;test-user&quot;, &quot;m2a_1&quot;: null, &quot;n2a_1&quot;: null, &quot;o2a_1&quot;: null, &quot;p2a_1&quot;: null, &quot;q2a_1&quot;: null, &quot;r2a_1&quot;: null, &quot;s2a_1&quot;: &quot;2024-10-18T10:00:50.193724Z&quot;, &quot;t2a_1&quot;: null}, &quot;f2a_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: {&quot;a7_1&quot;: 0, &quot;b7_1&quot;: false, &quot;s6_1&quot;: [Array], &quot;t6_1&quot;: null, &quot;u6_1&quot;: [Int32Array], &quot;v6_1&quot;: [Int32Array], &quot;w6_1&quot;: 2, &quot;x6_1&quot;: 0, &quot;y6_1&quot;: 28, &quot;z6_1&quot;: 0}, &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}, &quot;g2a_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: {&quot;a7_1&quot;: 0, &quot;b7_1&quot;: false, &quot;s6_1&quot;: [Array], &quot;t6_1&quot;: null, &quot;u6_1&quot;: [Int32Array], &quot;v6_1&quot;: [Int32Array], &quot;w6_1&quot;: 2, &quot;x6_1&quot;: 0, &quot;y6_1&quot;: 28, &quot;z6_1&quot;: 0}, &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}, &quot;h2a_1&quot;: null, &quot;i2a_1&quot;: null, &quot;y29_1&quot;: {&quot;a22_1&quot;: {&quot;r22_1&quot;: false, &quot;s22_1&quot;: &quot;&quot;, &quot;t22_1&quot;: [PNPushType], &quot;u22_1&quot;: null, &quot;v22_1&quot;: [PNPushEnvironment]}, &quot;b22_1&quot;: 2, &quot;c22_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: [InternalHashMap], &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}, &quot;d22_1&quot;: {&quot;m22_1&quot;: null, &quot;n22_1&quot;: null, &quot;o22_1&quot;: null, &quot;p22_1&quot;: null, &quot;q22_1&quot;: null}, &quot;w21_1&quot;: {&quot;l2_1&quot;: &quot;WARN&quot;, &quot;m2_1&quot;: 2}, &quot;x21_1&quot;: {&quot;y_1&quot;: 1410065408, &quot;z_1&quot;: 2}, &quot;y21_1&quot;: {&quot;y_1&quot;: 1704124416, &quot;z_1&quot;: 279}, &quot;z21_1&quot;: false}, &quot;z29_1&quot;: {&quot;d1v_1&quot;: {&quot;File&quot;: [Function PubNubFile], &quot;_channelGroups&quot;: [PubnubChannelGroups], &quot;_configuration&quot;: [Object], &quot;_objects&quot;: [PubNubObjects], &quot;_push&quot;: [PubNubPushNotifications], &quot;crypto&quot;: [default_1], &quot;cryptography&quot;: [NodeCryptography], &quot;eventEmitter&quot;: [EventEmitter], &quot;listenerManager&quot;: [ListenerManager], &quot;nodeTransport&quot;: [NodeTransport], &quot;subscriptionManager&quot;: [SubscriptionManager], &quot;tokenManager&quot;: [TokenManager], &quot;transport&quot;: [PubNubMiddleware]}}}, &quot;config&quot;: {&quot;publishKey&quot;: &quot;pub-c-92e62c76-408a-4ac4-aefc-a1d20a83b2a6&quot;, &quot;subscribeKey&quot;: &quot;sub-c-d0b8e542-12a0-41c4-999f-a2d569dc4255&quot;, &quot;userId&quot;: &quot;test-user&quot;}}, &quot;payload&quot;: {&quot;channelId&quot;: &quot;direct.2591334975204708&quot;, &quot;channelType&quot;: &quot;direct&quot;}, &quot;timetoken&quot;: &quot;17308279382813988&quot;, &quot;type&quot;: &quot;invite&quot;, &quot;userId&quot;: &quot;test-user&quot;}
+
+Number of calls: 1
+    at Object.toHaveBeenCalledWith (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:238:28)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should create group conversation" name="Channel test should create group conversation" time="4.887">
+      <failure>TypeError: Cannot read properties of null (reading &apos;groupInfo&apos;)
+    at Object.groupInfo (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:294:27)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should create a thread" name="Channel test should create a thread" time="4.499">
+    </testcase>
+    <testcase classname="Channel test should not be able to create an empty Thread without any message" name="Channel test should not be able to create an empty Thread without any message" time="1.291">
+    </testcase>
+    <testcase classname="Channel test should stream channel updates and invoke the callback" name="Channel test should stream channel updates and invoke the callback" time="2.292">
+    </testcase>
+    <testcase classname="Channel test should stream membership updates and invoke the callback" name="Channel test should stream membership updates and invoke the callback" time="4.747">
+    </testcase>
+    <testcase classname="Channel test should get unread messages count" name="Channel test should get unread messages count" time="6.358">
+    </testcase>
+    <testcase classname="Channel test should mention users in a message and validate mentioned users" name="Channel test should mention users in a message and validate mentioned users" time="3.066">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:422:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should mention users with multi-word names in a message and validate mentioned users" name="Channel test should mention users with multi-word names in a message and validate mentioned users" time="3.112">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:464:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should send a message with words that start with @ but are not user mentions" name="Channel test should send a message with words that start with @ but are not user mentions" time="1.985">
+      <failure>TypeError: Cannot convert undefined or null to object
+    at Function.keys (&lt;anonymous&gt;)
+    at Object.keys (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:503:19)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should try to mention users with incorrect usernames and validate no users are mentioned" name="Channel test should try to mention users with incorrect usernames and validate no users are mentioned" time="2.179">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:515:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should suggest global users who are not members of the channel" name="Channel test should suggest global users who are not members of the channel" time="5.907">
+      <failure>Error: Property `getUserSuggestions` does not exist in the provided object
+    at ModuleMocker.spyOn (/Users/wojciech.kalicinski/projects/js-chat/node_modules/jest-mock/build/index.js:731:13)
+    at Object.spyOn (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:543:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should mention the same user multiple times in a message and validate mentioned users" name="Channel test should mention the same user multiple times in a message and validate mentioned users" time="2.283">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:579:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should correctly add and remove mentioned user" name="Channel test should correctly add and remove mentioned user" time="2.936">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:607:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should correctly add and remove the middle mentioned user" name="Channel test should correctly add and remove the middle mentioned user" time="3.814">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:641:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should mention user in a message and validate cache" name="Channel test should mention user in a message and validate cache" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Channel test should add and remove a quote" name="Channel test should add and remove a quote" time="1.907">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: {&quot;p2l_1&quot;: {&quot;a2g_1&quot;: &quot;channel_2n8XXdZv&quot;, &quot;b2g_1&quot;: &quot;test-user&quot;, &quot;c2g_1&quot;: null, &quot;d2g_1&quot;: {&quot;e1p_1&quot;: {}}, &quot;e2g_1&quot;: &quot;text&quot;, &quot;t2j_1&quot;: {&quot;a2a_1&quot;: &quot;edited&quot;, &quot;b2a_1&quot;: &quot;deleted&quot;, &quot;c2a_1&quot;: &quot;reactions&quot;, &quot;d2a_1&quot;: {&quot;a2n_1&quot;: 0, &quot;z2m_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: [InternalHashMap], &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}}, &quot;e2a_1&quot;: {&quot;j2a_1&quot;: [Circular], &quot;k2a_1&quot;: &quot;test-user&quot;, &quot;l2a_1&quot;: &quot;test-user&quot;, &quot;m2a_1&quot;: null, &quot;n2a_1&quot;: null, &quot;o2a_1&quot;: null, &quot;p2a_1&quot;: null, &quot;q2a_1&quot;: null, &quot;r2a_1&quot;: null, &quot;s2a_1&quot;: &quot;2024-10-18T10:00:50.193724Z&quot;, &quot;t2a_1&quot;: null}, &quot;f2a_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: {&quot;a7_1&quot;: 0, &quot;b7_1&quot;: false, &quot;s6_1&quot;: [Array], &quot;t6_1&quot;: null, &quot;u6_1&quot;: [Int32Array], &quot;v6_1&quot;: [Int32Array], &quot;w6_1&quot;: 2, &quot;x6_1&quot;: 0, &quot;y6_1&quot;: 28, &quot;z6_1&quot;: 0}, &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}, &quot;g2a_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: {&quot;a7_1&quot;: 0, &quot;b7_1&quot;: false, &quot;s6_1&quot;: [Array], &quot;t6_1&quot;: null, &quot;u6_1&quot;: [Int32Array], &quot;v6_1&quot;: [Int32Array], &quot;w6_1&quot;: 2, &quot;x6_1&quot;: 0, &quot;y6_1&quot;: 28, &quot;z6_1&quot;: 0}, &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}, &quot;h2a_1&quot;: null, &quot;i2a_1&quot;: null, &quot;y29_1&quot;: {&quot;a22_1&quot;: {&quot;r22_1&quot;: false, &quot;s22_1&quot;: &quot;&quot;, &quot;t22_1&quot;: [PNPushType], &quot;u22_1&quot;: null, &quot;v22_1&quot;: [PNPushEnvironment]}, &quot;b22_1&quot;: 2, &quot;c22_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: [InternalHashMap], &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}, &quot;d22_1&quot;: {&quot;m22_1&quot;: null, &quot;n22_1&quot;: null, &quot;o22_1&quot;: null, &quot;p22_1&quot;: null, &quot;q22_1&quot;: null}, &quot;w21_1&quot;: {&quot;l2_1&quot;: &quot;WARN&quot;, &quot;m2_1&quot;: 2}, &quot;x21_1&quot;: {&quot;y_1&quot;: 1410065408, &quot;z_1&quot;: 2}, &quot;y21_1&quot;: {&quot;y_1&quot;: 1704124416, &quot;z_1&quot;: 279}, &quot;z21_1&quot;: false}, &quot;z29_1&quot;: {&quot;d1v_1&quot;: {&quot;File&quot;: [Function PubNubFile], &quot;_channelGroups&quot;: [PubnubChannelGroups], &quot;_configuration&quot;: [Object], &quot;_objects&quot;: [PubNubObjects], &quot;_push&quot;: [PubNubPushNotifications], &quot;crypto&quot;: [default_1], &quot;cryptography&quot;: [NodeCryptography], &quot;eventEmitter&quot;: [EventEmitter], &quot;listenerManager&quot;: [ListenerManager], &quot;nodeTransport&quot;: [NodeTransport], &quot;subscriptionManager&quot;: [SubscriptionManager], &quot;tokenManager&quot;: [TokenManager], &quot;transport&quot;: [PubNubMiddleware]}}}, &quot;u2j_1&quot;: {&quot;y_1&quot;: -217670975, &quot;z_1&quot;: 4029897}, &quot;v2j_1&quot;: {&quot;c27_1&quot;: &quot;Test message&quot;, &quot;d27_1&quot;: []}, &quot;w2j_1&quot;: &quot;channel_2n8XXdZv&quot;, &quot;x2f_1&quot;: {&quot;a2a_1&quot;: &quot;edited&quot;, &quot;b2a_1&quot;: &quot;deleted&quot;, &quot;c2a_1&quot;: &quot;reactions&quot;, &quot;d2a_1&quot;: {&quot;a2n_1&quot;: 0, &quot;z2m_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: [InternalHashMap], &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}}, &quot;e2a_1&quot;: {&quot;j2a_1&quot;: [Circular], &quot;k2a_1&quot;: &quot;test-user&quot;, &quot;l2a_1&quot;: &quot;test-user&quot;, &quot;m2a_1&quot;: null, &quot;n2a_1&quot;: null, &quot;o2a_1&quot;: null, &quot;p2a_1&quot;: null, &quot;q2a_1&quot;: null, &quot;r2a_1&quot;: null, &quot;s2a_1&quot;: &quot;2024-10-18T10:00:50.193724Z&quot;, &quot;t2a_1&quot;: null}, &quot;f2a_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: {&quot;a7_1&quot;: 0, &quot;b7_1&quot;: false, &quot;s6_1&quot;: [Array], &quot;t6_1&quot;: null, &quot;u6_1&quot;: [Int32Array], &quot;v6_1&quot;: [Int32Array], &quot;w6_1&quot;: 2, &quot;x6_1&quot;: 0, &quot;y6_1&quot;: 28, &quot;z6_1&quot;: 0}, &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}, &quot;g2a_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: {&quot;a7_1&quot;: 0, &quot;b7_1&quot;: false, &quot;s6_1&quot;: [Array], &quot;t6_1&quot;: null, &quot;u6_1&quot;: [Int32Array], &quot;v6_1&quot;: [Int32Array], &quot;w6_1&quot;: 2, &quot;x6_1&quot;: 0, &quot;y6_1&quot;: 28, &quot;z6_1&quot;: 0}, &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}, &quot;h2a_1&quot;: null, &quot;i2a_1&quot;: null, &quot;y29_1&quot;: {&quot;a22_1&quot;: {&quot;r22_1&quot;: false, &quot;s22_1&quot;: &quot;&quot;, &quot;t22_1&quot;: [PNPushType], &quot;u22_1&quot;: null, &quot;v22_1&quot;: [PNPushEnvironment]}, &quot;b22_1&quot;: 2, &quot;c22_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: [InternalHashMap], &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}, &quot;d22_1&quot;: {&quot;m22_1&quot;: null, &quot;n22_1&quot;: null, &quot;o22_1&quot;: null, &quot;p22_1&quot;: null, &quot;q22_1&quot;: null}, &quot;w21_1&quot;: {&quot;l2_1&quot;: &quot;WARN&quot;, &quot;m2_1&quot;: 2}, &quot;x21_1&quot;: {&quot;y_1&quot;: 1410065408, &quot;z_1&quot;: 2}, &quot;y21_1&quot;: {&quot;y_1&quot;: 1704124416, &quot;z_1&quot;: 279}, &quot;z21_1&quot;: false}, &quot;z29_1&quot;: {&quot;d1v_1&quot;: {&quot;File&quot;: [Function PubNubFile], &quot;_channelGroups&quot;: [PubnubChannelGroups], &quot;_configuration&quot;: [Object], &quot;_objects&quot;: [PubNubObjects], &quot;_push&quot;: [PubNubPushNotifications], &quot;crypto&quot;: [default_1], &quot;cryptography&quot;: [NodeCryptography], &quot;eventEmitter&quot;: [EventEmitter], &quot;listenerManager&quot;: [ListenerManager], &quot;nodeTransport&quot;: [NodeTransport], &quot;subscriptionManager&quot;: [SubscriptionManager], &quot;tokenManager&quot;: [TokenManager], &quot;transport&quot;: [PubNubMiddleware]}}}, &quot;x2j_1&quot;: &quot;test-user&quot;, &quot;y2f_1&quot;: {&quot;y_1&quot;: -217670975, &quot;z_1&quot;: 4029897}, &quot;y2j_1&quot;: null, &quot;z2f_1&quot;: {&quot;c27_1&quot;: &quot;Test message&quot;, &quot;d27_1&quot;: []}, &quot;z2j_1&quot;: {&quot;e1p_1&quot;: {}}}, &quot;q2l_1&quot;: [Function anonymous], &quot;r2l_1&quot;: [Function anonymous], &quot;s2l_1&quot;: [Function anonymous], &quot;t2l_1&quot;: [Function anonymous], &quot;u2l_1&quot;: [Function anonymous], &quot;v2l_1&quot;: [Function anonymous]}
+Received: serializes to the same string
+    at Object.toEqual (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:701:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should throw an error when trying to quote a message from another channel" name="Channel test should throw an error when trying to quote a message from another channel" time="3.4">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: &quot;You cannot quote messages from other channels&quot;
+Received: [ReferenceError: fail is not defined]
+    at Object.toEqual (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:724:21)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should quote multiple messages" name="Channel test should quote multiple messages" time="2.633">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: {&quot;p2l_1&quot;: {&quot;a2g_1&quot;: &quot;channel_S3hK9sRV&quot;, &quot;b2g_1&quot;: &quot;test-user&quot;, &quot;c2g_1&quot;: null, &quot;d2g_1&quot;: {&quot;e1p_1&quot;: {}}, &quot;e2g_1&quot;: &quot;text&quot;, &quot;t2j_1&quot;: {&quot;a2a_1&quot;: &quot;edited&quot;, &quot;b2a_1&quot;: &quot;deleted&quot;, &quot;c2a_1&quot;: &quot;reactions&quot;, &quot;d2a_1&quot;: {&quot;a2n_1&quot;: 0, &quot;z2m_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: [InternalHashMap], &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}}, &quot;e2a_1&quot;: {&quot;j2a_1&quot;: [Circular], &quot;k2a_1&quot;: &quot;test-user&quot;, &quot;l2a_1&quot;: &quot;test-user&quot;, &quot;m2a_1&quot;: null, &quot;n2a_1&quot;: null, &quot;o2a_1&quot;: null, &quot;p2a_1&quot;: null, &quot;q2a_1&quot;: null, &quot;r2a_1&quot;: null, &quot;s2a_1&quot;: &quot;2024-10-18T10:00:50.193724Z&quot;, &quot;t2a_1&quot;: null}, &quot;f2a_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: {&quot;a7_1&quot;: 0, &quot;b7_1&quot;: false, &quot;s6_1&quot;: [Array], &quot;t6_1&quot;: null, &quot;u6_1&quot;: [Int32Array], &quot;v6_1&quot;: [Int32Array], &quot;w6_1&quot;: 2, &quot;x6_1&quot;: 0, &quot;y6_1&quot;: 28, &quot;z6_1&quot;: 0}, &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}, &quot;g2a_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: {&quot;a7_1&quot;: 0, &quot;b7_1&quot;: false, &quot;s6_1&quot;: [Array], &quot;t6_1&quot;: null, &quot;u6_1&quot;: [Int32Array], &quot;v6_1&quot;: [Int32Array], &quot;w6_1&quot;: 2, &quot;x6_1&quot;: 0, &quot;y6_1&quot;: 28, &quot;z6_1&quot;: 0}, &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}, &quot;h2a_1&quot;: null, &quot;i2a_1&quot;: null, &quot;y29_1&quot;: {&quot;a22_1&quot;: {&quot;r22_1&quot;: false, &quot;s22_1&quot;: &quot;&quot;, &quot;t22_1&quot;: [PNPushType], &quot;u22_1&quot;: null, &quot;v22_1&quot;: [PNPushEnvironment]}, &quot;b22_1&quot;: 2, &quot;c22_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: [InternalHashMap], &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}, &quot;d22_1&quot;: {&quot;m22_1&quot;: null, &quot;n22_1&quot;: null, &quot;o22_1&quot;: null, &quot;p22_1&quot;: null, &quot;q22_1&quot;: null}, &quot;w21_1&quot;: {&quot;l2_1&quot;: &quot;WARN&quot;, &quot;m2_1&quot;: 2}, &quot;x21_1&quot;: {&quot;y_1&quot;: 1410065408, &quot;z_1&quot;: 2}, &quot;y21_1&quot;: {&quot;y_1&quot;: 1704124416, &quot;z_1&quot;: 279}, &quot;z21_1&quot;: false}, &quot;z29_1&quot;: {&quot;d1v_1&quot;: {&quot;File&quot;: [Function PubNubFile], &quot;_channelGroups&quot;: [PubnubChannelGroups], &quot;_configuration&quot;: [Object], &quot;_objects&quot;: [PubNubObjects], &quot;_push&quot;: [PubNubPushNotifications], &quot;crypto&quot;: [default_1], &quot;cryptography&quot;: [NodeCryptography], &quot;eventEmitter&quot;: [EventEmitter], &quot;listenerManager&quot;: [ListenerManager], &quot;nodeTransport&quot;: [NodeTransport], &quot;subscriptionManager&quot;: [SubscriptionManager], &quot;tokenManager&quot;: [TokenManager], &quot;transport&quot;: [PubNubMiddleware]}}}, &quot;u2j_1&quot;: {&quot;y_1&quot;: -158068237, &quot;z_1&quot;: 4029897}, &quot;v2j_1&quot;: {&quot;c27_1&quot;: &quot;Test message 3&quot;, &quot;d27_1&quot;: []}, &quot;w2j_1&quot;: &quot;channel_S3hK9sRV&quot;, &quot;x2f_1&quot;: {&quot;a2a_1&quot;: &quot;edited&quot;, &quot;b2a_1&quot;: &quot;deleted&quot;, &quot;c2a_1&quot;: &quot;reactions&quot;, &quot;d2a_1&quot;: {&quot;a2n_1&quot;: 0, &quot;z2m_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: [InternalHashMap], &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}}, &quot;e2a_1&quot;: {&quot;j2a_1&quot;: [Circular], &quot;k2a_1&quot;: &quot;test-user&quot;, &quot;l2a_1&quot;: &quot;test-user&quot;, &quot;m2a_1&quot;: null, &quot;n2a_1&quot;: null, &quot;o2a_1&quot;: null, &quot;p2a_1&quot;: null, &quot;q2a_1&quot;: null, &quot;r2a_1&quot;: null, &quot;s2a_1&quot;: &quot;2024-10-18T10:00:50.193724Z&quot;, &quot;t2a_1&quot;: null}, &quot;f2a_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: {&quot;a7_1&quot;: 0, &quot;b7_1&quot;: false, &quot;s6_1&quot;: [Array], &quot;t6_1&quot;: null, &quot;u6_1&quot;: [Int32Array], &quot;v6_1&quot;: [Int32Array], &quot;w6_1&quot;: 2, &quot;x6_1&quot;: 0, &quot;y6_1&quot;: 28, &quot;z6_1&quot;: 0}, &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}, &quot;g2a_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: {&quot;a7_1&quot;: 0, &quot;b7_1&quot;: false, &quot;s6_1&quot;: [Array], &quot;t6_1&quot;: null, &quot;u6_1&quot;: [Int32Array], &quot;v6_1&quot;: [Int32Array], &quot;w6_1&quot;: 2, &quot;x6_1&quot;: 0, &quot;y6_1&quot;: 28, &quot;z6_1&quot;: 0}, &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}, &quot;h2a_1&quot;: null, &quot;i2a_1&quot;: null, &quot;y29_1&quot;: {&quot;a22_1&quot;: {&quot;r22_1&quot;: false, &quot;s22_1&quot;: &quot;&quot;, &quot;t22_1&quot;: [PNPushType], &quot;u22_1&quot;: null, &quot;v22_1&quot;: [PNPushEnvironment]}, &quot;b22_1&quot;: 2, &quot;c22_1&quot;: {&quot;a5_1&quot;: null, &quot;d5_1&quot;: null, &quot;e5_1&quot;: null, &quot;r5_1&quot;: [InternalHashMap], &quot;s5_1&quot;: null, &quot;z4_1&quot;: null}, &quot;d22_1&quot;: {&quot;m22_1&quot;: null, &quot;n22_1&quot;: null, &quot;o22_1&quot;: null, &quot;p22_1&quot;: null, &quot;q22_1&quot;: null}, &quot;w21_1&quot;: {&quot;l2_1&quot;: &quot;WARN&quot;, &quot;m2_1&quot;: 2}, &quot;x21_1&quot;: {&quot;y_1&quot;: 1410065408, &quot;z_1&quot;: 2}, &quot;y21_1&quot;: {&quot;y_1&quot;: 1704124416, &quot;z_1&quot;: 279}, &quot;z21_1&quot;: false}, &quot;z29_1&quot;: {&quot;d1v_1&quot;: {&quot;File&quot;: [Function PubNubFile], &quot;_channelGroups&quot;: [PubnubChannelGroups], &quot;_configuration&quot;: [Object], &quot;_objects&quot;: [PubNubObjects], &quot;_push&quot;: [PubNubPushNotifications], &quot;crypto&quot;: [default_1], &quot;cryptography&quot;: [NodeCryptography], &quot;eventEmitter&quot;: [EventEmitter], &quot;listenerManager&quot;: [ListenerManager], &quot;nodeTransport&quot;: [NodeTransport], &quot;subscriptionManager&quot;: [SubscriptionManager], &quot;tokenManager&quot;: [TokenManager], &quot;transport&quot;: [PubNubMiddleware]}}}, &quot;x2j_1&quot;: &quot;test-user&quot;, &quot;y2f_1&quot;: {&quot;y_1&quot;: -158068237, &quot;z_1&quot;: 4029897}, &quot;y2j_1&quot;: null, &quot;z2f_1&quot;: {&quot;c27_1&quot;: &quot;Test message 3&quot;, &quot;d27_1&quot;: []}, &quot;z2j_1&quot;: {&quot;e1p_1&quot;: {}}}, &quot;q2l_1&quot;: [Function anonymous], &quot;r2l_1&quot;: [Function anonymous], &quot;s2l_1&quot;: [Function anonymous], &quot;t2l_1&quot;: [Function anonymous], &quot;u2l_1&quot;: [Function anonymous], &quot;v2l_1&quot;: [Function anonymous]}
+Received: serializes to the same string
+    at Object.toEqual (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:750:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should correctly stream read receipts" name="Channel test should correctly stream read receipts" time="3.565">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledTimes(expected)
+
+Expected number of calls: 1
+Received number of calls: 0
+    at Object.toHaveBeenCalledTimes (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:762:26)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should invite a user to the channel" name="Channel test should invite a user to the channel" time="5.851">
+    </testcase>
+    <testcase classname="Channel test should invite multiple users to the channel" name="Channel test should invite multiple users to the channel" time="6.915">
+    </testcase>
+    <testcase classname="Channel test should verify if user is a member of a channel" name="Channel test should verify if user is a member of a channel" time="7.47">
+    </testcase>
+    <testcase classname="Channel test should verify if user is online on a channel" name="Channel test should verify if user is online on a channel" time="8.946">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: false
+Received: true
+    at Object.toBe (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:842:61)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should verify all user-related mentions using getCurrentUserMentions()" name="Channel test should verify all user-related mentions using getCurrentUserMentions()" time="2.771">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:860:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test Should fail when trying to edit membership metadata of a non-existent channel" name="Channel test Should fail when trying to edit membership metadata of a non-existent channel" time="1.53">
+    </testcase>
+    <testcase classname="Channel test Should create direct conversation, edit, and delete a message" name="Channel test Should create direct conversation, edit, and delete a message" time="7.092">
+    </testcase>
+    <testcase classname="Channel test should create, reply to, and delete a thread" name="Channel test should create, reply to, and delete a thread" time="5.21">
+    </testcase>
+    <testcase classname="Channel test should create, reply to, delete a thread, and recreate the deleted thread" name="Channel test should create, reply to, delete a thread, and recreate the deleted thread" time="7.427">
+    </testcase>
+    <testcase classname="Channel test Should mention users with special characters in their names and validate mentioned users" name="Channel test Should mention users with special characters in their names and validate mentioned users" time="2.903">
+      <failure>TypeError: messageDraft.addMentionedUser is not a function
+    at Object.addMentionedUser (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:999:18)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should create a group chat channel" name="Channel test should create a group chat channel" time="6.435">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: {&quot;key&quot;: &quot;value&quot;}
+Received: null
+    at Object.toEqual (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:1054:28)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should create a public chat channel" name="Channel test should create a public chat channel" time="2.983">
+    </testcase>
+    <testcase classname="Channel test should set (or lift) restrictions on a user" name="Channel test should set (or lift) restrictions on a user" time="5.4">
+    </testcase>
+    <testcase classname="Channel test Should get the number of unread messages on channels" name="Channel test Should get the number of unread messages on channels" time="2.051">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+- Expected
++ Received
+
+@@ -4,10 +4,12 @@
+      &quot;channelFields&quot;: true,
+      &quot;channelStatusField&quot;: true,
+      &quot;channelTypeField&quot;: true,
+      &quot;customChannelFields&quot;: true,
+      &quot;customFields&quot;: true,
+-     &quot;statusField&quot;: true,
++     &quot;statusField&quot;: false,
+      &quot;totalCount&quot;: true,
+    },
++   &quot;page&quot;: null,
++   &quot;sort&quot;: Object {},
+    &quot;uuid&quot;: &quot;test-user&quot;,
+  },
+
+Number of calls: 1
+    at Object.toHaveBeenCalledWith (/Users/wojciech.kalicinski/projects/js-chat/lib/tests/channel.test.ts:1165:45)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Channel test should set &apos;eTag&apos; and &apos;updated&apos; on the Membership object" name="Channel test should set &apos;eTag&apos; and &apos;updated&apos; on the Membership object" time="1.527">
+    </testcase>
+    <testcase classname="Channel test should set &apos;eTag&apos; and &apos;updated&apos; on the Membership object in real time" name="Channel test should set &apos;eTag&apos; and &apos;updated&apos; on the Membership object in real time" time="7.606">
+    </testcase>
+  </testsuite>
+</testsuites>

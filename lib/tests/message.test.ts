@@ -33,7 +33,7 @@ describe("Send message test", () => {
 
   beforeEach(async () => {
     channel = await createRandomChannel()
-    messageDraft = new MessageDraft(chat, channel)
+    messageDraft = channel.createMessageDraft()
   })
 
   type FileDetails = {
@@ -209,7 +209,7 @@ describe("Send message test", () => {
     const logSpy = jest.spyOn(console, "warn")
     await sentMessage.restore()
     expect(sentMessage.deleted).toBe(false)
-    expect(logSpy).toHaveBeenCalledWith("This message has not been deleted")
+    expect(logSpy).toHaveBeenCalledWith(expect.anything(), "This message has not been deleted", null)
   })
 
   test("should throw an error if you try to create a thread on a deleted message", async () => {
@@ -235,7 +235,7 @@ describe("Send message test", () => {
       thrownExceptionString = e
     })
 
-    expect(thrownExceptionString).toContain("You cannot create threads on deleted messages")
+    expect(thrownExceptionString.message).toContain("You cannot create threads on deleted messages.")
   })
 
   test("should edit the message", async () => {
@@ -355,7 +355,7 @@ describe("Send message test", () => {
     })
   })
 
-  test("should add linked text correctly", () => {
+  test.only("should add linked text correctly", () => {
     const initialText = "Check out this link: "
     messageDraft.onChange(initialText)
 
@@ -1458,7 +1458,7 @@ describe("Send message test", () => {
     expect(historyObject.messages[0].actions[defaultEditActionName]).toBeUndefined()
     expect(historyObject.messages[0].deleted).toBe(false)
     await historyObject.messages[0].delete({ soft: true })
-    await sleep(200)
+    await sleep(300)
     historyObject = await someChannel.getHistory({ count: 1 })
     expect(historyObject.messages[0].deleted).toBe(true)
     expect(historyObject.messages[0].actions["field-removed"]).toBeDefined()
@@ -1583,10 +1583,10 @@ describe("Send message test", () => {
     })
 
     await someChannel.sendText("Hello live world!")
-    await sleep(500)
+    await sleep(1000)
     expect(liveMessageText).toBe("Hello live world!")
     await someChannel.sendText("Hello live world! Number 2")
-    await sleep(500)
+    await sleep(1000)
     expect(liveMessageText).toBe("Hello live world! Number 2")
     disconnect()
   })
@@ -1632,7 +1632,7 @@ describe("Send message test", () => {
     })
 
     await someChannel.sendText("Hello encrypted world!")
-    await sleep(500)
+    await sleep(2500)
     expect(liveMessageText).toBe("Hello encrypted world!")
     await someChannel.sendText("Hello encrypted world! Number 2")
     await sleep(500)

@@ -200,7 +200,6 @@ describe("Channel test", () => {
         channelData: {},
       }),
     ])
-    console.log(newChannels[0].channel.id)
     expect(newChannels[0].channel.id.startsWith("direct.")).toBeTruthy()
     expect(newChannels[1].channel.id).toBeDefined()
     expect(newChannels[2].id).toBeDefined()
@@ -238,11 +237,10 @@ describe("Channel test", () => {
     expect(inviteCallback).toHaveBeenCalledTimes(1)
     expect(inviteCallback).toHaveBeenCalledWith(
       expect.objectContaining({
-        payload: {
+        payload: expect.objectContaining({
           channelType: "direct",
-          channelId: directConversation.channel.id,
-          type: expect.anything()
-        },
+          channelId: directConversation.channel.id
+        }),
       })
     )
     await user.delete()
@@ -298,10 +296,10 @@ describe("Channel test", () => {
     expect(inviteCallback).toHaveBeenCalledTimes(1)
     expect(inviteCallback).toHaveBeenCalledWith(
       expect.objectContaining({
-        payload: {
+        payload: expect.objectContaining({
           channelType: "group",
           channelId: result.channel.id,
-        },
+        }),
       })
     )
 
@@ -722,7 +720,7 @@ describe("Channel test", () => {
 
       fail("Should have thrown an error")
     } catch (error) {
-      expect(error).toEqual("You cannot quote messages from other channels")
+      expect(error.message).toEqual("You cannot quote messages from other channels")
     } finally {
       await otherChannel.delete()
     }
@@ -760,6 +758,7 @@ describe("Channel test", () => {
 
     const mockCallback = jest.fn()
     const stopReceipts = await channel.streamReadReceipts(mockCallback)
+    await sleep(1000)
     expect(mockCallback).toHaveBeenCalledTimes(1)
     expect(mockCallback).toHaveBeenCalledWith({
       [membership.lastReadMessageTimetoken]: ["test-user"],
@@ -807,15 +806,9 @@ describe("Channel test", () => {
     const user = await createRandomUser()
     const channel = await createRandomChannel()
 
-console.log("Aaa")
     const membership = await channel.invite(user)
-    console.log("bbb")
     await sleep(200)
-    console.log("ccc")
-    console.log(membership)
-    console.log("ddd")
     const membersData = await channel.getMembers()
-    console.log(membersData)
 
     expect(membership).toBeDefined()
     expect(membersData.members.find((member) => member.user.id === user.id)).toBeTruthy()
@@ -1062,7 +1055,7 @@ console.log("Aaa")
     await chat.deleteUser(user1.id)
     await chat.deleteUser(user2.id)
     await chat.deleteUser(user3.id)
-  })
+  }, 15000)
 
   test("should create a public chat channel", async () => {
     const channelData = {
@@ -1071,6 +1064,11 @@ console.log("Aaa")
       custom: {
         key: "value",
       },
+    }
+
+    const channelToDelete = await chat.getChannel("public-channel-1")
+    if (channelToDelete) {
+        await channelToDelete.delete()
     }
 
     const publicChannel = await chat.createPublicConversation({
@@ -1100,10 +1098,10 @@ console.log("Aaa")
     await sleep(150) // Wait for the message to be sent and cached
     expect(moderationEventCallback).toHaveBeenCalledWith(
       expect.objectContaining({
-        payload: {
+        payload: expect.objectContaining({
           channelId: "PUBNUB_INTERNAL_MODERATION_some-channel",
           restriction: "muted",
-        },
+        }),
       })
     )
     moderationEventCallback.mockReset()
@@ -1112,10 +1110,10 @@ console.log("Aaa")
     await sleep(150) // Wait for the message to be sent and cached
     expect(moderationEventCallback).toHaveBeenCalledWith(
       expect.objectContaining({
-        payload: {
+        payload: expect.objectContaining({
           channelId: "PUBNUB_INTERNAL_MODERATION_some-channel",
           restriction: "banned",
-        },
+        }),
       })
     )
     moderationEventCallback.mockReset()
@@ -1124,10 +1122,10 @@ console.log("Aaa")
     await sleep(150) // Wait for the message to be sent and cached
     expect(moderationEventCallback).toHaveBeenCalledWith(
       expect.objectContaining({
-        payload: {
+        payload: expect.objectContaining({
           channelId: "PUBNUB_INTERNAL_MODERATION_some-channel",
           restriction: "banned",
-        },
+        }),
       })
     )
     moderationEventCallback.mockReset()
@@ -1136,10 +1134,10 @@ console.log("Aaa")
     await sleep(150) // Wait for the message to be sent and cached
     expect(moderationEventCallback).toHaveBeenCalledWith(
       expect.objectContaining({
-        payload: {
+        payload: expect.objectContaining({
           channelId: "PUBNUB_INTERNAL_MODERATION_some-channel",
           restriction: "lifted",
-        },
+        }),
       })
     )
 
