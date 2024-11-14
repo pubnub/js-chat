@@ -465,6 +465,7 @@ export class Channel {
       channel: this.id,
       include: {
         totalCount: true,
+        statusField: true,
         customFields: true,
         UUIDFields: true,
         customUUIDFields: true,
