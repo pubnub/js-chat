@@ -9,8 +9,8 @@ import {
   Platform,
   Alert,
 } from "react-native"
-import { GiftedChat, Bubble } from "react-native-gifted-chat"
 import { StackScreenProps } from "@react-navigation/stack"
+import { GiftedChat, Bubble } from "react-native-gifted-chat"
 import { User, MessageDraft, Message, Channel } from "@pubnub/chat"
 
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
