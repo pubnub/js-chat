@@ -17,10 +17,12 @@ import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { ChatContext } from "../../../context"
 import { HomeStackParamList } from "../../../types"
 import { Avatar, useActionsMenu } from "../../../components"
-import { colorPalette as colors, Text } from "../../../ui-components"
+import { Button, colorPalette as colors, Text } from "../../../ui-components"
 import { useNavigation } from "@react-navigation/native"
 import { useCommonChatRenderers } from "../../../hooks"
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons"
+
+let stopTypingCallback = () => {}
 
 export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
   const { chat, setCurrentChannel, currentChannel, getUser, currentChannelMembers } =
@@ -186,12 +188,6 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
           })
         )
 
-        if (currentChannel.type !== "public") {
-          currentChannel.getTyping((value) => {
-            setTypingData(value)
-          })
-        }
-
         setGiftedChatMappedMessages((msgs) =>
           GiftedChat.prepend(
             [],
@@ -223,6 +219,19 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
 
     switchChannelImplementation()
   }, [currentChannel, currentChannelMembership])
+
+  useEffect(() => {
+    if (!currentChannel) {
+      return
+    }
+
+    if (currentChannel.type !== "public") {
+      stopTypingCallback = currentChannel.getTyping((value) => {
+        setTypingData(value)
+      })
+      return stopTypingCallback
+    }
+  }, [currentChannel])
 
   useEffect(() => {
     if (!currentChannel) {
@@ -408,6 +417,13 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
         messageContainerRef={giftedChatRef}
         renderActions={renderActions}
       />
+      <Button
+        onPress={() => {
+          stopTypingCallback()
+        }}
+      >
+        Stop callback
+      </Button>
       <ActionsMenuComponent />
     </SafeAreaView>
   )
