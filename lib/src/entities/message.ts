@@ -127,9 +127,18 @@ export class Message {
     const newActions = this.actions || {}
     newActions[type] ||= {}
     newActions[type][value] ||= []
-    newActions[type][value] = newActions[type][value].filter(
+    const tempActionValue = newActions[type][value].filter(
       (r) => r.actionTimetoken !== actionTimetoken || r.uuid !== uuid
     )
+
+    // Don't have an object with a key that is empty specifically for reactions like emojis
+    if(tempActionValue.length === 0) {
+      delete newActions[type][value]
+    }
+    else {
+      newActions[type][value] = tempActionValue
+    }
+
     return newActions
   }
 
@@ -193,7 +202,7 @@ export class Message {
   }
 
   /**
-    @deprecated use getMessageElements instead
+   @deprecated use getMessageElements instead
    */
   getLinkedText() {
     return this.getMessageElements()
