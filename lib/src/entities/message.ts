@@ -132,10 +132,9 @@ export class Message {
     )
 
     // Don't have an object with a key that is empty specifically for reactions like emojis
-    if(tempActionValue.length === 0) {
+    if (tempActionValue.length === 0) {
       delete newActions[type][value]
-    }
-    else {
+    } else {
       newActions[type][value] = tempActionValue
     }
 
@@ -202,7 +201,7 @@ export class Message {
   }
 
   /**
-   @deprecated use getMessageElements instead
+    @deprecated use getMessageElements instead
    */
   getLinkedText() {
     return this.getMessageElements()
