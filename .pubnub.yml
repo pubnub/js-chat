@@ -1,11 +1,16 @@
 ---
 name: pubnub-js-chat
-version: v0.8.2
+version: v0.8.3
 scm: github.com/pubnub/js-chat
 schema: 1
 files:
   - lib/dist/index.js
 changelog:
+  - date: 2024-11-15
+    version: v0.8.3
+    changes:
+      - type: feature
+        text: "Add statusField for channel members."
   - date: 2024-08-27
     version: v0.8.2
     changes:
