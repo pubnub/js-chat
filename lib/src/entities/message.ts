@@ -202,6 +202,10 @@ export class Message {
   async editText(newText: string) {
     const type = this.chat.editMessageActionName
     try {
+      if (this.meta?.PUBNUB_INTERNAL_AUTOMODERATED && !this.chat.currentUser.isInternalModerator) {
+        throw "The automoderated message can no longer be edited"
+      }
+
       const { data } = await this.chat.sdk.addMessageAction({
         channel: this.channelId,
         messageTimetoken: this.timetoken,

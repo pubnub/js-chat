@@ -10,10 +10,11 @@ import { useNavigation } from "@react-navigation/native"
 
 type MessageTextProps = {
   onGoToMessage: (message: Message) => void
+  isBeingEdited?: boolean
   messageProps: Bubble<EnhancedIMessage>["props"]
 }
 
-export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
+export function MessageText({ onGoToMessage, messageProps, isBeingEdited }: MessageTextProps) {
   const { chat, setCurrentChannel } = useContext(ChatContext)
   const navigation = useNavigation()
   const [imageSrc, setImageSrc] = useState("")
@@ -146,7 +147,7 @@ export function MessageText({ onGoToMessage, messageProps }: MessageTextProps) {
 
   if (messageElements) {
     return (
-      <View>
+      <View style={isBeingEdited ? { borderWidth: 1, borderColor: "red" } : undefined}>
         {messageProps.currentMessage?.originalPnMessage.quotedMessage ? (
           <Quote
             message={messageProps.currentMessage?.originalPnMessage.quotedMessage}
