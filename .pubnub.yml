@@ -1,11 +1,18 @@
 ---
 name: pubnub-js-chat
-version: v0.8.3
+version: v0.8.4
 scm: github.com/pubnub/js-chat
 schema: 1
 files:
   - lib/dist/index.js
 changelog:
+  - date: 2024-11-26
+    version: v0.8.4
+    changes:
+      - type: feature
+        text: "Lock messages from being edited."
+      - type: feature
+        text: "Remove reactions list if everyone removed them."
   - date: 2024-11-15
     version: v0.8.3
     changes:
