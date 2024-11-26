@@ -127,9 +127,17 @@ export class Message {
     const newActions = this.actions || {}
     newActions[type] ||= {}
     newActions[type][value] ||= []
-    newActions[type][value] = newActions[type][value].filter(
+    const updatedActions = newActions[type][value].filter(
       (r) => r.actionTimetoken !== actionTimetoken || r.uuid !== uuid
     )
+
+    // Don't have an object with a key that is empty specifically for reactions like emojis
+    if (updatedActions.length === 0) {
+      delete newActions[type][value]
+    } else {
+      newActions[type][value] = updatedActions
+    }
+
     return newActions
   }
 
