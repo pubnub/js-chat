@@ -3,7 +3,11 @@ import { Chat } from "./chat"
 import { DeleteParameters, OptionalAllBut } from "../types"
 import { Channel } from "./channel"
 import { Membership } from "./membership"
-import { INTERNAL_ADMIN_CHANNEL, INTERNAL_MODERATION_PREFIX } from "../constants"
+import {
+  INTERNAL_ADMIN_CHANNEL,
+  INTERNAL_MODERATION_PREFIX,
+  INTERNAL_MODERATOR_DATA,
+} from "../constants"
 import { getErrorProxiedEntity } from "../error-logging"
 
 export type UserFields = Pick<
@@ -54,6 +58,11 @@ export class User {
       lastActiveTimestamp: params.custom?.lastActiveTimestamp || undefined,
     }
     return getErrorProxiedEntity(new User(chat, data), chat.errorLogger)
+  }
+
+  /** @internal */
+  get isInternalModerator() {
+    return this.id === INTERNAL_MODERATOR_DATA.id && this.type === INTERNAL_MODERATOR_DATA.type
   }
 
   get active() {

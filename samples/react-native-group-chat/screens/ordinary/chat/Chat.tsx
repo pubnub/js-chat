@@ -11,7 +11,7 @@ import {
 } from "react-native"
 import { GiftedChat, Bubble } from "react-native-gifted-chat"
 import { StackScreenProps } from "@react-navigation/stack"
-import { User, MessageDraft, Message, Channel } from "@pubnub/chat"
+import { User, MessageDraft, Message, Channel, ThreadMessage } from "@pubnub/chat"
 
 import { EnhancedIMessage, mapPNMessageToGChatMessage } from "../../../utils"
 import { ChatContext } from "../../../context"
@@ -107,11 +107,37 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     }
   }, [])
 
+  const handleEditMessage = useCallback(
+    async (message: Message) => {
+      if (!currentChannel) {
+        return
+      }
+      const newMessageDraft = currentChannel.createMessageDraft({
+        userSuggestionSource: "global",
+        isTypingIndicatorTriggered: currentChannel.type !== "public",
+      })
+      newMessageDraft.value = message.text
+      setText(newMessageDraft.value)
+      setGiftedChatMappedMessages((curr) =>
+        curr.map((m) => {
+          return {
+            ...m,
+            isBeingEdited: m.originalPnMessage.timetoken === message.timetoken,
+          }
+        })
+      )
+
+      setMessageDraft(newMessageDraft)
+    },
+    [currentChannel]
+  )
+
   const { ActionsMenuComponent, handlePresentModalPress } = useActionsMenu({
     onQuote: handleQuote,
     onPinMessage: handlePin,
     onToggleEmoji: handleEmoji,
     onDeleteMessage: handleDeleteMessage,
+    onEditMessage: handleEditMessage,
   })
 
   useEffect(() => {
@@ -245,6 +271,17 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     }
   }, [currentChannel, currentChannelMembership])
 
+  function resetMessageBeingEdited() {
+    setGiftedChatMappedMessages((curr) =>
+      curr.map((m) => {
+        return {
+          ...m,
+          isBeingEdited: false,
+        }
+      })
+    )
+  }
+
   const resetInput = () => {
     if (!messageDraft) {
       return
@@ -254,6 +291,11 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     messageDraft.files = undefined
     setText("")
     setImage("")
+    resetMessageBeingEdited()
+  }
+
+  function getMessageBeingEdited() {
+    return giftedChatMappedMessages.find((m) => m.isBeingEdited)?.originalPnMessage
   }
 
   const onSend = async () => {
@@ -262,17 +304,29 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     }
 
     try {
-      await messageDraft.send()
+      const messageBeingEdited = getMessageBeingEdited()
+      if (messageBeingEdited) {
+        await messageBeingEdited.editText(messageDraft.value)
+      } else {
+        await messageDraft.send()
+      }
     } catch (error) {
+      let alertFn = (_: string) => null
+      if (Platform.OS === "web") {
+        alertFn = alert
+      } else {
+        alertFn = Alert.alert
+      }
+
+      if (typeof error === "string") {
+        alertFn(error)
+        resetMessageBeingEdited()
+      }
       const e = error as { status: { errorData: { status: number } } }
       if (e?.status?.errorData?.status !== 403) {
         return
       }
-      if (Platform.OS === "web") {
-        alert(`You cannot send messages to this channel: ${currentChannel?.id}`)
-      } else {
-        Alert.alert("You cannot send messages to this channel:", currentChannel?.id)
-      }
+      alertFn(`You cannot send messages to this channel: ${currentChannel?.id}`)
     }
     resetInput()
   }
@@ -311,13 +365,25 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
   }
 
   const renderBubble = (props: Bubble<EnhancedIMessage>["props"]) => {
+    const isBeingEditedStyles = props.currentMessage.isBeingEdited
+      ? {
+          borderWidth: 1,
+          borderColor: colors.teal700,
+        }
+      : {}
+
     return (
       <View>
         <Bubble
           {...props}
           wrapperStyle={{
             left: { padding: 12, backgroundColor: colors.neutral50 },
-            right: { marginLeft: 0, padding: 12, backgroundColor: colors.teal100 },
+            right: {
+              marginLeft: 0,
+              padding: 12,
+              backgroundColor: colors.teal100,
+              ...isBeingEditedStyles,
+            },
           }}
         />
         {props.currentMessage?.originalPnMessage.hasThread ? (
@@ -384,7 +450,7 @@ export function ChatScreen({}: StackScreenProps<HomeStackParamList, "Chat">) {
     <SafeAreaView style={styles.content}>
       <GiftedChat
         messages={giftedChatMappedMessages}
-        onSend={(messages) => onSend(messages)}
+        onSend={onSend}
         onInputTextChanged={handleInputChange}
         renderMessageText={renderMessageText}
         renderFooter={renderFooter}

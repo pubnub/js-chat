@@ -19,6 +19,7 @@ type UseActionsMenuParams = {
   onQuote: (message: Message) => void
   removeThreadReply?: boolean
   onPinMessage: (message: Message | ThreadMessage) => void
+  onEditMessage: (message: Message | ThreadMessage) => void
   onToggleEmoji: (message: Message) => void
   onDeleteMessage: (message: Message) => void
 }
@@ -29,6 +30,7 @@ export function useActionsMenu({
   onPinMessage,
   onToggleEmoji,
   onDeleteMessage,
+  onEditMessage,
 }: UseActionsMenuParams) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
   const navigation = useNavigation<HomeStackNavigation>()
@@ -38,7 +40,7 @@ export function useActionsMenu({
   )
 
   // variables
-  const snapPoints = useMemo(() => ["25%", "50%"], [])
+  const snapPoints = useMemo(() => ["25%", "50%", "75%"], [])
 
   // callbacks
   const handlePresentModalPress = useCallback(({ message }: { message: EnhancedIMessage }) => {
@@ -63,7 +65,7 @@ export function useActionsMenu({
   const ActionsMenuComponent = () => (
     <BottomSheetModal
       ref={bottomSheetModalRef}
-      index={1}
+      index={2}
       snapPoints={snapPoints}
       onChange={handleSheetChanges}
       style={styles.container}
@@ -161,6 +163,26 @@ export function useActionsMenu({
             Pin message
           </Button>
           <Gap value={16} />
+          {currentlyFocusedMessage?.originalPnMessage.userId === chat?.currentUser.id && (
+            <>
+              <Button
+                size="md"
+                align="left"
+                icon="edit"
+                variant="outlined"
+                onPress={() => {
+                  if (currentlyFocusedMessage) {
+                    onEditMessage(currentlyFocusedMessage.originalPnMessage)
+                    setCurrentlyFocusedMessage(null)
+                    bottomSheetModalRef.current?.dismiss()
+                  }
+                }}
+              >
+                Edit message
+              </Button>
+              <Gap value={16} />
+            </>
+          )}
         </>
       ) : null}
       {currentlyFocusedMessage?.originalPnMessage.userId === chat?.currentUser.id ? (
