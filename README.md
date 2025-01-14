@@ -1,3 +1,9 @@
+# Notice
+
+⚠️ Development of the PubNub JavaScript Chat SDK has moved to https://github.com/pubnub/kmp-chat/
+
+⚠️ You can find the latest releases on https://www.npmjs.com/package/@pubnub/chat
+
 # PubNub JavaScript Chat SDK
 
 Chat SDK offers a set of handy methods to create your own feature-rich chat or add a chat to your existing application.
