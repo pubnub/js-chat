@@ -1,9 +1,11 @@
-!!!!!!!!!!
+[![Deprecated](https://img.shields.io/badge/status-deprecated-red.svg)](https://github.com/yourusername/yourrepo)
 
-PubNub JavaScript Chat SDK development has moved to the [PubNub Kotlin Multiplatform Chat SDK repository](https://github.com/pubnub/kmp-chat).
+⚠️⚠️⚠️
+
+PubNub JavaScript Chat SDK development has moved to the [PubNub Kotlin Multiplatform Chat SDK repository (JS Target)](https://github.com/pubnub/kmp-chat/tree/master/js-chat).
 This repository is no longer being updated.
 
-!!!!!!!!!!
+⚠️⚠️⚠️
 
 # PubNub JavaScript Chat SDK
 
